@@ -1,7 +1,7 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -29,31 +29,32 @@
 
 typedef struct _YJ1_TreeNode
 {
-	unsigned char   value;
-	unsigned char   leaf;
-	unsigned short  level;
-	unsigned int    weight;
+	unsigned char   value;         // 节点值？
+	unsigned char   leaf;          // 子节点？
+	unsigned short  level;         // 当前节点级别？
+	unsigned int    weight;        // 重量
 
-	struct _YJ1_TreeNode *parent;
-	struct _YJ1_TreeNode *left;
-	struct _YJ1_TreeNode *right;
+	struct _YJ1_TreeNode* parent;  // 父节点？
+	struct _YJ1_TreeNode* left;    // 左节点？
+	struct _YJ1_TreeNode* right;   // 右节点？
 } YJ1_TreeNode;
 
 typedef struct _YJ1_TreeNodeList
 {
-	YJ1_TreeNode *node;
-	struct _YJ1_TreeNodeList *next;
+	YJ1_TreeNode* node;
+	struct _YJ1_TreeNodeList* next;
 } YJ1_TreeNodeList;
 
+// YJ_1文件头：
 typedef struct _YJ_1_FILEHEADER
 {
-	unsigned int   Signature;          // 'YJ_1'
-	unsigned int   UncompressedLength; // size before compression
-	unsigned int   CompressedLength;   // size after compression
-	unsigned short BlockCount;       // number of blocks
-	unsigned char Unknown;
-	unsigned char HuffmanTreeLength; // length of huffman tree
-} YJ_1_FILEHEADER, *PYJ_1_FILEHEADER;
+	unsigned int   Signature;          // YJ_1文件标识'YJ_1'
+	unsigned int   UncompressedLength; // 压缩前长度（一般压缩前是SMKF结构）
+	unsigned int   CompressedLength;   // 压缩后长度
+	unsigned short BlockCount;         // 划分为16K块的数目
+	unsigned char Unknown;             // 未知数据，可能仅为填充使用
+	unsigned char HuffmanTreeLength;   // HUFFMAN编码树的长度，为实际存储长度的1/2
+} YJ_1_FILEHEADER, * PYJ_1_FILEHEADER;
 
 typedef struct _YJ_1_BLOCKHEADER
 {
@@ -64,16 +65,16 @@ typedef struct _YJ_1_BLOCKHEADER
 	unsigned char LZSSRepeatCodeLengthTable[3];
 	unsigned char CodeCountCodeLengthTable[3];
 	unsigned char CodeCountTable[2];
-} YJ_1_BLOCKHEADER, *PYJ_1_BLOCKHEADER;
+} YJ_1_BLOCKHEADER, * PYJ_1_BLOCKHEADER;
 
 static unsigned int
-	yj1_get_bits(
-	const void *src,
-	unsigned int *bitptr,
+yj1_get_bits(
+	const void* src,
+	unsigned int* bitptr,
 	unsigned int count
-	)
+)
 {
-	unsigned char *temp = ((unsigned char *)src) + ((*bitptr >> 4) << 1);
+	unsigned char* temp = ((unsigned char*)src) + ((*bitptr >> 4) << 1);
 	unsigned int bptr = *bitptr & 0xf;
 	unsigned short mask;
 	*bitptr += count;
@@ -88,11 +89,11 @@ static unsigned int
 }
 
 static unsigned short
-	yj1_get_loop(
-	const void *src,
-	unsigned int *bitptr,
+yj1_get_loop(
+	const void* src,
+	unsigned int* bitptr,
 	PYJ_1_BLOCKHEADER header
-	)
+)
 {
 	if (yj1_get_bits(src, bitptr, 1))
 		return header->CodeCountTable[0];
@@ -107,11 +108,11 @@ static unsigned short
 }
 
 static unsigned short
-	yj1_get_count(
-	const void *src,
-	unsigned int *bitptr,
+yj1_get_count(
+	const void* src,
+	unsigned int* bitptr,
 	PYJ_1_BLOCKHEADER header
-	)
+)
 {
 	unsigned short temp;
 	if ((temp = yj1_get_bits(src, bitptr, 2)) != 0)
@@ -126,17 +127,17 @@ static unsigned short
 }
 
 INT
-	YJ1_Decompress(
+YJ1_Decompress(
 	LPCVOID       Source,
 	LPVOID        Destination,
 	INT           DestSize
-	)
+)
 {
 	PYJ_1_FILEHEADER hdr = (PYJ_1_FILEHEADER)Source;
-	unsigned char *src = (unsigned char *)Source;
-	unsigned char *dest;
+	unsigned char* src = (unsigned char*)Source;
+	unsigned char* dest;
 	unsigned int i;
-	YJ1_TreeNode *root, *node;
+	YJ1_TreeNode* root, * node;
 
 	if (Source == NULL)
 		return -1;
@@ -149,9 +150,9 @@ INT
 	{
 		unsigned short tree_len = ((unsigned short)hdr->HuffmanTreeLength) * 2;
 		unsigned int bitptr = 0;
-		unsigned char *flag = (unsigned char *)src + 16 + tree_len;
+		unsigned char* flag = (unsigned char*)src + 16 + tree_len;
 
-		if ((node = root = (YJ1_TreeNode *)malloc(sizeof(YJ1_TreeNode) * (tree_len + 1))) == NULL)
+		if ((node = root = (YJ1_TreeNode*)malloc(sizeof(YJ1_TreeNode) * (tree_len + 1))) == NULL)
 			return -1;
 		root[0].leaf = 0;
 		root[0].value = 0;
@@ -172,7 +173,7 @@ INT
 		src += 16 + tree_len + (((tree_len & 0xf) ? (tree_len >> 4) + 1 : (tree_len >> 4)) << 1);
 	} while (0);
 
-	dest = (unsigned char *)Destination;
+	dest = (unsigned char*)Destination;
 
 	for (i = 0; i < SDL_SwapLE16(hdr->BlockCount); i++)
 	{
@@ -227,7 +228,7 @@ INT
 				}
 			}
 		}
-		src = ((unsigned char *)header) + SDL_SwapLE16(header->CompressedLength);
+		src = ((unsigned char*)header) + SDL_SwapLE16(header->CompressedLength);
 	}
 	free(root);
 
@@ -240,15 +241,15 @@ typedef struct _YJ2_TreeNode
 {
 	unsigned short      weight;
 	unsigned short      value;
-	struct _YJ2_TreeNode   *parent;
-	struct _YJ2_TreeNode   *left;
-	struct _YJ2_TreeNode   *right;
+	struct _YJ2_TreeNode* parent;
+	struct _YJ2_TreeNode* left;
+	struct _YJ2_TreeNode* right;
 } YJ2_TreeNode;
 
 typedef struct _YJ2_Tree
 {
-	YJ2_TreeNode    *node;
-	YJ2_TreeNode   **list;
+	YJ2_TreeNode* node;
+	YJ2_TreeNode** list;
 } YJ2_Tree;
 
 static unsigned char yj2_data1[0x100] =
@@ -315,14 +316,14 @@ static void yj2_adjust_tree(YJ2_Tree tree, unsigned short value)
 	node->weight++;
 }
 
-static int yj2_build_tree(YJ2_Tree *tree)
+static int yj2_build_tree(YJ2_Tree* tree)
 {
 	int i, ptr;
 	YJ2_TreeNode** list;
 	YJ2_TreeNode* node;
-	if ((tree->list = list = (YJ2_TreeNode **)malloc(sizeof(YJ2_TreeNode*) * 321)) == NULL)
+	if ((tree->list = list = (YJ2_TreeNode**)malloc(sizeof(YJ2_TreeNode*) * 321)) == NULL)
 		return 0;
-	if ((tree->node = node = (YJ2_TreeNode *)malloc(sizeof(YJ2_TreeNode) * 641)) == NULL)
+	if ((tree->node = node = (YJ2_TreeNode*)malloc(sizeof(YJ2_TreeNode) * 641)) == NULL)
 	{
 		free(list);
 		return 0;
@@ -354,11 +355,11 @@ static int yj2_bt(const unsigned char* data, unsigned int pos)
 
 
 INT
-	YJ2_Decompress(
+YJ2_Decompress(
 	LPCVOID       Source,
 	LPVOID        Destination,
 	INT           DestSize
-	)
+)
 {
 	int Length;
 	unsigned int len = 0, ptr = 0;
@@ -432,4 +433,4 @@ INT
 	return Length;
 }
 
-INT (*Decompress)(LPCVOID, LPVOID, INT);
+INT(*Decompress)(LPCVOID, LPVOID, INT);

@@ -1,7 +1,7 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -45,8 +45,8 @@ typedef enum tagPALCFG_ITEM
 	PALCFG_ENABLEKEYREPEAT,
 	PALCFG_USETOUCHOVERLAY,
 	PALCFG_ENABLEAVIPLAY,
-    PALCFG_ENABLEGLSL,
-    PALCFG_ENABLEHDR,
+	PALCFG_ENABLEGLSL,
+	PALCFG_ENABLEHDR,
 	/* Booleans */
 	PALCFG_BOOLEAN_MAX,
 
@@ -68,8 +68,8 @@ typedef enum tagPALCFG_ITEM
 	PALCFG_SOUNDVOLUME,
 	PALCFG_WINDOWHEIGHT,
 	PALCFG_WINDOWWIDTH,
-    PALCFG_TEXTUREHEIGHT,
-    PALCFG_TEXTUREWIDTH,
+	PALCFG_TEXTUREHEIGHT,
+	PALCFG_TEXTUREWIDTH,
 	/* Unsigneds */
 	PALCFG_UNSIGNED_MAX,
 
@@ -77,8 +77,8 @@ typedef enum tagPALCFG_ITEM
 	/* Strings */
 	PALCFG_CD = PALCFG_STRING_MIN,
 	PALCFG_GAMEPATH,
-    PALCFG_SAVEPATH,
-    PALCFG_SHADERPATH,
+	PALCFG_SAVEPATH,
+	PALCFG_SHADERPATH,
 	PALCFG_MESSAGEFILE,
 	PALCFG_FONTFILE,
 	PALCFG_MUSIC,
@@ -117,7 +117,7 @@ typedef struct tagConfigItem
 {
 	PALCFG_ITEM        Item;
 	PALCFG_TYPE        Type;
-	const char*        Name;
+	const char* Name;
 	int                NameLength;
 	const ConfigValue  DefaultValue;
 	const ConfigValue  MinValue;
@@ -131,9 +131,19 @@ typedef struct tagSCREENLAYOUT
 	PAL_POS          EquipItemName;
 	PAL_POS          EquipItemAmount;
 	PAL_POS          EquipLabels[MAX_PLAYER_EQUIPMENTS];
+	PAL_POS          EquipPosNames[MAX_PLAYER_EQUIPMENTS];
 	PAL_POS          EquipNames[MAX_PLAYER_EQUIPMENTS];
 	PAL_POS          EquipStatusLabels[5];
-	PAL_POS          EquipStatusValues[5];
+	PAL_POS          EquipStatusAttrName[8];
+	PAL_POS          EquipStatusValues[8];
+
+	// 五灵抗性文本和值的坐标
+	PAL_POS          SpiritsResistance;
+	PAL_POS          SpiritsResistanceValues[5];
+
+	// 毒物巫抗性文本和值的坐标
+	PAL_POS          OtherResistance[4];
+	PAL_POS          OtherResistanceValues[4];
 
 	PAL_POS          RoleName;
 	PAL_POS          RoleImage;
@@ -141,6 +151,7 @@ typedef struct tagSCREENLAYOUT
 	PAL_POS          RoleLevelLabel;
 	PAL_POS          RoleHPLabel;
 	PAL_POS          RoleMPLabel;
+	PAL_POS          RoleSPLabel;            // 新增：精力标签坐标
 	PAL_POS          RoleStatusLabels[5];
 	PAL_POS          RoleCurrExp;
 	PAL_POS          RoleNextExp;
@@ -152,6 +163,8 @@ typedef struct tagSCREENLAYOUT
 	PAL_POS          RoleCurMP;
 	PAL_POS          RoleMaxMP;
 	PAL_POS          RoleMPSlash;
+	PAL_POS          RoleCurSP;             // 新增：当前精力值
+	PAL_POS          RoleMaxSP;             // 新增：最大精力值
 	PAL_POS          RoleStatusValues[5];
 	PAL_POS          RoleEquipImageBoxes[MAX_PLAYER_EQUIPMENTS];
 	PAL_POS          RoleEquipNames[MAX_PLAYER_EQUIPMENTS];
@@ -180,21 +193,21 @@ typedef struct tagCONFIGURATION
 	}                ScreenLayoutFlag[sizeof(SCREENLAYOUT) / sizeof(PAL_POS)];
 
 	/* Configurable options */
-	char            *pszGamePath;
-	char            *pszSavePath;
-    char            *pszShaderPath;
-	char            *pszMsgFile;
-	char            *pszFontFile;
-	char            *pszMIDIClient;
-	char            *pszSoundBank;
-	char            *pszLogFile;
-	char            *pszScaleQuality;
-	char            *pszShader;
+	char* pszGamePath;
+	char* pszSavePath;
+	char* pszShaderPath;
+	char* pszMsgFile;
+	char* pszFontFile;
+	char* pszMIDIClient;
+	char* pszSoundBank;
+	char* pszLogFile;
+	char* pszScaleQuality;
+	char* pszShader;
 	DWORD            dwWordLength;
 	DWORD            dwScreenWidth;
 	DWORD            dwScreenHeight;
-    DWORD            dwTextureWidth;
-    DWORD            dwTextureHeight;
+	DWORD            dwTextureWidth;
+	DWORD            dwTextureHeight;
 	INT              iAudioDevice;
 	INT              iSurroundOPLOffset;
 	INT              iAudioChannels;
@@ -221,13 +234,13 @@ typedef struct tagCONFIGURATION
 	BOOL             fUseTouchOverlay;
 	BOOL             fEnableAviPlay;
 	BOOL             fEnableGLSL;
-    BOOL             fEnableHDR;
+	BOOL             fEnableHDR;
 #if USE_RIX_EXTRA_INIT
-	uint32_t        *pExtraFMRegs;
-	uint8_t         *pExtraFMVals;
+	uint32_t* pExtraFMRegs;
+	uint8_t* pExtraFMVals;
 	uint32_t         dwExtraLength;
 #endif
-} CONFIGURATION, *LPCONFIGURATION;
+} CONFIGURATION, * LPCONFIGURATION;
 
 PAL_C_LINKAGE_BEGIN
 
@@ -248,14 +261,14 @@ PAL_FreeConfig(
 	void
 );
 
-const char *
+const char*
 PAL_ConfigName(
 	PALCFG_ITEM item
 );
 
 PALCFG_ITEM
 PAL_ConfigIndex(
-	const char *name
+	const char* name
 );
 
 PALCFG_TYPE
@@ -266,7 +279,7 @@ PAL_ConfigType(
 BOOL
 PAL_LimitConfig(
 	PALCFG_ITEM item,
-	ConfigValue * pValue
+	ConfigValue* pValue
 );
 
 ConfigValue
@@ -305,7 +318,7 @@ PAL_GetConfigUnsigned(
 	BOOL        default_value
 );
 
-const char *
+const char*
 PAL_GetConfigString(
 	PALCFG_ITEM item,
 	BOOL        default_value
@@ -338,7 +351,7 @@ PAL_SetConfigUnsigned(
 BOOL
 PAL_SetConfigString(
 	PALCFG_ITEM item,
-	const char *value
+	const char* value
 );
 
 PAL_C_LINKAGE_END

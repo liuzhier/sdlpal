@@ -1,7 +1,7 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -28,21 +28,25 @@ PAL_C_LINKAGE_BEGIN
 
 WORD
 PAL_MagicSelectionMenuUpdate(
-   VOID
+	VOID
 );
 
 VOID
 PAL_MagicSelectionMenuInit(
-   WORD         wPlayerRole,
-   BOOL         fInBattle,
-   WORD         wDefaultMagic
+#if defined(PAL_NEW_MAGICCLASSIFY)
+	SHORT         wPlayerRole
+#else
+	WORD         wPlayerRole,
+	BOOL         fInBattle,
+	WORD         wDefaultMagic
+#endif
 );
 
 WORD
 PAL_MagicSelectionMenu(
-   WORD         wPlayerRole,
-   BOOL         fInBattle,
-   WORD         wDefaultMagic
+	WORD         wPlayerRole,
+	BOOL         fInBattle,
+	WORD         wDefaultMagic
 );
 
 PAL_C_LINKAGE_END

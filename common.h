@@ -1,7 +1,7 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -31,6 +31,23 @@
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+
+// 随机习得仙术
+//#define PAL_NEW_ROOLMAGIC           1
+
+// 允许切换场景时的前置身位
+#define PAL_WalkDuringSceneSwitching           1
+
+// 队员ID
+typedef enum tagPlayerRoleID
+{
+	RoleID_LiXiaoYao = 0,
+	RoleID_ZhaoLingEr = 1,
+	RoleID_LinYueRu = 2,
+	RoleID_WuHou = 3,
+	RoleID_ANu = 4,
+	RoleID_GaiLuoJiao = 5,
+} PlayerRoleID;
 
 #include <wchar.h>
 #include <stdio.h>
@@ -113,7 +130,7 @@
 
 # ifndef _LPCBYTE_DEFINED
 #  define _LPCBYTE_DEFINED
-typedef const BYTE *LPCBYTE;
+typedef const BYTE* LPCBYTE;
 # endif
 
 # define PAL_MAX_PATH  MAX_PATH
@@ -138,26 +155,26 @@ typedef wchar_t             WCHAR;
 typedef short               SHORT;
 typedef long                LONG;
 
-typedef unsigned long       ULONG, *PULONG;
-typedef unsigned short      USHORT, *PUSHORT;
-typedef unsigned char       UCHAR, *PUCHAR;
+typedef unsigned long       ULONG, * PULONG;
+typedef unsigned short      USHORT, * PUSHORT;
+typedef unsigned char       UCHAR, * PUCHAR;
 
-typedef unsigned short      WORD, *LPWORD;
-typedef unsigned int        DWORD, *LPDWORD;
-typedef int                 INT, *LPINT;
+typedef unsigned short      WORD, * LPWORD;
+typedef unsigned int        DWORD, * LPDWORD;
+typedef int                 INT, * LPINT;
 # if !defined( __APPLE__ ) && !defined( GEKKO )
-typedef int                 BOOL, *LPBOOL;
+typedef int                 BOOL, * LPBOOL;
 # endif
-typedef unsigned int        UINT, *PUINT, UINT32, *PUINT32;
-typedef unsigned char       BYTE, *LPBYTE;
-typedef const BYTE         *LPCBYTE;
-typedef float               FLOAT, *LPFLOAT;
-typedef void               *LPVOID;
-typedef const void         *LPCVOID;
-typedef CHAR               *LPSTR;
-typedef const CHAR         *LPCSTR;
-typedef WCHAR              *LPWSTR;
-typedef const WCHAR        *LPCWSTR;
+typedef unsigned int        UINT, * PUINT, UINT32, * PUINT32;
+typedef unsigned char       BYTE, * LPBYTE;
+typedef const BYTE* LPCBYTE;
+typedef float               FLOAT, * LPFLOAT;
+typedef void* LPVOID;
+typedef const void* LPCVOID;
+typedef CHAR* LPSTR;
+typedef const CHAR* LPCSTR;
+typedef WCHAR* LPWSTR;
+typedef const WCHAR* LPCWSTR;
 
 #ifdef PATH_MAX
 # define PAL_MAX_PATH  PATH_MAX
@@ -177,7 +194,7 @@ typedef const WCHAR        *LPCWSTR;
 # define PAL_C_LINKAGE_END
 #endif
 
-/* When porting SDLPAL to a new platform, please make a separate directory and put a file 
+/* When porting SDLPAL to a new platform, please make a separate directory and put a file
    named 'pal_config.h' that contains marco definitions & header includes into the directory.
    The example of this file can be found in directories of existing portings.
  */
@@ -203,7 +220,7 @@ typedef const WCHAR        *LPCWSTR;
 # define PAL_DEFAULT_TEXTURE_HEIGHT    PAL_DEFAULT_WINDOW_HEIGHT
 #endif
 
-/* Default for 1024 samples */
+ /* Default for 1024 samples */
 #ifndef PAL_AUDIO_DEFAULT_BUFFER_SIZE
 # define PAL_AUDIO_DEFAULT_BUFFER_SIZE   1024
 #endif
@@ -283,10 +300,12 @@ typedef enum tagLOGLEVEL
 #define PAL_MAX_GLOBAL_BUFFERS 4
 #define PAL_GLOBAL_BUFFER_SIZE 1024
 
-//
+// 
 // PAL_PATH_SEPARATORS contains all vaild path separators under a specific OS
 // If you define this constant, please put the default separator at first.
-//
+// PAL_PATH_PARATORS包含特定操作系统下的所有有效路径分隔符
+// 如果定义此常量，请首先使用默认分隔符。
+// 
 #ifndef PAL_PATH_SEPARATORS
 # define PAL_PATH_SEPARATORS "/"
 #endif

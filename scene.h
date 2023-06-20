@@ -1,7 +1,7 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -28,35 +28,35 @@ PAL_C_LINKAGE_BEGIN
 
 VOID
 PAL_ApplyWave(
-   SDL_Surface    *lpSurface
+	SDL_Surface* lpSurface
 );
 
 VOID
 PAL_MakeScene(
-   VOID
+	VOID
 );
 
 BOOL
 PAL_CheckObstacle(
-   PAL_POS         pos,
-   BOOL            fCheckEventObjects,
-   WORD            wSelfObject
+	PAL_POS         pos,
+	BOOL            fCheckEventObjects,
+	WORD            wSelfObject
 );
 
 VOID
 PAL_UpdatePartyGestures(
-   BOOL             fWalking
+	BOOL             fWalking
 );
 
 VOID
 PAL_UpdateParty(
-   VOID
+	VOID
 );
 
 VOID
 PAL_NPCWalkOneStep(
-   WORD          wEventObjectID,
-   INT           iSpeed
+	WORD          wEventObjectID,
+	INT           iSpeed
 );
 
 PAL_C_LINKAGE_END

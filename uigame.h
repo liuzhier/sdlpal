@@ -1,7 +1,7 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -27,74 +27,113 @@
 
 PAL_C_LINKAGE_BEGIN
 
+// 最大存档个数
+#define MAX_SAVE_NUMBER              8
+#define SAVE_NUMBEROFFAST            9
+#define SAVE_NUMBEROFAUTO            10
+#define SAVE_COMPLETIONPROMPT        16
+#define MAX_DIFFICULTY_MAX           3
+
+static LPCWSTR
+menuTextContent[SAVE_NUMBEROFAUTO] = {
+	L"梦境一", L"梦境二", L"梦境三", L"梦境四", L"梦境五",
+	L"梦境六", L"梦境七", L"梦境八", L"自动记忆", L"便捷记忆"
+};
+
+// 定义灵抗颜色
+static NUMCOLOR magicsResistanceColor[NUM_MAGIC_ELEMENTAL] = {
+	kNumColorCyan,
+	kNumColorBlue,
+	kNumColorYellow,
+	kNumColorRed,
+	kNumColorPink
+};
+
 VOID
 PAL_DrawOpeningMenuBackground(
-   VOID
+	VOID
 );
 
+// 开始菜单
 INT
 PAL_OpeningMenu(
-   VOID
+	VOID
 );
 
 INT
 PAL_SaveSlotMenu(
-   WORD        wDefaultSlot
+	WORD        wDefaultSlot
 );
 
 WORD
 PAL_TripleMenu(
-   WORD  wThirdWord
+	WORD  wThirdWord
 );
 
 BOOL
 PAL_ConfirmMenu(
-   VOID
+	VOID
+);
+
+WORD
+PAL_New_ConfirmMenu(
+	VOID
 );
 
 BOOL
 PAL_SwitchMenu(
-   BOOL      fEnabled
+	BOOL      fEnabled
 );
 
 VOID
 PAL_InGameMagicMenu(
-   VOID
+	VOID
 );
 
 VOID
 PAL_InGameMenu(
-   VOID
+	VOID
 );
 
+// 队员状态页面
 VOID
 PAL_PlayerStatus(
-   VOID
+	VOID
 );
 
 WORD
 PAL_ItemUseMenu(
-   WORD           wItemToUse
+	WORD           wItemToUse
 );
 
 VOID
 PAL_BuyMenu(
-   WORD           wStoreNum
+	WORD           wStoreNum
 );
 
 VOID
 PAL_SellMenu(
-   VOID
+	VOID
 );
 
 VOID
 PAL_EquipItemMenu(
-   WORD           wItem
+	WORD           wItem
 );
 
 VOID
 PAL_QuitGame(
-   VOID
+	VOID
+);
+
+VOID
+PAL_FastSaveGame(
+	BOOL           IsAutoSave
+);
+
+WORD
+PAL_New_GameDifficultyMenu(
+	VOID
 );
 
 PAL_C_LINKAGE_END

@@ -1,7 +1,7 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -27,30 +27,31 @@
 
 typedef enum tagBATTLEUISTATE
 {
-   kBattleUIWait,
-   kBattleUISelectMove,
-   kBattleUISelectTargetEnemy,
-   kBattleUISelectTargetPlayer,
-   kBattleUISelectTargetEnemyAll,
-   kBattleUISelectTargetPlayerAll,
+	kBattleUIWait,
+	kBattleUISelectMove,
+	kBattleUISelectTargetEnemy,
+	kBattleUISelectTargetPlayer,
+	kBattleUISelectTargetEnemyAll,
+	kBattleUISelectTargetPlayerAll,
 } BATTLEUISTATE;
 
 typedef enum tagBATTLEMENUSTATE
 {
-   kBattleMenuMain,
-   kBattleMenuMagicSelect,
-   kBattleMenuUseItemSelect,
-   kBattleMenuThrowItemSelect,
-   kBattleMenuMisc,
-   kBattleMenuMiscItemSubMenu,
+	kBattleMenuMain,
+	kBattleMenuMagicSelect,
+	kBattleMenuUseItemSelect,
+	kBattleMenuThrowItemSelect,
+	kBattleMenuMisc,
+	kBattleMenuMiscItemSubMenu,
+	kBattleMenueQuipmentItemSelect,
 } BATTLEMENUSTATE;
 
 typedef enum tagBATTLEUIACTION
 {
-   kBattleUIActionAttack,
-   kBattleUIActionMagic,
-   kBattleUIActionCoopMagic,
-   kBattleUIActionMisc,
+	kBattleUIActionAttack,
+	kBattleUIActionMagic,
+	kBattleUIActionCoopMagic,
+	kBattleUIActionMisc,
 } BATTLEUIACTION;
 
 #define SPRITENUM_BATTLEICON_ATTACK      40
@@ -71,6 +72,7 @@ typedef enum tagBATTLEUIACTION
 #define BATTLEUI_LABEL_FLEE              59
 #define BATTLEUI_LABEL_STATUS            60
 
+#define BATTLEUI_LABEL_EQUIP             22
 #define BATTLEUI_LABEL_USEITEM           23
 #define BATTLEUI_LABEL_THROWITEM         24
 
@@ -82,69 +84,95 @@ typedef enum tagBATTLEUIACTION
 
 typedef struct tagSHOWNUM
 {
-   WORD             wNum;
-   PAL_POS          pos;
-   DWORD            dwTime;
-   NUMCOLOR         color;
+	//WORD             wNum;
+	INT              wNum;
+	PAL_POS          pos;
+	DWORD            dwTime;
+	NUMCOLOR         color;
 } SHOWNUM;
 
 typedef struct tagBATTLEUI
 {
-   BATTLEUISTATE    state;
-   BATTLEMENUSTATE  MenuState;
+	BATTLEUISTATE    state;
+	BATTLEMENUSTATE  MenuState;
 
-   WCHAR            szMsg[256];           // message to be shown on the screen
-   WCHAR            szNextMsg[256];       // next message to be shown on the screen
-   DWORD            dwMsgShowTime;        // the end time of showing the message
-   WORD             wNextMsgDuration;     // duration of the next message
+	WCHAR            szMsg[256];           // message to be shown on the screen
+	WCHAR            szNextMsg[256];       // next message to be shown on the screen
+	DWORD            dwMsgShowTime;        // the end time of showing the message
+	WORD             wNextMsgDuration;     // duration of the next message
 
-   WORD             wCurPlayerIndex;      // index of the current player
-   WORD             wSelectedAction;      // current selected action
-   INT              iSelectedIndex;       // current selected index of player or enemy
-   INT              iPrevEnemyTarget;     // previous enemy target
+	WORD             wCurPlayerIndex;      // index of the current player
+	WORD             wSelectedAction;      // current selected action
+	INT              iSelectedIndex;       // current selected index of player or enemy
+	INT              iPrevEnemyTarget;     // previous enemy target
 
-   WORD             wActionType;          // type of action to be performed
-   WORD             wObjectID;            // object ID of the item or magic to use
+	WORD             wActionType;          // type of action to be performed
+	WORD             wObjectID;            // object ID of the item or magic to use
 
-   BOOL             fAutoAttack;          // TRUE if auto attack
+	BOOL             fAutoAttack;          // TRUE if auto attack
 
-   SHOWNUM          rgShowNum[BATTLEUI_MAX_SHOWNUM];
+	SHOWNUM          rgShowNum[BATTLEUI_MAX_SHOWNUM];
 } BATTLEUI;
 
 PAL_C_LINKAGE_BEGIN
 
 VOID
 PAL_PlayerInfoBox(
-   PAL_POS         pos,
-   WORD            wPlayerRole,
-   INT             iTimeMeter,
-   BYTE            bTimeMeterColor,
-   BOOL            fUpdate
+	PAL_POS         pos,
+	WORD            wPlayerRole,
+	INT             iTimeMeter,
+	BYTE            bTimeMeterColor,
+	BOOL            fUpdate
 );
 
+// 在战斗中显示文本消息
 VOID
 PAL_BattleUIShowText(
-   LPCWSTR       lpszText,
-   WORD          wDuration
+	LPCWSTR       lpszText,
+	WORD          wDuration
 );
 
+// 启动指定玩家的动作选择菜单（攻击 仙术 合击 杂项菜单）
 VOID
 PAL_BattleUIPlayerReady(
-   WORD          wPlayerIndex
+	WORD          wPlayerIndex
 );
 
+// 更新战斗UI的状态
 VOID
 PAL_BattleUIUpdate(
-   VOID
+	VOID
 );
 
+// 在战斗屏幕上显示一个数字（表示HP/MP变化）
 VOID
 PAL_BattleUIShowNum(
-   WORD           wNum,
-   PAL_POS        pos,
-   NUMCOLOR       color
+	INT            wNum,
+	PAL_POS        pos,
+	NUMCOLOR       color
+);
+
+// 在战斗中透视血量等抗性
+VOID
+PAL_New_BattleUIShowData(
+	VOID
+);
+
+// 在战斗中透视敌方属性
+VOID
+PAL_New_EnemyStatus(
+	VOID
+);
+
+// 在战斗中透视我方仙术所需修行
+VOID
+PAL_New_PlayerLevelmagic(
+	VOID
 );
 
 PAL_C_LINKAGE_END
 
+#ifdef __cplusplus
+}
+#endif
 #endif

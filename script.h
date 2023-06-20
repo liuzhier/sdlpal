@@ -1,7 +1,7 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -30,14 +30,15 @@ PAL_C_LINKAGE_BEGIN
 
 WORD
 PAL_RunTriggerScript(
-   WORD           wScriptEntry,
-   WORD           wEventObjectID
+	WORD           wScriptEntry,
+	WORD           wEventObjectID,
+	BOOL           bOnceOnly
 );
 
 WORD
 PAL_RunAutoScript(
-   WORD           wScriptEntry,
-   WORD           wEventObjectID
+	WORD           wScriptEntry,
+	WORD           wEventObjectID
 );
 
 extern BOOL       g_fScriptSuccess;

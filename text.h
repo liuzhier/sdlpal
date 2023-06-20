@@ -1,7 +1,7 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -26,54 +26,54 @@
 
 typedef enum tagDIALOGPOSITION
 {
-   kDialogUpper       = 0,
-   kDialogCenter,
-   kDialogLower,
-   kDialogCenterWindow
+	kDialogUpper = 0,
+	kDialogCenter,
+	kDialogLower,
+	kDialogCenterWindow
 } DIALOGLOCATION;
 
 typedef enum tagFONTFLAVOR
 {
-   kFontFlavorAuto     = 0,
-   kFontFlavorUnifont,
-   kFontFlavorSimpChin,
-   kFontFlavorTradChin,
-   kFontFlavorJapanese,
+	kFontFlavorAuto = 0,
+	kFontFlavorUnifont,
+	kFontFlavorSimpChin,
+	kFontFlavorTradChin,
+	kFontFlavorJapanese,
 } FONTFLAVOR;
 
 PAL_C_LINKAGE_BEGIN
 
 typedef struct tagTEXTLIB
 {
-    LPWSTR         *lpWordBuf;
-    LPWSTR         *lpMsgBuf;
-    int           ***lpIndexBuf; 
-	
-	int            *indexMaxCounter;
+	LPWSTR* lpWordBuf;
+	LPWSTR* lpMsgBuf;
+	int*** lpIndexBuf;
+
+	int* indexMaxCounter;
 	// The variable indexMaxCounter stores the value of (item->indexEnd - item->index), 
 	// which means the span between eid and sid. 
-		
-    BOOL            fUseISOFont;
+
+	BOOL            fUseISOFont;
 	int             iFontFlavor;
 
-    int             nWords;
-    int             nMsgs;
-    int             nIndices;
+	int             nWords;
+	int             nMsgs;
+	int             nIndices;
 
-    int             nCurrentDialogLine;
-    BYTE            bCurrentFontColor;
-    PAL_POS         posIcon;
-    PAL_POS         posDialogTitle;
-    PAL_POS         posDialogText;
-    BYTE            bDialogPosition;
-    BYTE            bIcon;
-    int             iDelayTime;
-    INT             iDialogShadow;
-    BOOL            fUserSkip;
-    BOOL            fPlayingRNG;
+	int             nCurrentDialogLine;
+	BYTE            bCurrentFontColor;
+	PAL_POS         posIcon;
+	PAL_POS         posDialogTitle;
+	PAL_POS         posDialogText;
+	BYTE            bDialogPosition;
+	BYTE            bIcon;
+	int             iDelayTime;
+	INT             iDialogShadow;
+	BOOL            fUserSkip;
+	BOOL            fPlayingRNG;
 
-    BYTE            bufDialogIcons[282];
-} TEXTLIB, *LPTEXTLIB;
+	BYTE            bufDialogIcons[282];
+} TEXTLIB, * LPTEXTLIB;
 
 extern TEXTLIB         g_TextLib;
 
@@ -81,119 +81,125 @@ extern LPWSTR g_rcCredits[12];
 
 INT
 PAL_InitText(
-   VOID
+	VOID
 );
 
 VOID
 PAL_FreeText(
-   VOID
+	VOID
 );
 
 LPCWSTR
 PAL_GetWord(
-   int        iNumWord
+	int        iNumWord
 );
 
 LPCWSTR
 PAL_GetMsg(
-   int        iNumMsg
+	int        iNumMsg
 );
 
 int
 PAL_GetMsgNum(
-   int        iIndex,
-   int        iSpan,
-   int        iOrder
+	int        iIndex,
+	int        iSpan,
+	int        iOrder
 );
 
 LPWSTR
 PAL_UnescapeText(
-   LPCWSTR    lpszText
+	LPCWSTR    lpszText
 );
 
 VOID
 PAL_DrawText(
-   LPCWSTR    lpszText,
-   PAL_POS    pos,
-   BYTE       bColor,
-   BOOL       fShadow,
-   BOOL       fUpdate,
-   BOOL       fUse8x8Font
+	LPCWSTR    lpszText,
+	PAL_POS    pos,
+	BYTE       bColor,
+	BOOL       fShadow,
+	BOOL       fUpdate,
+	BOOL       fUse8x8Font
 );
 
 VOID
 PAL_DrawTextUnescape(
-   LPCWSTR    lpszText,
-   PAL_POS    pos,
-   BYTE       bColor,
-   BOOL       fShadow,
-   BOOL       fUpdate,
-   BOOL       fUse8x8Font,
-   BOOL       fUnescape
+	LPCWSTR    lpszText,
+	PAL_POS    pos,
+	BYTE       bColor,
+	BOOL       fShadow,
+	BOOL       fUpdate,
+	BOOL       fUse8x8Font,
+	BOOL       fUnescape
 );
 
 VOID
 PAL_DialogSetDelayTime(
-   INT          iDelayTime
+	INT          iDelayTime
 );
 
 VOID
 PAL_StartDialog(
-   BYTE         bDialogLocation,
-   BYTE         bFontColor,
-   INT          iNumCharFace,
-   BOOL         fPlayingRNG
+	BYTE         bDialogLocation,
+	BYTE         bFontColor,
+	INT          iNumCharFace,
+	BOOL         fPlayingRNG
 );
 
 VOID
 PAL_StartDialogWithOffset(
-   BYTE         bDialogLocation,
-   BYTE         bFontColor,
-   INT          iNumCharFace,
-   BOOL         fPlayingRNG,
-   INT          xOff,
-   INT          yOff
+	BYTE         bDialogLocation,
+	BYTE         bFontColor,
+	INT          iNumCharFace,
+	BOOL         fPlayingRNG,
+	INT          xOff,
+	INT          yOff
 );
 
 int
 TEXT_DisplayText(
-   LPCWSTR        lpszText,
-   int            x,
-   int            y,
-   BOOL           isDialog
+	LPCWSTR        lpszText,
+	int            x,
+	int            y,
+	BOOL           isDialog
 );
 
 VOID
 PAL_ShowDialogText(
-   LPCWSTR    lpszText
+	LPCWSTR    lpszText
+);
+
+VOID
+PAL_ShowDialogTextCenter(
+	LPCWSTR      lpszText,
+	SHORT         wWordNum
 );
 
 VOID
 PAL_ClearDialog(
-   BOOL         fWaitForKey
+	BOOL         fWaitForKey
 );
 
 VOID
 PAL_EndDialog(
-   VOID
+	VOID
 );
 
 BOOL
 PAL_IsInDialog(
-   VOID
+	VOID
 );
 
 BOOL
 PAL_DialogIsPlayingRNG(
-   VOID
+	VOID
 );
 
 INT
 PAL_MultiByteToWideChar(
-   LPCSTR        mbs,
-   int           mbslength,
-   LPWSTR        wcs,
-   int           wcslength
+	LPCSTR        mbs,
+	int           mbslength,
+	LPWSTR        wcs,
+	int           wcslength
 );
 
 INT
@@ -203,11 +209,11 @@ PAL_MultiByteToWideCharCP(
 	size_t        mbslength,
 	LPWSTR        wcs,
 	size_t        wcslength
-	);
+);
 
 WCHAR
 PAL_GetInvalidChar(
-   CODEPAGE      uCodePage
+	CODEPAGE      uCodePage
 );
 
 CODEPAGE
@@ -222,10 +228,10 @@ PAL_SetCodePage(
 
 CODEPAGE
 PAL_DetectCodePageForString(
-	const char *   text,
+	const char* text,
 	size_t         text_len,
 	CODEPAGE       default_cp,
-	int *          probability
+	int* probability
 );
 
 INT

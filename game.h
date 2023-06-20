@@ -1,7 +1,7 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -24,13 +24,14 @@
 
 #include "common.h"
 
-#define    FPS             10
+//#define    FPS             10
+#define    FPS             12
 #define    FRAME_TIME      (1000 / FPS)
 
 PAL_C_LINKAGE
 VOID
 PAL_GameMain(
-   VOID
+	VOID
 );
 
 #endif

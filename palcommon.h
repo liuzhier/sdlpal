@@ -1,7 +1,7 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -38,7 +38,10 @@ typedef DWORD           PAL_POS;
 #define PAL_XY_OFFSET(xy, x, y)    (PAL_POS)(((((INT)(y) << 16) & 0xFFFF0000) + ((xy) & 0xFFFF0000)) | (((INT)(x) & 0xFFFF) + ((xy) & 0xFFFF)))
 
 // maximum number of players in party
-#define     MAX_PLAYERS_IN_PARTY         3
+#define     MAX_PLAYERS_IN_PARTY         4
+
+// 当队伍人数达到4人时使用UI方案二
+#define     MAX_PLAYERS_IN_PARTY_BEFORE  3
 
 // total number of possible player roles
 #define     MAX_PLAYER_ROLES             6
@@ -78,40 +81,42 @@ typedef DWORD           PAL_POS;
 #define     MAX_POISONS                  16
 
 // maximum number of level
-#define     MAX_LEVELS                   99
+//#define     MAX_LEVELS                   99
+#define     MAX_LEVELS                   999
 
 #define     MINIMAL_WORD_COUNT           (MAX_OBJECTS + 13)
 
 #define PAL_CDTRACK_BASE    10000
 
-#define PAL_RLEBUFSIZE	64000
+// 修复：rle内存过小（rgm）
+#define PAL_RLEBUFSIZE	65000
 
 typedef enum tagPALDIRECTION
 {
-   kDirSouth = 0,
-   kDirWest,
-   kDirNorth,
-   kDirEast,
-   kDirUnknown
-} PALDIRECTION, *LPPALDIRECTION;
+	kDirSouth = 0,
+	kDirWest,
+	kDirNorth,
+	kDirEast,
+	kDirUnknown,
+} PALDIRECTION, * LPPALDIRECTION;
 
 typedef enum tagMUSICTYPE
 {
 	MUSIC_MIDI,
 	MUSIC_RIX,
-    MUSIC_MP3,
-    MUSIC_OGG,
+	MUSIC_MP3,
+	MUSIC_OGG,
 	MUSIC_OPUS
-} MUSICTYPE, *LPMUSICTYPE;
+} MUSICTYPE, * LPMUSICTYPE;
 
 typedef enum tagCDTYPE
 {
-    CD_NONE,
-    CD_MP3,
+	CD_NONE,
+	CD_MP3,
 	CD_OGG,
-    CD_OPUS,
+	CD_OPUS,
 	CD_SDLCD
-} CDTYPE, *LPCDTYPE;
+} CDTYPE, * LPCDTYPE;
 
 typedef enum tagMIDISYNTHTYPE
 {
@@ -128,7 +133,7 @@ typedef enum tagCODEPAGE {
 	//CP_JISX0208 = 3,
 	CP_MAX = CP_GBK + 1,
 	CP_UTF_8 = CP_MAX + 1,
-    CP_UCS = CP_UTF_8 + 1,
+	CP_UCS = CP_UTF_8 + 1,
 } CODEPAGE;
 
 typedef enum tagPALFILE {
@@ -157,124 +162,164 @@ typedef enum tagPALFILE {
 	PALFILE_MUSIC_MASK = 0x000c0000,
 } PALFILE;
 
+typedef enum tagPALINCREASEMAX
+{
+	PALINCREASEMAX_HP = (1 << 0),
+	PALINCREASEMAX_MP = (1 << 1),
+	PALINCREASEMAX_SP = (1 << 2),
+} PALINCREASEMAX;
+
+typedef enum tagPALINCREASE
+{
+	PALINCREASE_HP = (1 << 0),
+	PALINCREASE_MP = (1 << 1),
+	PALINCREASE_SP = (1 << 2),
+} PALINCREASE;
+
 #define PAL_MISSING_REQUIRED(x) (((x) & PALFILE_REQUIRED_MASK) != 0)
 #define PAL_MISSING_SOUND(x) (((x) & PALFILE_SOUND_MASK) == PALFILE_SOUND_MASK)
 #define PAL_MISSING_MUSIC(x) (((x) & PALFILE_MUSIC_MASK) == PALFILE_MUSIC_MASK)
 
 PAL_C_LINKAGE_BEGIN
 
+// 绘制rle到屏幕表面
 INT
 PAL_RLEBlitToSurface(
-   LPCBITMAPRLE      lpBitmapRLE,
-   SDL_Surface      *lpDstSurface,
-   PAL_POS           pos
+	LPCBITMAPRLE      lpBitmapRLE,
+	SDL_Surface* lpDstSurface,
+	PAL_POS           pos
 );
 
+// 绘制rle阴影到屏幕表面
 INT
 PAL_RLEBlitToSurfaceWithShadow(
-   LPCBITMAPRLE      lpBitmapRLE,
-   SDL_Surface      *lpDstSurface,
-   PAL_POS           pos,
-   BOOL              bShadow
+	LPCBITMAPRLE      lpBitmapRLE,
+	SDL_Surface* lpDstSurface,
+	PAL_POS           pos,
+	BOOL              bShadow
 );
 
+// 带颜色偏移的像素
 INT
 PAL_RLEBlitWithColorShift(
-   LPCBITMAPRLE      lpBitmapRLE,
-   SDL_Surface      *lpDstSurface,
-   PAL_POS           pos,
-   INT               iColorShift
+	LPCBITMAPRLE      lpBitmapRLE,
+	SDL_Surface* lpDstSurface,
+	PAL_POS           pos,
+	INT               iColorShift
 );
 
+//  单色像素绘制
 INT
 PAL_RLEBlitMonoColor(
-   LPCBITMAPRLE      lpBitmapRLE,
-   SDL_Surface      *lpDstSurface,
-   PAL_POS           pos,
-   BYTE              bColor,
-   INT               iColorShift
+	LPCBITMAPRLE      lpBitmapRLE,
+	SDL_Surface* lpDstSurface,
+	PAL_POS           pos,
+	BYTE              bColor,
+	INT               iColorShift
 );
 
+//  绘制Fbp背景图到屏幕表面
 INT
 PAL_FBPBlitToSurface(
-   LPBYTE            lpBitmapFBP,
-   SDL_Surface      *lpDstSurface
+	LPBYTE            lpBitmapFBP,
+	SDL_Surface* lpDstSurface
 );
 
+//  获取rle宽度
 INT
 PAL_RLEGetWidth(
-   LPCBITMAPRLE      lpBitmapRLE
+	LPCBITMAPRLE      lpBitmapRLE
 );
 
+//  获取rle高度
 INT
 PAL_RLEGetHeight(
-   LPCBITMAPRLE      lpBitmapRLE
+	LPCBITMAPRLE      lpBitmapRLE
 );
 
+//  获取敌方单位的总帧数。
 WORD
 PAL_SpriteGetNumFrames(
-   LPCSPRITE       lpSprite
+	LPCSPRITE       lpSprite
 );
 
+//  获取指向敌方单位帧数的指针。
 LPCBITMAPRLE
 PAL_SpriteGetFrame(
-   LPCSPRITE       lpSprite,
-   INT             iFrameNum
+	LPCSPRITE       lpSprite,
+	INT             iFrameNum
 );
 
+// 获取MKF子区块计数（子区块个数）
 INT
 PAL_MKFGetChunkCount(
-   FILE *fp
+	FILE* fp
 );
 
+// 获取MKF存档中指定的块的大小。
 INT
 PAL_MKFGetChunkSize(
-   UINT    uiChunkNum,
-   FILE   *fp
+	UINT    uiChunkNum,
+	FILE* fp
 );
 
+// 读取MKF区块
 INT
 PAL_MKFReadChunk(
-   LPBYTE          lpBuffer,
-   UINT            uiBufferSize,
-   UINT            uiChunkNum,
-   FILE           *fp
+	LPBYTE          lpBuffer,
+	UINT            uiBufferSize,
+	UINT            uiChunkNum,
+	FILE* fp
 );
 
+// 获取MKF中指定的压缩块解YJ压缩后的大小。
 INT
 PAL_MKFGetDecompressedSize(
-   UINT    uiChunkNum,
-   FILE   *fp
+	UINT    uiChunkNum,
+	FILE* fp
 );
 
+// 为MKF中指定的压缩块解YJ压缩。
 INT
 PAL_MKFDecompressChunk(
-   LPBYTE          lpBuffer,
-   UINT            uiBufferSize,
-   UINT            uiChunkNum,
-   FILE           *fp
+	LPBYTE          lpBuffer,
+	UINT            uiBufferSize,
+	UINT            uiChunkNum,
+	FILE* fp
 );
 
 // From yj1.c:
+// 来自yj1.c：
 extern INT
 (*Decompress)(
-   LPCVOID      Source,
-   LPVOID       Destination,
-   INT          DestSize
-);
+	LPCVOID      Source,
+	LPVOID       Destination,
+	INT          DestSize
+	);
 
+// 解压YJ_1
 INT
 YJ1_Decompress(
-   LPCVOID      Source,
-   LPVOID       Destination,
-   INT          DestSize
+	LPCVOID      Source,
+	LPVOID       Destination,
+	INT          DestSize
 );
 
+// 解压YJ_2
 INT
 YJ2_Decompress(
-   LPCVOID      Source,
-   LPVOID       Destination,
-   INT          DestSize
+	LPCVOID      Source,
+	LPVOID       Destination,
+	INT          DestSize
+);
+
+// 新增：解双重MKF
+LPBYTE
+PAL_New_DoubleMKFGetFrame(
+	LPBYTE          lpBuffer,
+	UINT            uiChunkNum,
+	UINT            uiFrameNum,
+	FILE* fpFireMKF
 );
 
 PAL_C_LINKAGE_END

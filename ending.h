@@ -1,7 +1,7 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -28,30 +28,30 @@ PAL_C_LINKAGE_BEGIN
 
 VOID
 PAL_EndingSetEffectSprite(
-   WORD         wSpriteNum
+	WORD         wSpriteNum
 );
 
 VOID
 PAL_ShowFBP(
-   WORD         wChunkNum,
-   WORD         wFade
+	WORD         wChunkNum,
+	WORD         wFade
 );
 
 VOID
 PAL_ScrollFBP(
-   WORD         wChunkNum,
-   WORD         wScrollSpeed,
-   BOOL         fScrollDown
+	WORD         wChunkNum,
+	WORD         wScrollSpeed,
+	BOOL         fScrollDown
 );
 
 VOID
 PAL_EndingAnimation(
-   VOID
+	VOID
 );
 
 VOID
 PAL_EndingScreen(
-   VOID
+	VOID
 );
 
 PAL_C_LINKAGE_END

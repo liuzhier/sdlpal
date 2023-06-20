@@ -1,7 +1,7 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -21,1780 +21,2447 @@
 
 #include "main.h"
 #include "fight.h"
+#include "enemy.h"
 
-extern WORD g_rgPlayerPos[3][3][2];
+extern WORD g_rgPlayerPos[4][4][2];
 
 static int g_iCurMiscMenuItem = 0;
 static int g_iCurSubMenuItem = 0;
 
 VOID
 PAL_PlayerInfoBox(
-   PAL_POS         pos,
-   WORD            wPlayerRole,
-   INT             iTimeMeter,
-   BYTE            bTimeMeterColor,
-   BOOL            fUpdate
+	PAL_POS         pos,
+	WORD            wPlayerRole,
+	INT             iTimeMeter,
+	BYTE            bTimeMeterColor,
+	BOOL            fUpdate
 )
 /*++
   Purpose:
 
-    Show the player info box.
+	Show the player info box.
 
   Parameters:
 
-    [IN]  pos - the top-left corner position of the box.
+	[IN]  pos - the top-left corner position of the box.
 
-    [IN]  wPlayerRole - the player role ID to be shown.
+	[IN]  wPlayerRole - the player role ID to be shown.
 
-    [IN]  iTimeMeter - the value of time meter. 0 = empty, 100 = full.
+	[IN]  iTimeMeter - the value of time meter. 0 = empty, 100 = full.
 
-    [IN]  bTimeMeterColor - the color of time meter.
+	[IN]  bTimeMeterColor - the color of time meter.
 
-    [IN]  fUpdate - whether to update the screen area or not.
+	[IN]  fUpdate - whether to update the screen area or not.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   SDL_Rect        rect;
-   BYTE            bPoisonColor;
-   int             i, iPartyIndex;
-   WORD            wMaxLevel, w;
+	SDL_Rect        rect;
+	BYTE            bPoisonColor;
+	int             i, iPartyIndex;
+	WORD            wMaxLevel, w;
 
-   const BYTE      rgStatusPos[kStatusAll][2] =
-   {
-      {35, 19},  // confused
-      {44, 12},  // slow
-      {54, 1},   // sleep
-      {55, 20},  // silence
-      {0, 0},    // puppet
-      {0, 0},    // bravery
-      {0, 0},    // protect
-      {0, 0},    // haste
-      {0, 0},    // dualattack
-   };
+	const BYTE      rgStatusPos[kStatusAll][2] =
+	{
+	   {35, 19},  // confused
+	   {44, 12},  // slow
+	   {54, 1},   // sleep
+	   {55, 20},  // silence
+	   {0, 0},    // puppet
+	   {0, 0},    // bravery
+	   {0, 0},    // protect
+	   {0, 0},    // haste
+	   {0, 0},    // dualattack
+	};
 
-   const WORD      rgwStatusWord[kStatusAll] =
-   {
-      0x1D,  // confused
-      0x1B,  // slow
-      0x1C,  // sleep
-      0x1A,  // silence
-      0x00,  // puppet
-      0x00,  // bravery
-      0x00,  // protect
-      0x00,  // haste
-      0x00,  // dualattack
-   };
+	const WORD      rgwStatusWord[kStatusAll] =
+	{
+	   0x1D,  // confused
+	   0x1B,  // slow
+	   0x1C,  // sleep
+	   0x1A,  // silence
+	   0x00,  // puppet
+	   0x00,  // bravery
+	   0x00,  // protect
+	   0x00,  // haste
+	   0x00,  // dualattack
+	};
 
-   const BYTE      rgbStatusColor[kStatusAll] =
-   {
-      0x5F,  // confused
-      0xBF,  // slow
-      0x0E,  // sleep
-      0x3C,  // silence
-      0x00,  // puppet
-      0x00,  // bravery
-      0x00,  // protect
-      0x00,  // haste
-      0x00,  // dualattack
-   };
+	const BYTE      rgbStatusColor[kStatusAll] =
+	{
+	   0x5F,  // confused
+	   0xBF,  // slow
+	   0x0E,  // sleep
+	   0x3C,  // silence
+	   0x00,  // puppet
+	   0x00,  // bravery
+	   0x00,  // protect
+	   0x00,  // haste
+	   0x00,  // dualattack
+	};
 
-   //
-   // Draw the box
-   //
-   PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_PLAYERINFOBOX),
-      gpScreen, pos);
+	//
+	// Draw the box
+	// 绘制队员HMP背景图
+	PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_PLAYERINFOBOX),
+		gpScreen, pos);
 
-   //
-   // Draw the player face
-   //
-   wMaxLevel = 0;
-   bPoisonColor = 0xFF;
+	//
+	// Draw the player face
+	// 绘制队员战斗表情
+	wMaxLevel = 0;
+	bPoisonColor = 0xFF;
 
-   for (iPartyIndex = 0; iPartyIndex <= gpGlobals->wMaxPartyMemberIndex; iPartyIndex++)
-   {
-      if (gpGlobals->rgParty[iPartyIndex].wPlayerRole == wPlayerRole)
-      {
-         break;
-      }
-   }
+	for (iPartyIndex = 0; iPartyIndex <= gpGlobals->wMaxPartyMemberIndex; iPartyIndex++)
+	{
+		if (gpGlobals->rgParty[iPartyIndex].wPlayerRole == wPlayerRole)
+		{
+			break;
+		}
+	}
 
-   if (iPartyIndex <= gpGlobals->wMaxPartyMemberIndex)
-   {
-      for (i = 0; i < MAX_POISONS; i++)
-      {
-         w = gpGlobals->rgPoisonStatus[i][iPartyIndex].wPoisonID;
+	if (iPartyIndex <= gpGlobals->wMaxPartyMemberIndex)
+	{
+		for (i = 0; i < MAX_POISONS; i++)
+		{
+			w = gpGlobals->rgPoisonStatus[i][iPartyIndex].wPoisonID;
 
-         if (w != 0 &&
-            gpGlobals->g.rgObject[w].poison.wPoisonLevel <= 3)
-         {
-            if (gpGlobals->g.rgObject[w].poison.wPoisonLevel >= wMaxLevel)
-            {
-               wMaxLevel = gpGlobals->g.rgObject[w].poison.wPoisonLevel;
-               bPoisonColor = (BYTE)(gpGlobals->g.rgObject[w].poison.wColor);
-            }
-         }
-      }
-   }
+			if (w != 0 &&
+				gpGlobals->g.rgObject[w].poison.wPoisonLevel <= 3)
+			{
+				if (gpGlobals->g.rgObject[w].poison.wPoisonLevel >= wMaxLevel)
+				{
+					wMaxLevel = gpGlobals->g.rgObject[w].poison.wPoisonLevel;
+					bPoisonColor = (BYTE)(gpGlobals->g.rgObject[w].poison.wColor);
+				}
+			}
+		}
+	}
 
-   if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] == 0)
-   {
-      //
-      // Always use the black/white color for dead players
-      // and do not use the time meter
-      //
-      bPoisonColor = 0;
-      iTimeMeter = 0;
-   }
+	if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] == 0)
+	{
+		//
+		// Always use the black/white color for dead players
+		// and do not use the time meter
+		// 对于死亡玩家，始终使用黑/白颜色，不要使用计时器
+		bPoisonColor = 0;
+		iTimeMeter = 0;
+	}
 
-   if (bPoisonColor == 0xFF)
-   {
-      PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_PLAYERFACE_FIRST + wPlayerRole),
-         gpScreen, PAL_XY(PAL_X(pos) - 2, PAL_Y(pos) - 4));
-   }
-   else
-   {
-      PAL_RLEBlitMonoColor(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_PLAYERFACE_FIRST + wPlayerRole),
-         gpScreen, PAL_XY(PAL_X(pos) - 2, PAL_Y(pos) - 4), bPoisonColor, 0);
-   }
+	if (bPoisonColor == 0xFF)
+	{
+		PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_PLAYERFACE_FIRST + wPlayerRole), gpScreen, PAL_XY(PAL_X(pos) - 2, PAL_Y(pos) - 4));
+	}
+	else
+	{
+		PAL_RLEBlitMonoColor(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_PLAYERFACE_FIRST + wPlayerRole), gpScreen, PAL_XY(PAL_X(pos) - 2, PAL_Y(pos) - 4), bPoisonColor, 0);
+	}
 
 #ifndef PAL_CLASSIC
-   //
-   // Draw a border for the Time Meter
-   //
-   rect.x = PAL_X(pos) + 31;
-   rect.y = PAL_Y(pos) + 4;
-   rect.w = 1;
-   rect.h = 6;
-   SDL_FillRect(gpScreen, &rect, 0xBD);
+	//
+	// Draw a border for the Time Meter
+	//
+	rect.x = PAL_X(pos) + 31;
+	rect.y = PAL_Y(pos) + 4;
+	rect.w = 1;
+	rect.h = 6;
+	SDL_FillRect(gpScreen, &rect, 0xBD);
 
-   rect.x += 39;
-   SDL_FillRect(gpScreen, &rect, 0xBD);
+	rect.x += 39;
+	SDL_FillRect(gpScreen, &rect, 0xBD);
 
-   rect.x = PAL_X(pos) + 32;
-   rect.y = PAL_Y(pos) + 3;
-   rect.w = 38;
-   rect.h = 1;
-   SDL_FillRect(gpScreen, &rect, 0xBD);
+	rect.x = PAL_X(pos) + 32;
+	rect.y = PAL_Y(pos) + 3;
+	rect.w = 38;
+	rect.h = 1;
+	SDL_FillRect(gpScreen, &rect, 0xBD);
 
-   rect.y += 7;
-   SDL_FillRect(gpScreen, &rect, 0xBD);
+	rect.y += 7;
+	SDL_FillRect(gpScreen, &rect, 0xBD);
 
-   //
-   // Draw the Time meter bar
-   //
-   if (iTimeMeter >= 100)
-   {
-      rect.x = PAL_X(pos) + 33;
-      rect.y = PAL_Y(pos) + 6;
-      rect.w = 36;
-      rect.h = 2;
-      SDL_FillRect(gpScreen, &rect, 0x2C);
-   }
-   else if (iTimeMeter > 0)
-   {
-      rect.x = PAL_X(pos) + 33;
-      rect.y = PAL_Y(pos) + 5;
-      rect.w = iTimeMeter * 36 / 100;
-      rect.h = 4;
-      SDL_FillRect(gpScreen, &rect, bTimeMeterColor);
-   }
+	//
+	// Draw the Time meter bar
+	//
+	if (iTimeMeter >= 100)
+	{
+		rect.x = PAL_X(pos) + 33;
+		rect.y = PAL_Y(pos) + 6;
+		rect.w = 36;
+		rect.h = 2;
+		SDL_FillRect(gpScreen, &rect, 0x2C);
+	}
+	else if (iTimeMeter > 0)
+	{
+		rect.x = PAL_X(pos) + 33;
+		rect.y = PAL_Y(pos) + 5;
+		rect.w = iTimeMeter * 36 / 100;
+		rect.h = 4;
+		SDL_FillRect(gpScreen, &rect, bTimeMeterColor);
+	}
 #endif
 
-   //
-   // Draw the HP and MP value
-   //
+	//
+	// Draw the HP and MP value
+	// 绘制HMSP值
 #ifdef PAL_CLASSIC
-   PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH), gpScreen,
-      PAL_XY(PAL_X(pos) + 49, PAL_Y(pos) + 6));
-   PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwMaxHP[wPlayerRole], 4,
-      PAL_XY(PAL_X(pos) + 47, PAL_Y(pos) + 8), kNumColorYellow, kNumAlignRight);
-   PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole], 4,
-      PAL_XY(PAL_X(pos) + 26, PAL_Y(pos) + 5), kNumColorYellow, kNumAlignRight);
+	// HP
+	PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH), gpScreen,
+		PAL_XY(PAL_X(pos) + 44, PAL_Y(pos) + 3));
+	PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwMaxHP[wPlayerRole], 4,
+		PAL_XY(PAL_X(pos) + 49, PAL_Y(pos) + 2), kNumColorYellow, kNumAlignRight);
+	PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole], 4,
+		PAL_XY(PAL_X(pos) + 21, PAL_Y(pos) + 2), kNumColorYellow, kNumAlignRight);
 
-   PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH), gpScreen,
-      PAL_XY(PAL_X(pos) + 49, PAL_Y(pos) + 22));
-   PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwMaxMP[wPlayerRole], 4,
-      PAL_XY(PAL_X(pos) + 47, PAL_Y(pos) + 24), kNumColorCyan, kNumAlignRight);
-   PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole], 4,
-      PAL_XY(PAL_X(pos) + 26, PAL_Y(pos) + 21), kNumColorCyan, kNumAlignRight);
+	// MP
+	PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH), gpScreen,
+		PAL_XY(PAL_X(pos) + 44, PAL_Y(pos) + 14));
+	PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwMaxMP[wPlayerRole], 4,
+		PAL_XY(PAL_X(pos) + 49, PAL_Y(pos) + 13), kNumColorCyan, kNumAlignRight);
+	PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole], 4,
+		PAL_XY(PAL_X(pos) + 21, PAL_Y(pos) + 13), kNumColorCyan, kNumAlignRight);
+
+	// SP
+	PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH), gpScreen,
+		PAL_XY(PAL_X(pos) + 44, PAL_Y(pos) + 25));
+	PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwMaxSP[wPlayerRole], 4,
+		PAL_XY(PAL_X(pos) + 49, PAL_Y(pos) + 24), kNumColorGold, kNumAlignRight);
+	PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwSP[wPlayerRole], 4,
+		PAL_XY(PAL_X(pos) + 21, PAL_Y(pos) + 24), kNumColorGold, kNumAlignRight);
 #else
-   PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH), gpScreen,
-      PAL_XY(PAL_X(pos) + 49, PAL_Y(pos) + 14));
-   PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwMaxHP[wPlayerRole], 4,
-      PAL_XY(PAL_X(pos) + 47, PAL_Y(pos) + 16), kNumColorYellow, kNumAlignRight);
-   PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole], 4,
-      PAL_XY(PAL_X(pos) + 26, PAL_Y(pos) + 13), kNumColorYellow, kNumAlignRight);
+	PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH), gpScreen,
+		PAL_XY(PAL_X(pos) + 49, PAL_Y(pos) + 14));
+	PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwMaxHP[wPlayerRole], 4,
+		PAL_XY(PAL_X(pos) + 47, PAL_Y(pos) + 16), kNumColorYellow, kNumAlignRight);
+	PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole], 4,
+		PAL_XY(PAL_X(pos) + 26, PAL_Y(pos) + 13), kNumColorYellow, kNumAlignRight);
 
-   PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH), gpScreen,
-      PAL_XY(PAL_X(pos) + 49, PAL_Y(pos) + 24));
-   PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwMaxMP[wPlayerRole], 4,
-      PAL_XY(PAL_X(pos) + 47, PAL_Y(pos) + 26), kNumColorCyan, kNumAlignRight);
-   PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole], 4,
-      PAL_XY(PAL_X(pos) + 26, PAL_Y(pos) + 23), kNumColorCyan, kNumAlignRight);
+	PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH), gpScreen,
+		PAL_XY(PAL_X(pos) + 49, PAL_Y(pos) + 24));
+	PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwMaxMP[wPlayerRole], 4,
+		PAL_XY(PAL_X(pos) + 47, PAL_Y(pos) + 26), kNumColorCyan, kNumAlignRight);
+	PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole], 4,
+		PAL_XY(PAL_X(pos) + 26, PAL_Y(pos) + 23), kNumColorCyan, kNumAlignRight);
 #endif
 
-   //
-   // Draw Statuses
-   //
-   if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] > 0)
-   {
-      for (i = 0; i < kStatusAll; i++)
-      {
-         if (gpGlobals->rgPlayerStatus[wPlayerRole][i] > 0 &&
-            rgwStatusWord[i] != 0)
-         {
-            PAL_DrawText(PAL_GetWord(rgwStatusWord[i]),
-               PAL_XY(PAL_X(pos) + rgStatusPos[i][0], PAL_Y(pos) + rgStatusPos[i][1]),
-               rgbStatusColor[i], TRUE, FALSE, FALSE);
-         }
-      }
-   }
+	//
+	// Draw Statuses
+	//
+	if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] > 0)
+	{
+		for (i = 0; i < kStatusAll; i++)
+		{
+			if (gpGlobals->rgPlayerStatus[wPlayerRole][i] > 0 &&
+				rgwStatusWord[i] != 0)
+			{
+				PAL_DrawText(PAL_GetWord(rgwStatusWord[i]),
+					PAL_XY(PAL_X(pos) + rgStatusPos[i][0], PAL_Y(pos) + rgStatusPos[i][1]),
+					rgbStatusColor[i], TRUE, FALSE, FALSE);
+			}
+		}
+	}
 
-   //
-   // Update the screen area if needed
-   //
-   if (fUpdate)
-   {
-      rect.x = PAL_X(pos) - 2;
-      rect.y = PAL_Y(pos) - 4;
-      rect.w = 77;
-      rect.h = 39;
+	//
+	// Update the screen area if needed
+	//
+	if (fUpdate)
+	{
+		rect.x = PAL_X(pos) - 2;
+		rect.y = PAL_Y(pos) - 4;
+		rect.w = 77;
+		rect.h = 39;
 
-      VIDEO_UpdateScreen(&rect);
-   }
+		VIDEO_UpdateScreen(&rect);
+	}
 }
 
 static BOOL
 PAL_BattleUIIsActionValid(
-   BATTLEUIACTION         ActionType
+	BATTLEUIACTION         ActionType
 )
 /*++
   Purpose:
 
-    Check if the specified action is valid.
+	Check if the specified action is valid.
+	检查指定的操作是否有效。
 
   Parameters:
 
-    [IN]  ActionType - the type of the action.
+	[IN]  ActionType - the type of the action.
+	操作的类型。
 
   Return value:
 
-    TRUE if the action is valid, FALSE if not.
+	TRUE if the action is valid, FALSE if not.
+	如果操作有效，则为TRUE，否则为FALSE。
 
 --*/
 {
-   WORD     wPlayerRole, w;
-   int      i;
+	WORD     wPlayerRole, w;
+	int      i;
 
-   wPlayerRole = gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole;
+	wPlayerRole = gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole;
 
-   switch (ActionType)
-   {
-   case kBattleUIActionAttack:
-   case kBattleUIActionMisc:
-      break;
+	switch (ActionType)
+	{
+	case kBattleUIActionAttack:
+	case kBattleUIActionMisc:
+		break;
 
-   case kBattleUIActionMagic:
-      if (gpGlobals->rgPlayerStatus[wPlayerRole][kStatusSilence] != 0)
-      {
-         return FALSE;
-      }
-      break;
+	case kBattleUIActionMagic:
+		if (gpGlobals->rgPlayerStatus[wPlayerRole][kStatusSilence] != 0)
+		{
+			return FALSE;
+		}
+		break;
 
-   case kBattleUIActionCoopMagic:
-      if (gpGlobals->wMaxPartyMemberIndex == 0)
-      {
-         return FALSE;
-      }
+	case kBattleUIActionCoopMagic:
+		if (gpGlobals->wMaxPartyMemberIndex == 0)
+		{
+			return FALSE;
+		}
 #ifndef PAL_CLASSIC
-      for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
-      {
-         w = gpGlobals->rgParty[i].wPlayerRole;
+		for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+		{
+			w = gpGlobals->rgParty[i].wPlayerRole;
 
-         if (gpGlobals->g.PlayerRoles.rgwHP[w] < gpGlobals->g.PlayerRoles.rgwMaxHP[w] / 5 ||
-            gpGlobals->rgPlayerStatus[w][kStatusSleep] != 0 ||
-            gpGlobals->rgPlayerStatus[w][kStatusConfused] != 0 ||
-            gpGlobals->rgPlayerStatus[w][kStatusSilence] != 0 ||
-            g_Battle.rgPlayer[i].flTimeMeter < 100 ||
-            g_Battle.rgPlayer[i].state == kFighterAct)
-         {
-            return FALSE;
-         }
-      }
+			if (gpGlobals->g.PlayerRoles.rgwHP[w] < gpGlobals->g.PlayerRoles.rgwMaxHP[w] / 5 ||
+				gpGlobals->rgPlayerStatus[w][kStatusSleep] != 0 ||
+				gpGlobals->rgPlayerStatus[w][kStatusConfused] != 0 ||
+				gpGlobals->rgPlayerStatus[w][kStatusSilence] != 0 ||
+				g_Battle.rgPlayer[i].flTimeMeter < 100 ||
+				g_Battle.rgPlayer[i].state == kFighterAct)
+			{
+				return FALSE;
+			}
+		}
 #else
-      {
-         int healthyNumber = 0;
-         for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
-            if (PAL_IsPlayerHealthy(gpGlobals->rgParty[i].wPlayerRole))
-               healthyNumber++;
-         return PAL_IsPlayerHealthy(wPlayerRole) && healthyNumber > 1;
-      }
+		{
+			int healthyNumber = 0;
+			for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+				if (PAL_IsPlayerHealthy(gpGlobals->rgParty[i].wPlayerRole))
+					healthyNumber++;
+			return PAL_IsPlayerHealthy(wPlayerRole) && healthyNumber > 1;
+		}
 #endif
-      break;
-   }
+		break;
+	}
 
-   return TRUE;
+	return TRUE;
 }
 
 static VOID
 PAL_BattleUIDrawMiscMenu(
-   WORD       wCurrentItem,
-   BOOL       fConfirmed
+	WORD       wCurrentItem,
+	BOOL       fConfirmed
 )
 /*++
   Purpose:
 
-    Draw the misc menu.
+	Draw the misc menu.
 
   Parameters:
 
-    [IN]  wCurrentItem - the current selected menu item.
+	[IN]  wCurrentItem - the current selected menu item.
 
-    [IN]  fConfirmed - TRUE if confirmed, FALSE if not.
+	[IN]  fConfirmed - TRUE if confirmed, FALSE if not.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   int           i;
-   BYTE          bColor;
+	int           i;
+	BYTE          bColor;
 
 #ifdef PAL_CLASSIC
-   MENUITEM rgMenuItem[] = {
-      // value   label                     enabled   position
-      {  0,      BATTLEUI_LABEL_AUTO,      TRUE,     PAL_XY(16, 32)  },
-      {  1,      BATTLEUI_LABEL_INVENTORY, TRUE,     PAL_XY(16, 50)  },
-      {  2,      BATTLEUI_LABEL_DEFEND,    TRUE,     PAL_XY(16, 68)  },
-      {  3,      BATTLEUI_LABEL_FLEE,      TRUE,     PAL_XY(16, 86)  },
-      {  4,      BATTLEUI_LABEL_STATUS,    TRUE,     PAL_XY(16, 104) }
-   };
+	MENUITEM rgMenuItem[] = {
+		// value   label                     enabled   position
+		{  0,      BATTLEUI_LABEL_AUTO,      TRUE,     PAL_XY(16, 32)  },
+		{  1,      BATTLEUI_LABEL_INVENTORY, TRUE,     PAL_XY(16, 50)  },
+		{  2,      BATTLEUI_LABEL_DEFEND,    TRUE,     PAL_XY(16, 68)  },
+		{  3,      BATTLEUI_LABEL_FLEE,      TRUE,     PAL_XY(16, 86)  },
+		{  4,      BATTLEUI_LABEL_STATUS,    TRUE,     PAL_XY(16, 104) }
+	};
 #else
-   MENUITEM rgMenuItem[] = {
-      // value   label                   enabled   position
-      {  0,      BATTLEUI_LABEL_ITEM,    TRUE,     PAL_XY(16, 32)  },
-      {  1,      BATTLEUI_LABEL_DEFEND,  TRUE,     PAL_XY(16, 50)  },
-      {  2,      BATTLEUI_LABEL_AUTO,    TRUE,     PAL_XY(16, 68)  },
-      {  3,      BATTLEUI_LABEL_FLEE,    TRUE,     PAL_XY(16, 86)  },
-      {  4,      BATTLEUI_LABEL_STATUS,  TRUE,     PAL_XY(16, 104) }
-   };
+	MENUITEM rgMenuItem[] = {
+		// value   label                   enabled   position
+		{  0,      BATTLEUI_LABEL_ITEM,    TRUE,     PAL_XY(16, 32)  },
+		{  1,      BATTLEUI_LABEL_DEFEND,  TRUE,     PAL_XY(16, 50)  },
+		{  2,      BATTLEUI_LABEL_AUTO,    TRUE,     PAL_XY(16, 68)  },
+		{  3,      BATTLEUI_LABEL_FLEE,    TRUE,     PAL_XY(16, 86)  },
+		{  4,      BATTLEUI_LABEL_STATUS,  TRUE,     PAL_XY(16, 104) }
+	};
 #endif
 
-   //
-   // Draw the box
-   //
-   PAL_CreateBox(PAL_XY(2, 20), 4, PAL_MenuTextMaxWidth(rgMenuItem, sizeof(rgMenuItem)/sizeof(MENUITEM)) - 1, 0, FALSE);
+	//
+	// Draw the box
+	//
+	PAL_CreateBox(PAL_XY(2, 20), 4, PAL_MenuTextMaxWidth(rgMenuItem, sizeof(rgMenuItem) / sizeof(MENUITEM)) - 1, 0, FALSE);
 
-   //
-   // Draw the menu items
-   //
-   for (i = 0; i < 5; i++)
-   {
-      bColor = MENUITEM_COLOR;
+	//
+	// Draw the menu items
+	//
+	for (i = 0; i < 5; i++)
+	{
+		bColor = MENUITEM_COLOR;
 
-      if (i == wCurrentItem)
-      {
-         if (fConfirmed)
-         {
-            bColor = MENUITEM_COLOR_CONFIRMED;
-         }
-         else
-         {
-            bColor = MENUITEM_COLOR_SELECTED;
-         }
-      }
+		if (i == wCurrentItem)
+		{
+			if (fConfirmed)
+			{
+				bColor = MENUITEM_COLOR_CONFIRMED;
+			}
+			else
+			{
+				bColor = MENUITEM_COLOR_SELECTED;
+			}
+		}
 
-      PAL_DrawText(PAL_GetWord(rgMenuItem[i].wNumWord), rgMenuItem[i].pos, bColor, TRUE, FALSE, FALSE);
-   }
+		PAL_DrawText(PAL_GetWord(rgMenuItem[i].wNumWord), rgMenuItem[i].pos, bColor, TRUE, FALSE, FALSE);
+	}
 }
 
 static WORD
 PAL_BattleUIMiscMenuUpdate(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Update the misc menu.
+	Update the misc menu.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    The selected item number. 0 if cancelled, 0xFFFF if not confirmed.
+	The selected item number. 0 if cancelled, 0xFFFF if not confirmed.
 
 --*/
 {
-   //
-   // Draw the menu
-   //
-   PAL_BattleUIDrawMiscMenu(g_iCurMiscMenuItem, FALSE);
+	//
+	// Draw the menu
+	//
+	PAL_BattleUIDrawMiscMenu(g_iCurMiscMenuItem, FALSE);
 
-   //
-   // Process inputs
-   //
-   if (g_InputState.dwKeyPress & (kKeyUp | kKeyLeft))
-   {
-      g_iCurMiscMenuItem--;
-      if (g_iCurMiscMenuItem < 0)
-      {
-         g_iCurMiscMenuItem = 4;
-      }
-   }
-   else if (g_InputState.dwKeyPress & (kKeyDown | kKeyRight))
-   {
-      g_iCurMiscMenuItem++;
-      if (g_iCurMiscMenuItem > 4)
-      {
-         g_iCurMiscMenuItem = 0;
-      }
-   }
-   else if (g_InputState.dwKeyPress & kKeySearch)
-   {
-      return g_iCurMiscMenuItem + 1;
-   }
-   else if (g_InputState.dwKeyPress & kKeyMenu)
-   {
-      return 0;
-   }
+	//
+	// Process inputs
+	//
+	if (g_InputState.dwKeyPress & (kKeyUp | kKeyLeft))
+	{
+		g_iCurMiscMenuItem--;
+		if (g_iCurMiscMenuItem < 0)
+		{
+			g_iCurMiscMenuItem = 4;
+		}
+	}
+	else if (g_InputState.dwKeyPress & (kKeyDown | kKeyRight))
+	{
+		g_iCurMiscMenuItem++;
+		if (g_iCurMiscMenuItem > 4)
+		{
+			g_iCurMiscMenuItem = 0;
+		}
+	}
+	else if (g_InputState.dwKeyPress & kKeySearch)
+	{
+		return g_iCurMiscMenuItem + 1;
+	}
+	else if (g_InputState.dwKeyPress & kKeyMenu)
+	{
+		return 0;
+	}
 
-   return 0xFFFF;
+	return 0xFFFF;
 }
 
 static WORD
 PAL_BattleUIMiscItemSubMenuUpdate(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Update the item sub menu of the misc menu.
+	Update the item sub menu of the misc menu.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    The selected item number. 0 if cancelled, 0xFFFF if not confirmed.
+	The selected item number. 0 if cancelled, 0xFFFF if not confirmed.
 
 --*/
 {
-   int             i;
-   BYTE            bColor;
+	int             i;
+	BYTE            bColor;
 
-   MENUITEM rgMenuItem[] = {
-      // value   label                      enabled   position
-      {  0,      BATTLEUI_LABEL_USEITEM,    TRUE,     PAL_XY(44, 62)  },
-      {  1,      BATTLEUI_LABEL_THROWITEM,  TRUE,     PAL_XY(44, 80)  },
-   };
+	MENUITEM rgMenuItem[] = {
+		// value   label                      enabled   position
+		{  0,      BATTLEUI_LABEL_USEITEM,    TRUE,     PAL_XY(44, 62)  },
+		{  1,      BATTLEUI_LABEL_THROWITEM,  TRUE,     PAL_XY(44, 80)  },
+		{  2,      BATTLEUI_LABEL_EQUIP,      TRUE,     PAL_XY(44, 98)  },
+	};
 
-   //
-   // Draw the menu
-   //
+	//
+	// Draw the menu
+	//
 #ifdef PAL_CLASSIC
-   PAL_BattleUIDrawMiscMenu(1, TRUE);
+	PAL_BattleUIDrawMiscMenu(1, TRUE);
 #else
-   PAL_BattleUIDrawMiscMenu(0, TRUE);
+	PAL_BattleUIDrawMiscMenu(0, TRUE);
 #endif
-   PAL_CreateBox(PAL_XY(30, 50), 1, PAL_MenuTextMaxWidth(rgMenuItem, 2) - 1, 0, FALSE);
+	PAL_CreateBox(PAL_XY(30, 50), sizeof(rgMenuItem) / sizeof(MENUITEM) - 1, PAL_MenuTextMaxWidth(rgMenuItem, 2) - 1, 0, FALSE);
 
-   //
-   // Draw the menu items
-   //
-   for (i = 0; i < 2; i++)
-   {
-      bColor = MENUITEM_COLOR;
+	//
+	// Draw the menu items
+	// 绘制菜单项
+	for (i = 0; i < sizeof(rgMenuItem) / sizeof(MENUITEM); i++)
+	{
+		bColor = MENUITEM_COLOR;
 
-      if (i == g_iCurSubMenuItem)
-      {
-         bColor = MENUITEM_COLOR_SELECTED;
-      }
+		if (i == g_iCurSubMenuItem)
+		{
+			bColor = MENUITEM_COLOR_SELECTED;
+		}
 
-      PAL_DrawText(PAL_GetWord(rgMenuItem[i].wNumWord), rgMenuItem[i].pos, bColor, TRUE, FALSE, FALSE);
-   }
+		PAL_DrawText(PAL_GetWord(rgMenuItem[i].wNumWord), rgMenuItem[i].pos, bColor, TRUE, FALSE, FALSE);
+	}
 
-   //
-   // Process inputs
-   //
-   if (g_InputState.dwKeyPress & (kKeyUp | kKeyLeft))
-   {
-      g_iCurSubMenuItem = 0;
-   }
-   else if (g_InputState.dwKeyPress & (kKeyDown | kKeyRight))
-   {
-      g_iCurSubMenuItem = 1;
-   }
-   else if (g_InputState.dwKeyPress & kKeySearch)
-   {
-      return g_iCurSubMenuItem + 1;
-   }
-   else if (g_InputState.dwKeyPress & kKeyMenu)
-   {
-      return 0;
-   }
+	//
+	// Process inputs
+	//
+	if (g_InputState.dwKeyPress & (kKeyUp | kKeyLeft))
+	{
+		if (g_iCurSubMenuItem > 0)
+			g_iCurSubMenuItem--;
+	}
+	else if (g_InputState.dwKeyPress & (kKeyDown | kKeyRight))
+	{
+		if (g_iCurSubMenuItem < sizeof(rgMenuItem) / sizeof(MENUITEM) - 1)
+			g_iCurSubMenuItem++;
+	}
+	else if (g_InputState.dwKeyPress & kKeySearch)
+	{
+		return g_iCurSubMenuItem + 1;
+	}
+	else if (g_InputState.dwKeyPress & kKeyMenu)
+	{
+		return 0;
+	}
 
-   return 0xFFFF;
+	return 0xFFFF;
 }
 
 VOID
 PAL_BattleUIShowText(
-   LPCWSTR       lpszText,
-   WORD          wDuration
+	LPCWSTR       lpszText,
+	WORD          wDuration
 )
 /*++
   Purpose:
 
-    Show a text message in the battle.
+	Show a text message in the battle.
 
   Parameters:
 
-    [IN]  lpszText - the text message to be shown.
+	[IN]  lpszText - the text message to be shown.
 
-    [IN]  wDuration - the duration of the message, in milliseconds.
+	[IN]  wDuration - the duration of the message, in milliseconds.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   if (!SDL_TICKS_PASSED(SDL_GetTicks(), g_Battle.UI.dwMsgShowTime))
-   {
-      wcscpy(g_Battle.UI.szNextMsg, lpszText);
-      g_Battle.UI.wNextMsgDuration = wDuration;
-   }
-   else
-   {
-      wcscpy(g_Battle.UI.szMsg, lpszText);
-      g_Battle.UI.dwMsgShowTime = SDL_GetTicks() + wDuration;
-   }
+	if (!SDL_TICKS_PASSED(SDL_GetTicks(), g_Battle.UI.dwMsgShowTime))
+	{
+		wcscpy(g_Battle.UI.szNextMsg, lpszText);
+		g_Battle.UI.wNextMsgDuration = wDuration;
+	}
+	else
+	{
+		wcscpy(g_Battle.UI.szMsg, lpszText);
+		g_Battle.UI.dwMsgShowTime = SDL_GetTicks() + wDuration;
+	}
 }
 
 VOID
 PAL_BattleUIPlayerReady(
-   WORD          wPlayerIndex
+	WORD          wPlayerIndex
 )
 /*++
   Purpose:
 
-    Start the action selection menu of the specified player.
+	Start the action selection menu of the specified player.
 
   Parameters:
 
-    [IN]  wPlayerIndex - the player index.
+	[IN]  wPlayerIndex - the player index.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
 #ifndef PAL_CLASSIC
-   WORD w = gpGlobals->rgParty[wPlayerIndex].wPlayerRole;
+	WORD w = gpGlobals->rgParty[wPlayerIndex].wPlayerRole;
 #endif
 
-   g_Battle.UI.wCurPlayerIndex = wPlayerIndex;
-   g_Battle.UI.state = kBattleUISelectMove;
-   g_Battle.UI.wSelectedAction = 0;
-   g_Battle.UI.MenuState = kBattleMenuMain;
+	g_Battle.UI.wCurPlayerIndex = wPlayerIndex;
+	g_Battle.UI.state = kBattleUISelectMove;
+	g_Battle.UI.wSelectedAction = 0;
+	g_Battle.UI.MenuState = kBattleMenuMain;
 
 #ifndef PAL_CLASSIC
-   //
-   // Play a sound which indicates the player is ready
-   //
-   if (gpGlobals->rgPlayerStatus[w][kStatusPuppet] == 0 &&
-      gpGlobals->rgPlayerStatus[w][kStatusSleep] == 0 &&
-      gpGlobals->rgPlayerStatus[w][kStatusConfused] == 0 &&
-      !g_Battle.UI.fAutoAttack && !gpGlobals->fAutoBattle)
-   {
-      AUDIO_PlaySound(78);
-   }
+	//
+	// Play a sound which indicates the player is ready
+	//
+	if (gpGlobals->rgPlayerStatus[w][kStatusPuppet] == 0 &&
+		gpGlobals->rgPlayerStatus[w][kStatusSleep] == 0 &&
+		gpGlobals->rgPlayerStatus[w][kStatusConfused] == 0 &&
+		!g_Battle.UI.fAutoAttack && !gpGlobals->fAutoBattle)
+	{
+		AUDIO_PlaySound(78);
+	}
 #endif
 }
 
 static VOID
 PAL_BattleUIUseItem(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Use an item in the battle UI.
+	Use an item in the battle UI.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   WORD       wSelectedItem;
+	WORD       wSelectedItem;
 
-   wSelectedItem = PAL_ItemSelectMenuUpdate();
+	wSelectedItem = PAL_ItemSelectMenuUpdate();
 
-   if (wSelectedItem != 0xFFFF)
-   {
-      if (wSelectedItem != 0)
-      {
-         g_Battle.UI.wActionType = kBattleActionUseItem;
-         g_Battle.UI.wObjectID = wSelectedItem;
+	if (wSelectedItem != 0xFFFF)
+	{
+		if (wSelectedItem != 0)
+		{
+			g_Battle.UI.wActionType = kBattleActionUseItem;
+			g_Battle.UI.wObjectID = wSelectedItem;
 
-         if (gpGlobals->g.rgObject[wSelectedItem].item.wFlags & kItemFlagApplyToAll)
-         {
-            g_Battle.UI.state = kBattleUISelectTargetPlayerAll;
-         }
-         else
-         {
+			//if (gpGlobals->g.rgObject[wSelectedItem].item.wFlags & kItemFlagApplyToAll)
+			if (gpGlobals->g.rgObject[wSelectedItem].item.wFlags & kItemFlagApplyToPlayerAll)
+			{
+				g_Battle.UI.state = kBattleUISelectTargetPlayerAll;
+			}
+			else
+			{
 #ifdef PAL_CLASSIC
-            g_Battle.UI.iSelectedIndex = 0;
+				g_Battle.UI.iSelectedIndex = 0;
 #else
-            g_Battle.UI.iSelectedIndex = g_Battle.UI.wCurPlayerIndex;
+				g_Battle.UI.iSelectedIndex = g_Battle.UI.wCurPlayerIndex;
 #endif
-            g_Battle.UI.state = kBattleUISelectTargetPlayer;
-         }
-      }
-      else
-      {
-         g_Battle.UI.MenuState = kBattleMenuMain;
-      }
-   }
+				g_Battle.UI.state = kBattleUISelectTargetPlayer;
+			}
+		}
+		else
+		{
+			g_Battle.UI.MenuState = kBattleMenuMain;
+		}
+	}
 }
 
 static VOID
 PAL_BattleUIThrowItem(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Throw an item in the battle UI.
+	Throw an item in the battle UI.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   WORD wSelectedItem = PAL_ItemSelectMenuUpdate();
+	WORD wSelectedItem = PAL_ItemSelectMenuUpdate();
 
-   if (wSelectedItem != 0xFFFF)
-   {
-      if (wSelectedItem != 0)
-      {
-         g_Battle.UI.wActionType = kBattleActionThrowItem;
-         g_Battle.UI.wObjectID = wSelectedItem;
+	if (wSelectedItem != 0xFFFF)
+	{
+		if (wSelectedItem != 0)
+		{
+			g_Battle.UI.wActionType = kBattleActionThrowItem;
+			g_Battle.UI.wObjectID = wSelectedItem;
 
-         if (gpGlobals->g.rgObject[wSelectedItem].item.wFlags & kItemFlagApplyToAll)
-         {
-            g_Battle.UI.state = kBattleUISelectTargetEnemyAll;
-         }
-         else
-         {
-            if(g_Battle.UI.iPrevEnemyTarget != -1)
-               g_Battle.UI.iSelectedIndex = g_Battle.UI.iPrevEnemyTarget;
-            g_Battle.UI.state = kBattleUISelectTargetEnemy;
-            g_Battle.UI.iSelectedIndex = 0;
-         }
-      }
-      else
-      {
-         g_Battle.UI.MenuState = kBattleMenuMain;
-      }
-   }
+			//if (gpGlobals->g.rgObject[wSelectedItem].item.wFlags & kItemFlagApplyToAll)
+			if (gpGlobals->g.rgObject[wSelectedItem].item.wFlags & kItemFlagApplyToEnemyAll)
+			{
+				g_Battle.UI.state = kBattleUISelectTargetEnemyAll;
+			}
+			else
+			{
+				if (g_Battle.UI.iPrevEnemyTarget != -1)
+					g_Battle.UI.iSelectedIndex = g_Battle.UI.iPrevEnemyTarget;
+				g_Battle.UI.state = kBattleUISelectTargetEnemy;
+				g_Battle.UI.iSelectedIndex = 0;
+			}
+		}
+		else
+		{
+			g_Battle.UI.MenuState = kBattleMenuMain;
+		}
+	}
+}
+
+static VOID
+PAL_BattleUIEquipItem(
+	VOID
+)
+/*++
+  Purpose:
+
+	Equip an item in the battle UI.
+
+  Parameters:
+
+	None.
+
+  Return value:
+
+	None.
+
+--*/
+{
+	WORD       wSelectedItem;
+
+	wSelectedItem = PAL_ItemSelectMenuUpdate();
+
+	if (wSelectedItem != 0xFFFF)
+	{
+		if (wSelectedItem != 0)
+		{
+			PAL_EquipItemMenu(wSelectedItem);
+		}
+		else
+		{
+			g_Battle.UI.MenuState = kBattleMenuMain;
+		}
+	}
 }
 
 static WORD
 PAL_BattleUIPickAutoMagic(
-   WORD          wPlayerRole,
-   WORD          wRandomRange
+	WORD          wPlayerRole,
+	WORD          wRandomRange
 )
 /*++
   Purpose:
 
-    Pick a magic for the specified player for automatic usage.
+	Pick a magic for the specified player for automatic usage.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
-    [IN]  wRandomRange - the range of the magic power.
+	[IN]  wRandomRange - the range of the magic power.
 
   Return value:
 
-    The object ID of the selected magic. 0 for physical attack.
+	The object ID of the selected magic. 0 for physical attack.
 
 --*/
 {
-   WORD             wMagic = 0, w, wMagicNum;
-   int              i, iMaxPower = 0, iPower;
+	WORD             wMagic = 0, w, wMagicNum;
+	int              i, iMaxPower = 0, iPower;
 
-   if (gpGlobals->rgPlayerStatus[wPlayerRole][kStatusSilence] != 0)
-   {
-      return 0;
-   }
+	if (gpGlobals->rgPlayerStatus[wPlayerRole][kStatusSilence] != 0)
+	{
+		return 0;
+	}
 
-   for (i = 0; i < MAX_PLAYER_MAGICS; i++)
-   {
-      w = gpGlobals->g.PlayerRoles.rgwMagic[i][wPlayerRole];
-      if (w == 0)
-      {
-         continue;
-      }
+	for (i = 0; i < MAX_PLAYER_MAGICS; i++)
+	{
+		w = gpGlobals->g.PlayerRoles.rgwMagic[i][wPlayerRole];
+		if (w == 0)
+		{
+			continue;
+		}
 
-      wMagicNum = gpGlobals->g.rgObject[w].magic.wMagicNumber;
+		wMagicNum = gpGlobals->g.rgObject[w].magic.wMagicNumber;
 
-      //
-      // skip if the magic is an ultimate move or not enough MP
-      //
-      if (gpGlobals->g.lprgMagic[wMagicNum].wCostMP == 1 ||
-         gpGlobals->g.lprgMagic[wMagicNum].wCostMP > gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole] ||
-         (SHORT)(gpGlobals->g.lprgMagic[wMagicNum].wBaseDamage) <= 0)
-      {
-         continue;
-      }
+		//
+		// skip if the magic is an ultimate move or not enough MP
+		//
+		if (gpGlobals->g.lprgMagic[wMagicNum].wCostMP == 1 ||
+			gpGlobals->g.lprgMagic[wMagicNum].wCostMP > gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole] ||
+			(SHORT)(gpGlobals->g.lprgMagic[wMagicNum].wBaseDamage) <= 0)
+		{
+			continue;
+		}
 
-      iPower = (SHORT)(gpGlobals->g.lprgMagic[wMagicNum].wBaseDamage) +
-         RandomLong(0, wRandomRange);
+		iPower = (SHORT)(gpGlobals->g.lprgMagic[wMagicNum].wBaseDamage) +
+			RandomLong(0, wRandomRange);
 
-      if (iPower > iMaxPower)
-      {
-         iMaxPower = iPower;
-         wMagic = w;
-      }
-   }
+		if (iPower > iMaxPower)
+		{
+			iMaxPower = iPower;
+			wMagic = w;
+		}
+	}
 
-   return wMagic;
+	return wMagic;
 }
 
 VOID
 PAL_BattleUIUpdate(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Update the status of battle UI.
+	Update the status of battle UI.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   int              i, j, x, y;
-   WORD             wPlayerRole, w;
-   static int       s_iFrame = 0;
+	int              i, j, x, y;
+	WORD             wPlayerRole, w;
+	static int       s_iFrame = 0;
+	LPCWSTR          itemText;
 
-   s_iFrame++;
+	s_iFrame++;
 
-   if (g_Battle.UI.fAutoAttack && !gpGlobals->fAutoBattle)
-   {
-      //
-      // Draw the "auto attack" message if in the autoattack mode.
-      //
-      if (g_InputState.dwKeyPress & kKeyMenu)
-      {
-         g_Battle.UI.fAutoAttack = FALSE;
-      }
-      else
-      {
-         LPCWSTR itemText = PAL_GetWord(BATTLEUI_LABEL_AUTO);
-         PAL_DrawText(itemText, PAL_XY(312-PAL_TextWidth(itemText), 10),
-            MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
-      }
-   }
+	// 首次进入战斗，获取血量最大值
+	for (i = 0; i <= g_Battle.wMaxEnemyIndex; i++)
+	{
+		// 若敌方死亡或不存在，则血量最大值置0
+		if (g_Battle.rgEnemy[i].wObjectID == 0)
+		{
+			g_Battle.rgEnemy[i].dwMaxHealth = 0;
+			continue;
+		}
 
-   if (gpGlobals->fAutoBattle)
-   {
-      PAL_BattlePlayerCheckReady();
+		// 写入血量最大值
+		if (g_Battle.rgEnemy[i].dwMaxHealth == 0)
+			g_Battle.rgEnemy[i].dwMaxHealth = g_Battle.rgEnemy[i].e.wHealth;
+	}
 
-      for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
-      {
-         if (g_Battle.rgPlayer[i].state == kFighterCom)
-         {
-            PAL_BattleUIPlayerReady(i);
-            break;
-         }
-      }
+	// 透视敌方血量（半血时可化尸换成特殊颜色）、负面Buff回合
+	// 透视战场对五灵的影响、灵葫值
+	// 透视我方抗性、增益Buff回合
+	if (g_Battle.bUiBattleShowDataKey)
+	{
+		PAL_New_BattleUIShowData();
+	}
 
-      if (g_Battle.UI.state != kBattleUIWait)
-      {
-         w = PAL_BattleUIPickAutoMagic(gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole, 9999);
+	// 透视敌方行动·法术
+	if (g_Battle.wMagicMoving != 0)
+	{
+		//
+		// If the enemy uses a magic, draw the name of the magic the enemy uses.
+		// HACK: 如果敌方使用了法术，则绘制敌方使用的法术名称。
+		itemText = PAL_GetWord(g_Battle.wMagicMoving);
+		PAL_DrawText(itemText, PAL_XY((320 - PAL_TextWidth(itemText)) / 2 + 1, 10), 0, FALSE, FALSE, FALSE);
+		PAL_DrawText(itemText, PAL_XY((320 - PAL_TextWidth(itemText)) / 2, 10), DESCTEXT_COLOR, TRUE, FALSE, FALSE);
+	}
 
-         if (w == 0)
-         {
-            g_Battle.UI.wActionType = kBattleActionAttack;
-            g_Battle.UI.iSelectedIndex = PAL_BattleSelectAutoTarget();
-         }
-         else
-         {
-            g_Battle.UI.wActionType = kBattleActionMagic;
-            g_Battle.UI.wObjectID = w;
+	if (g_Battle.UI.fAutoAttack && !gpGlobals->fAutoBattle)
+	{
+		//
+		// Draw the "auto attack" message if in the autoattack mode.
+		// 如果处于"围攻"模式，则绘制“围攻”消息。
+		if (g_InputState.dwKeyPress & kKeyMenu)
+		{
+			g_Battle.UI.fAutoAttack = FALSE;
+		}
+		else
+		{
+			LPCWSTR itemText = PAL_GetWord(BATTLEUI_LABEL_AUTO);
+			PAL_DrawText(itemText, PAL_XY(312 - PAL_TextWidth(itemText), 10),
+				MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+		}
+	}
 
-            if (gpGlobals->g.rgObject[w].magic.wFlags & kMagicFlagApplyToAll)
-            {
-               g_Battle.UI.iSelectedIndex = -1;
-            }
-            else
-            {
-               g_Battle.UI.iSelectedIndex = PAL_BattleSelectAutoTarget();
-            }
-         }
+	if (gpGlobals->fAutoBattle)
+	{
+		PAL_BattlePlayerCheckReady();
 
-         PAL_BattleCommitAction(FALSE);
-      }
+		for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+		{
+			if (g_Battle.rgPlayer[i].state == kFighterCom)
+			{
+				PAL_BattleUIPlayerReady(i);
+				break;
+			}
+		}
 
-      goto end;
-   }
+		if (g_Battle.UI.state != kBattleUIWait)
+		{
+			w = PAL_BattleUIPickAutoMagic(gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole, 9999);
 
-   if (g_InputState.dwKeyPress & kKeyAuto)
-   {
-      g_Battle.UI.fAutoAttack = !g_Battle.UI.fAutoAttack;
-      g_Battle.UI.MenuState = kBattleMenuMain;
-   }
+			if (w == 0)
+			{
+				g_Battle.UI.wActionType = kBattleActionAttack;
+				g_Battle.UI.iSelectedIndex = PAL_BattleSelectAutoTarget();
+			}
+			else
+			{
+				g_Battle.UI.wActionType = kBattleActionMagic;
+				g_Battle.UI.wObjectID = w;
+
+				if (gpGlobals->g.rgObject[w].magic.wFlags & kMagicFlagApplyToAll)
+				{
+					g_Battle.UI.iSelectedIndex = -1;
+				}
+				else
+				{
+					g_Battle.UI.iSelectedIndex = PAL_BattleSelectAutoTarget();
+				}
+			}
+
+			PAL_BattleCommitAction(FALSE);
+		}
+
+		goto end;
+	}
+
+	if (g_InputState.dwKeyPress & kKeyAuto)
+	{
+		g_Battle.UI.fAutoAttack = !g_Battle.UI.fAutoAttack;
+		g_Battle.UI.MenuState = kBattleMenuMain;
+	}
 
 #ifdef PAL_CLASSIC
-   if (g_Battle.Phase == kBattlePhasePerformAction)
-   {
-      goto end;
-   }
+	if (g_Battle.Phase == kBattlePhasePerformAction)
+	{
+		goto end;
+	}
 
-   if (!g_Battle.UI.fAutoAttack)
+	if (!g_Battle.UI.fAutoAttack)
 #endif
-   {
-      //
-      // Draw the player info boxes.
-      //
-      for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
-      {
-         wPlayerRole = gpGlobals->rgParty[i].wPlayerRole;
-         w = (WORD)(g_Battle.rgPlayer[i].flTimeMeter);
+	{
+		//
+		// Draw the player info boxes.
+		// 绘制玩家信息框
+		for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+		{
+			wPlayerRole = gpGlobals->rgParty[i].wPlayerRole;
+			w = (WORD)(g_Battle.rgPlayer[i].flTimeMeter);
 
-         j = TIMEMETER_COLOR_DEFAULT;
+			j = TIMEMETER_COLOR_DEFAULT;
 
 #ifndef PAL_CLASSIC
-         if (gpGlobals->rgPlayerStatus[wPlayerRole][kStatusHaste] > 0)
-         {
-            j = TIMEMETER_COLOR_HASTE;
-         }
-         else if (gpGlobals->rgPlayerStatus[wPlayerRole][kStatusSlow] > 0)
-         {
-            j = TIMEMETER_COLOR_SLOW;
-         }
+			if (gpGlobals->rgPlayerStatus[wPlayerRole][kStatusHaste] > 0)
+			{
+				j = TIMEMETER_COLOR_HASTE;
+			}
+			else if (gpGlobals->rgPlayerStatus[wPlayerRole][kStatusSlow] > 0)
+			{
+				j = TIMEMETER_COLOR_SLOW;
+			}
 #endif
 
-         if (gpGlobals->rgPlayerStatus[wPlayerRole][kStatusSleep] != 0 ||
-            gpGlobals->rgPlayerStatus[wPlayerRole][kStatusConfused] != 0 ||
-            gpGlobals->rgPlayerStatus[wPlayerRole][kStatusPuppet] != 0)
-         {
-            w = 0;
-         }
+			if (gpGlobals->rgPlayerStatus[wPlayerRole][kStatusSleep] != 0 ||
+				gpGlobals->rgPlayerStatus[wPlayerRole][kStatusConfused] != 0 ||
+				gpGlobals->rgPlayerStatus[wPlayerRole][kStatusPuppet] != 0)
+			{
+				w = 0;
+			}
 
-         PAL_PlayerInfoBox(PAL_XY(91 + 77 * i, 165), wPlayerRole,
-            w, j, FALSE);
-      }
-   }
+			//PAL_PlayerInfoBox(PAL_XY(91 + 77 * i, 165), wPlayerRole,
+			//   w, j, FALSE);
 
-   if (g_InputState.dwKeyPress & kKeyStatus)
-   {
-      PAL_PlayerStatus();
-      goto end;
-   }
+	// 2022年12月13日12点16分修改，我方HPMP框
+			int X_Offset = (gpGlobals->wMaxPartyMemberIndex >= MAX_PLAYERS_IN_PARTY_BEFORE) ? (77 * i + 7) : (91 + 77 * i);
+			PAL_PlayerInfoBox(PAL_XY(X_Offset, 165), wPlayerRole, w, j, FALSE);
+		}
+	}
 
-   if (g_Battle.UI.state != kBattleUIWait)
-   {
-      wPlayerRole = gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole;
+	// 显示的我方状态页面
+	if (g_InputState.dwKeyPress & kKeyStatus)
+	{
+		PAL_PlayerStatus();
+		goto end;
+	}
 
-      if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] == 0 &&
-         gpGlobals->rgPlayerStatus[wPlayerRole][kStatusPuppet])
-      {
-         g_Battle.UI.wActionType = kBattleActionAttack;
+	// 透视战场开关
+	if (g_InputState.dwKeyPress & kKeyShowDataInBattle)
+	{
+		g_Battle.bUiBattleShowDataKey = PAL_SwitchMenu(g_Battle.bUiBattleShowDataKey); // No config menu available; 没有可用的配置菜单；
+		goto end;
+	}
 
-         if (PAL_PlayerCanAttackAll(gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole))
-         {
-            g_Battle.UI.iSelectedIndex = -1;
-         }
-         else
-         {
-            g_Battle.UI.iSelectedIndex = PAL_BattleSelectAutoTarget();
-         }
+	// 显示敌方状态页面
+	if (g_InputState.dwKeyPress & kKeyEnemyStatus)
+	{
+		PAL_New_EnemyStatus();
 
-         PAL_BattleCommitAction(FALSE);
-         goto end; // don't go further
-      }
+		// 结束战场的绘制，完全进入该独立界面
+		goto end;
+	}
 
-      //
-      // Cancel any actions if player is dead or sleeping.
-      //
-      if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] == 0 ||
-         gpGlobals->rgPlayerStatus[wPlayerRole][kStatusSleep] != 0 ||
-         gpGlobals->rgPlayerStatus[wPlayerRole][kStatusParalyzed] != 0)
-      {
-         g_Battle.UI.wActionType = kBattleActionPass;
-         PAL_BattleCommitAction(FALSE);
-         goto end; // don't go further
-      }
+	// 展示我方队员全部法术页面
+	if (g_InputState.dwKeyPress & kKeyPlayerLevelmagic)
+	{
+		PAL_New_PlayerLevelmagic();
 
-      if (gpGlobals->rgPlayerStatus[wPlayerRole][kStatusConfused] != 0)
-      {
-         g_Battle.UI.wActionType = kBattleActionAttackMate;
-         PAL_BattleCommitAction(FALSE);
-         goto end; // don't go further
-      }
+		// 结束战场的绘制，完全进入该独立界面
+		goto end;
+	}
 
-      if (g_Battle.UI.fAutoAttack)
-      {
-         g_Battle.UI.wActionType = kBattleActionAttack;
+	if (g_Battle.UI.state != kBattleUIWait)
+	{
+		wPlayerRole = gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole;
 
-         if (PAL_PlayerCanAttackAll(gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole))
-         {
-            g_Battle.UI.iSelectedIndex = -1;
-         }
-         else
-         {
-            g_Battle.UI.iSelectedIndex = PAL_BattleSelectAutoTarget();
-         }
+		if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] == 0 &&
+			gpGlobals->rgPlayerStatus[wPlayerRole][kStatusPuppet])
+		{
+			g_Battle.UI.wActionType = kBattleActionAttack;
 
-         PAL_BattleCommitAction(FALSE);
-         goto end; // don't go further
-      }
+			if (PAL_PlayerCanAttackAll(gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole))
+			{
+				g_Battle.UI.iSelectedIndex = -1;
+			}
+			else
+			{
+				g_Battle.UI.iSelectedIndex = PAL_BattleSelectAutoTarget();
+			}
 
-      //
-      // Draw the arrow on the player's head.
-      //
-      i = SPRITENUM_BATTLE_ARROW_CURRENTPLAYER_RED;
-      if (s_iFrame & 1)
-      {
-         i = SPRITENUM_BATTLE_ARROW_CURRENTPLAYER;
-      }
+			PAL_BattleCommitAction(FALSE);
+			goto end; // don't go further
+		}
 
-      x = g_rgPlayerPos[gpGlobals->wMaxPartyMemberIndex][g_Battle.UI.wCurPlayerIndex][0] - 8;
-      y = g_rgPlayerPos[gpGlobals->wMaxPartyMemberIndex][g_Battle.UI.wCurPlayerIndex][1] - 74;
+		//
+		// Cancel any actions if player is dead or sleeping.
+		//
+		if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] == 0 ||
+			gpGlobals->rgPlayerStatus[wPlayerRole][kStatusSleep] != 0 ||
+			gpGlobals->rgPlayerStatus[wPlayerRole][kStatusParalyzed] != 0)
+		{
+			g_Battle.UI.wActionType = kBattleActionPass;
+			PAL_BattleCommitAction(FALSE);
+			goto end; // don't go further
+		}
 
-      PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, i), gpScreen, PAL_XY(x, y));
-   }
+		if (gpGlobals->rgPlayerStatus[wPlayerRole][kStatusConfused] != 0)
+		{
+			g_Battle.UI.wActionType = kBattleActionAttackMate;
+			PAL_BattleCommitAction(FALSE);
+			goto end; // don't go further
+		}
 
-   switch (g_Battle.UI.state)
-   {
-   case kBattleUIWait:
-      if (!g_Battle.fEnemyCleared)
-      {
-         PAL_BattlePlayerCheckReady();
+		if (g_Battle.UI.fAutoAttack)
+		{
+			g_Battle.UI.wActionType = kBattleActionAttack;
 
-         for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
-         {
-            if (g_Battle.rgPlayer[i].state == kFighterCom)
-            {
-               PAL_BattleUIPlayerReady(i);
-               break;
-            }
-         }
-      }
-      break;
+			if (PAL_PlayerCanAttackAll(gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole))
+			{
+				g_Battle.UI.iSelectedIndex = -1;
+			}
+			else
+			{
+				g_Battle.UI.iSelectedIndex = PAL_BattleSelectAutoTarget();
+			}
 
-   case kBattleUISelectMove:
-      //
-      // Draw the icons
-      //
-      {
-         struct {
-            int               iSpriteNum;
-            PAL_POS           pos;
-            BATTLEUIACTION    action;
-         } rgItems[] =
-         {
-            {SPRITENUM_BATTLEICON_ATTACK,    PAL_XY(27, 140), kBattleUIActionAttack},
-            {SPRITENUM_BATTLEICON_MAGIC,     PAL_XY(0, 155),  kBattleUIActionMagic},
-            {SPRITENUM_BATTLEICON_COOPMAGIC, PAL_XY(54, 155), kBattleUIActionCoopMagic},
-            {SPRITENUM_BATTLEICON_MISCMENU,  PAL_XY(27, 170), kBattleUIActionMisc}
-         };
+			PAL_BattleCommitAction(FALSE);
+			goto end; // don't go further
+		}
 
-         if (g_Battle.UI.MenuState == kBattleMenuMain)
-         {
-            if (g_InputState.dir == kDirNorth)
-            {
-               g_Battle.UI.wSelectedAction = 0;
-            }
-            else if (g_InputState.dir == kDirSouth)
-            {
-               g_Battle.UI.wSelectedAction = 3;
-            }
-            else if (g_InputState.dir == kDirWest)
-            {
-               if (PAL_BattleUIIsActionValid(kBattleUIActionMagic))
-               {
-                  g_Battle.UI.wSelectedAction = 1;
-               }
-            }
-            else if (g_InputState.dir == kDirEast)
-            {
-               if (PAL_BattleUIIsActionValid(kBattleUIActionCoopMagic))
-               {
-                  g_Battle.UI.wSelectedAction = 2;
-               }
-            }
-         }
+		//
+		// Draw the arrow on the player's head.
+		//
+		i = SPRITENUM_BATTLE_ARROW_CURRENTPLAYER_RED;
+		if (s_iFrame & 1)
+		{
+			i = SPRITENUM_BATTLE_ARROW_CURRENTPLAYER;
+		}
 
-         if (!PAL_BattleUIIsActionValid(rgItems[g_Battle.UI.wSelectedAction].action))
-         {
-            g_Battle.UI.wSelectedAction = 0;
-         }
+		x = g_rgPlayerPos[gpGlobals->wMaxPartyMemberIndex][g_Battle.UI.wCurPlayerIndex][0] - 8;
+		y = g_rgPlayerPos[gpGlobals->wMaxPartyMemberIndex][g_Battle.UI.wCurPlayerIndex][1] - 74;
 
-         for (i = 0; i < 4; i++)
-         {
-            if (g_Battle.UI.wSelectedAction == i)
-            {
-               PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, rgItems[i].iSpriteNum),
-                  gpScreen, rgItems[i].pos);
-            }
-            else if (PAL_BattleUIIsActionValid(rgItems[i].action))
-            {
-               PAL_RLEBlitMonoColor(PAL_SpriteGetFrame(gpSpriteUI, rgItems[i].iSpriteNum),
-                  gpScreen, rgItems[i].pos, 0, -4);
-            }
-            else
-            {
-               PAL_RLEBlitMonoColor(PAL_SpriteGetFrame(gpSpriteUI, rgItems[i].iSpriteNum),
-                  gpScreen, rgItems[i].pos, 0x10, -4);
-            }
-         }
+		PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, i), gpScreen, PAL_XY(x, y));
+	}
 
-         switch (g_Battle.UI.MenuState)
-         {
-         case kBattleMenuMain:
-            if (g_InputState.dwKeyPress & kKeySearch)
-            {
-               switch (g_Battle.UI.wSelectedAction)
-               {
-               case 0:
-                  //
-                  // Attack
-                  //
-                  g_Battle.UI.wActionType = kBattleActionAttack;
-                  if (PAL_PlayerCanAttackAll(gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole))
-                  {
-                     g_Battle.UI.state = kBattleUISelectTargetEnemyAll;
-                  }
-                  else
-                  {
-                     if(g_Battle.UI.iPrevEnemyTarget != -1)
-                        g_Battle.UI.iSelectedIndex = g_Battle.UI.iPrevEnemyTarget;
-                     g_Battle.UI.state = kBattleUISelectTargetEnemy;
-                     g_Battle.UI.iSelectedIndex = 0;
-                  }
-                  break;
+	switch (g_Battle.UI.state)
+	{
+	case kBattleUIWait:
+		if (!g_Battle.fEnemyCleared)
+		{
+			PAL_BattlePlayerCheckReady();
 
-               case 1:
-                  //
-                  // Magic
-                  //
-                  g_Battle.UI.MenuState = kBattleMenuMagicSelect;
-                  PAL_MagicSelectionMenuInit(wPlayerRole, TRUE, 0);
-                  break;
+			for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+			{
+				if (g_Battle.rgPlayer[i].state == kFighterCom)
+				{
+					PAL_BattleUIPlayerReady(i);
+					break;
+				}
+			}
+		}
+		break;
 
-               case 2:
-                  //
-                  // Cooperative magic
-                  //
-                  w = gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole;
-                  w = PAL_GetPlayerCooperativeMagic(w);
+	case kBattleUISelectMove:
+		//
+		// Draw the icons
+		//
+	{
+		//struct {
+		//    int               iSpriteNum;
+		//    PAL_POS           pos;
+		//    BATTLEUIACTION    action;
+		//} rgItems[] =
+		//{
+		//   {SPRITENUM_BATTLEICON_ATTACK,    PAL_XY(27, 140), kBattleUIActionAttack},
+		//   {SPRITENUM_BATTLEICON_MAGIC,     PAL_XY(0, 155),  kBattleUIActionMagic},
+		//   {SPRITENUM_BATTLEICON_COOPMAGIC, PAL_XY(54, 155), kBattleUIActionCoopMagic},
+		//   {SPRITENUM_BATTLEICON_MISCMENU,  PAL_XY(27, 170), kBattleUIActionMisc}
+		//};
 
-                  g_Battle.UI.wActionType = kBattleActionCoopMagic;
-                  g_Battle.UI.wObjectID = w;
+ // 2022年12月13日16点12分修改，战斗时四个指令操作纽
+		int Y_Offset = (gpGlobals->wMaxPartyMemberIndex >= MAX_PLAYERS_IN_PARTY_BEFORE) ? 35 : 0;
+		struct {
+			int               iSpriteNum;
+			PAL_POS           pos;
+			BATTLEUIACTION    action;
+		} rgItems[] =
+		{
+		   {SPRITENUM_BATTLEICON_ATTACK,    PAL_XY(27, 140 - Y_Offset), kBattleUIActionAttack},
+		   {SPRITENUM_BATTLEICON_MAGIC,     PAL_XY(0, 155 - Y_Offset),  kBattleUIActionMagic},
+		   {SPRITENUM_BATTLEICON_COOPMAGIC, PAL_XY(54, 155 - Y_Offset), kBattleUIActionCoopMagic},
+		   {SPRITENUM_BATTLEICON_MISCMENU,  PAL_XY(27, 170 - Y_Offset), kBattleUIActionMisc}
+		};
 
-                  if (gpGlobals->g.rgObject[w].magic.wFlags & kMagicFlagUsableToEnemy)
-                  {
-                     if (gpGlobals->g.rgObject[w].magic.wFlags & kMagicFlagApplyToAll)
-                     {
-                        g_Battle.UI.state = kBattleUISelectTargetEnemyAll;
-                     }
-                     else
-                     {
-                        if(g_Battle.UI.iPrevEnemyTarget != -1)
-                           g_Battle.UI.iSelectedIndex = g_Battle.UI.iPrevEnemyTarget;
-                        g_Battle.UI.state = kBattleUISelectTargetEnemy;
-                        g_Battle.UI.iSelectedIndex = 0;
-                     }
-                  }
-                  else
-                  {
-                     if (gpGlobals->g.rgObject[w].magic.wFlags & kMagicFlagApplyToAll)
-                     {
-                        g_Battle.UI.state = kBattleUISelectTargetPlayerAll;
-                     }
-                     else
-                     {
-#ifdef PAL_CLASSIC
-                        g_Battle.UI.iSelectedIndex = 0;
+		if (g_Battle.UI.MenuState == kBattleMenuMain)
+		{
+			if (g_InputState.dir == kDirNorth)
+			{
+				g_Battle.UI.wSelectedAction = 0;
+			}
+			else if (g_InputState.dir == kDirSouth)
+			{
+				g_Battle.UI.wSelectedAction = 3;
+			}
+			else if (g_InputState.dir == kDirWest)
+			{
+				if (PAL_BattleUIIsActionValid(kBattleUIActionMagic))
+				{
+					g_Battle.UI.wSelectedAction = 1;
+				}
+			}
+			else if (g_InputState.dir == kDirEast)
+			{
+				if (PAL_BattleUIIsActionValid(kBattleUIActionCoopMagic))
+				{
+					g_Battle.UI.wSelectedAction = 2;
+				}
+			}
+		}
+
+		if (!PAL_BattleUIIsActionValid(rgItems[g_Battle.UI.wSelectedAction].action))
+		{
+			g_Battle.UI.wSelectedAction = 0;
+		}
+
+		for (i = 0; i < 4; i++)
+		{
+			if (g_Battle.UI.wSelectedAction == i)
+			{
+				PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, rgItems[i].iSpriteNum),
+					gpScreen, rgItems[i].pos);
+			}
+			else if (PAL_BattleUIIsActionValid(rgItems[i].action))
+			{
+				PAL_RLEBlitMonoColor(PAL_SpriteGetFrame(gpSpriteUI, rgItems[i].iSpriteNum),
+					gpScreen, rgItems[i].pos, 0, -4);
+			}
+			else
+			{
+				PAL_RLEBlitMonoColor(PAL_SpriteGetFrame(gpSpriteUI, rgItems[i].iSpriteNum),
+					gpScreen, rgItems[i].pos, 0x10, -4);
+			}
+		}
+
+		switch (g_Battle.UI.MenuState)
+		{
+		case kBattleMenuMain:
+			if (g_InputState.dwKeyPress & kKeySearch)
+			{
+				switch (g_Battle.UI.wSelectedAction)
+				{
+				case 0:
+					//
+					// Attack
+					//
+					g_Battle.UI.wActionType = kBattleActionAttack;
+					if (PAL_PlayerCanAttackAll(gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole))
+					{
+						g_Battle.UI.state = kBattleUISelectTargetEnemyAll;
+					}
+					else
+					{
+						if (g_Battle.UI.iPrevEnemyTarget != -1)
+							g_Battle.UI.iSelectedIndex = g_Battle.UI.iPrevEnemyTarget;
+						g_Battle.UI.state = kBattleUISelectTargetEnemy;
+						g_Battle.UI.iSelectedIndex = 0;
+					}
+					break;
+
+				case 1:
+					//
+					// Magic
+					//
+					g_Battle.UI.MenuState = kBattleMenuMagicSelect;
+
+#if defined(PAL_NEW_MAGICCLASSIFY)
+					PAL_MagicSelectionMenuInit(wPlayerRole);
 #else
-                        g_Battle.UI.iSelectedIndex = g_Battle.UI.wCurPlayerIndex;
+					PAL_MagicSelectionMenuInit(wPlayerRole, TRUE, 0);
 #endif
-                        g_Battle.UI.state = kBattleUISelectTargetPlayer;
-                     }
-                  }
-                  break;
+					break;
 
-               case 3:
-                  //
-                  // Misc menu
-                  //
-                  g_Battle.UI.MenuState = kBattleMenuMisc;
-//                  g_iCurMiscMenuItem = 0; //disabled due to not same as both original version
-                  break;
-               }
-            }
-            else if (g_InputState.dwKeyPress & kKeyDefend)
-            {
-               g_Battle.UI.wActionType = kBattleActionDefend;
-               PAL_BattleCommitAction(FALSE);
-            }
-            else if (g_InputState.dwKeyPress & kKeyForce)
-            {
-               w = PAL_BattleUIPickAutoMagic(gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole, 60);
+				case 2:
+					//
+					// Cooperative magic
+					//
+					w = gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole;
+					w = PAL_GetPlayerCooperativeMagic(w);
 
-               if (w == 0)
-               {
-                  g_Battle.UI.wActionType = kBattleActionAttack;
+					g_Battle.UI.wActionType = kBattleActionCoopMagic;
+					g_Battle.UI.wObjectID = w;
 
-                  if (PAL_PlayerCanAttackAll(gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole))
-                  {
-                     g_Battle.UI.iSelectedIndex = -1;
-                  }
-                  else
-                  {
-                     g_Battle.UI.iSelectedIndex = PAL_BattleSelectAutoTarget();
-                  }
-               }
-               else
-               {
-                  g_Battle.UI.wActionType = kBattleActionMagic;
-                  g_Battle.UI.wObjectID = w;
-
-                  if (gpGlobals->g.rgObject[w].magic.wFlags & kMagicFlagApplyToAll)
-                  {
-                     g_Battle.UI.iSelectedIndex = -1;
-                  }
-                  else
-                  {
-                     g_Battle.UI.iSelectedIndex = PAL_BattleSelectAutoTarget();
-                  }
-               }
-
-               PAL_BattleCommitAction(FALSE);
-            }
-            else if (g_InputState.dwKeyPress & kKeyFlee)
-            {
-               g_Battle.UI.wActionType = kBattleActionFlee;
-               PAL_BattleCommitAction(FALSE);
-            }
-            else if (g_InputState.dwKeyPress & kKeyUseItem)
-            {
-               g_Battle.UI.MenuState = kBattleMenuUseItemSelect;
-               PAL_ItemSelectMenuInit(kItemFlagUsable);
-            }
-            else if (g_InputState.dwKeyPress & kKeyThrowItem)
-            {
-               g_Battle.UI.MenuState = kBattleMenuThrowItemSelect;
-               PAL_ItemSelectMenuInit(kItemFlagThrowable);
-            }
-            else if (g_InputState.dwKeyPress & kKeyRepeat)
-            {
-               PAL_BattleCommitAction(TRUE);
-            }
+					if (gpGlobals->g.rgObject[w].magic.wFlags & kMagicFlagUsableToEnemy)
+					{
+						if (gpGlobals->g.rgObject[w].magic.wFlags & kMagicFlagApplyToAll)
+						{
+							g_Battle.UI.state = kBattleUISelectTargetEnemyAll;
+						}
+						else
+						{
+							if (g_Battle.UI.iPrevEnemyTarget != -1)
+								g_Battle.UI.iSelectedIndex = g_Battle.UI.iPrevEnemyTarget;
+							g_Battle.UI.state = kBattleUISelectTargetEnemy;
+							g_Battle.UI.iSelectedIndex = 0;
+						}
+					}
+					else
+					{
+						if (gpGlobals->g.rgObject[w].magic.wFlags & kMagicFlagApplyToAll)
+						{
+							g_Battle.UI.state = kBattleUISelectTargetPlayerAll;
+						}
+						else
+						{
 #ifdef PAL_CLASSIC
-            else if (g_InputState.dwKeyPress & kKeyMenu)
-            {
-               g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].state = kFighterWait;
-               g_Battle.UI.state = kBattleUIWait;
-
-               if (g_Battle.UI.wCurPlayerIndex > 0)
-               {
-                  //
-                  // Revert to the previous player
-                  //
-                  do
-                  {
-                     g_Battle.rgPlayer[--g_Battle.UI.wCurPlayerIndex].state = kFighterWait;
-
-                     if (g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action.ActionType == kBattleActionThrowItem)
-                     {
-                        for (i = 0; i < MAX_INVENTORY; i++)
-                        {
-                           if (gpGlobals->rgInventory[i].wItem ==
-                              g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action.wActionID)
-                           {
-                              gpGlobals->rgInventory[i].nAmountInUse--;
-                              break;
-                           }
-                        }
-                     }
-                     else if (g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action.ActionType == kBattleActionUseItem)
-                     {
-                        if (gpGlobals->g.rgObject[g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action.wActionID].item.wFlags & kItemFlagConsuming)
-                        {
-                           for (i = 0; i < MAX_INVENTORY; i++)
-                           {
-                              if (gpGlobals->rgInventory[i].wItem ==
-                                 g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action.wActionID)
-                              {
-                                 gpGlobals->rgInventory[i].nAmountInUse--;
-                                 break;
-                              }
-                           }
-                        }
-                     }
-                  } while (g_Battle.UI.wCurPlayerIndex > 0 &&
-                     (gpGlobals->g.PlayerRoles.rgwHP[gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole] == 0 ||
-                      gpGlobals->rgPlayerStatus[gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole][kStatusConfused] > 0 ||
-                      gpGlobals->rgPlayerStatus[gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole][kStatusSleep] > 0 ||
-                      gpGlobals->rgPlayerStatus[gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole][kStatusParalyzed] > 0));
-               }
-            }
+							g_Battle.UI.iSelectedIndex = 0;
 #else
-            else if (g_InputState.dwKeyPress & kKeyMenu)
-            {
-               float flMin = -1;
-               j = -1;
-
-               for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
-               {
-                  if (g_Battle.rgPlayer[i].flTimeMeter >= 100)
-                  {
-                     g_Battle.rgPlayer[i].flTimeMeter += 100; // HACKHACK: Prevent the time meter from going below 100
-
-                     if ((g_Battle.rgPlayer[i].flTimeMeter < flMin || flMin < 0) &&
-                        i != (int)g_Battle.UI.wCurPlayerIndex &&
-                        g_Battle.rgPlayer[i].state == kFighterWait)
-                     {
-                        flMin = g_Battle.rgPlayer[i].flTimeMeter;
-                        j = i;
-                     }
-                  }
-               }
-
-               if (j != -1)
-               {
-                  g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].flTimeMeter = flMin - 99;
-                  g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].state = kFighterWait;
-                  g_Battle.UI.state = kBattleUIWait;
-               }
-            }
+							g_Battle.UI.iSelectedIndex = g_Battle.UI.wCurPlayerIndex;
 #endif
-            break;
+							g_Battle.UI.state = kBattleUISelectTargetPlayer;
+						}
+					}
+					break;
 
-         case kBattleMenuMagicSelect:
-            w = PAL_MagicSelectionMenuUpdate();
+				case 3:
+					//
+					// Misc menu
+					//
+					g_Battle.UI.MenuState = kBattleMenuMisc;
+					//                  g_iCurMiscMenuItem = 0; //disabled due to not same as both original version
+					break;
+				}
+			}
+			else if (g_InputState.dwKeyPress & kKeyDefend)
+			{
+				g_Battle.UI.wActionType = kBattleActionDefend;
+				PAL_BattleCommitAction(FALSE);
+			}
+			else if (g_InputState.dwKeyPress & kKeyForce)
+			{
+				w = PAL_BattleUIPickAutoMagic(gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole, 60);
 
-            if (w != 0xFFFF)
-            {
-               g_Battle.UI.MenuState = kBattleMenuMain;
+				if (w == 0)
+				{
+					g_Battle.UI.wActionType = kBattleActionAttack;
 
-               if (w != 0)
-               {
-                  g_Battle.UI.wActionType = kBattleActionMagic;
-                  g_Battle.UI.wObjectID = w;
+					if (PAL_PlayerCanAttackAll(gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole))
+					{
+						g_Battle.UI.iSelectedIndex = -1;
+					}
+					else
+					{
+						g_Battle.UI.iSelectedIndex = PAL_BattleSelectAutoTarget();
+					}
+				}
+				else
+				{
+					g_Battle.UI.wActionType = kBattleActionMagic;
+					g_Battle.UI.wObjectID = w;
 
-                  if (gpGlobals->g.rgObject[w].magic.wFlags & kMagicFlagUsableToEnemy)
-                  {
-                     if (gpGlobals->g.rgObject[w].magic.wFlags & kMagicFlagApplyToAll)
-                     {
-                        g_Battle.UI.state = kBattleUISelectTargetEnemyAll;
-                     }
-                     else
-                     {
-                        if(g_Battle.UI.iPrevEnemyTarget != -1)
-                           g_Battle.UI.iSelectedIndex = g_Battle.UI.iPrevEnemyTarget;
-                        g_Battle.UI.state = kBattleUISelectTargetEnemy;
-                        g_Battle.UI.iSelectedIndex = 0;
-                     }
-                  }
-                  else
-                  {
-                     if (gpGlobals->g.rgObject[w].magic.wFlags & kMagicFlagApplyToAll)
-                     {
-                        g_Battle.UI.state = kBattleUISelectTargetPlayerAll;
-                     }
-                     else
-                     {
+					if (gpGlobals->g.rgObject[w].magic.wFlags & kMagicFlagApplyToAll)
+					{
+						g_Battle.UI.iSelectedIndex = -1;
+					}
+					else
+					{
+						g_Battle.UI.iSelectedIndex = PAL_BattleSelectAutoTarget();
+					}
+				}
+
+				PAL_BattleCommitAction(FALSE);
+			}
+			else if (g_InputState.dwKeyPress & kKeyFlee)
+			{
+				g_Battle.UI.wActionType = kBattleActionFlee;
+				PAL_BattleCommitAction(FALSE);
+			}
+			else if (g_InputState.dwKeyPress & kKeyUseItem)
+			{
+				g_Battle.UI.MenuState = kBattleMenuUseItemSelect;
+				PAL_ItemSelectMenuInit(kItemFlagUsable);
+			}
+			else if (g_InputState.dwKeyPress & kKeyThrowItem)
+			{
+				g_Battle.UI.MenuState = kBattleMenuThrowItemSelect;
+				PAL_ItemSelectMenuInit(kItemFlagThrowable);
+			}
+			else if (g_InputState.dwKeyPress & kKeyQuipmentItem)
+			{
+				//
+				// Show the equipment menu
+				//
+				PAL_GameEquipItem();
+			}
+			else if (g_InputState.dwKeyPress & kKeyRepeat)
+			{
+				PAL_BattleCommitAction(TRUE);
+			}
 #ifdef PAL_CLASSIC
-                        g_Battle.UI.iSelectedIndex = 0;
+			else if (g_InputState.dwKeyPress & kKeyMenu)
+			{
+				g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].state = kFighterWait;
+				g_Battle.UI.state = kBattleUIWait;
+
+				if (g_Battle.UI.wCurPlayerIndex > 0)
+				{
+					//
+					// Revert to the previous player
+					//
+					do
+					{
+						g_Battle.rgPlayer[--g_Battle.UI.wCurPlayerIndex].state = kFighterWait;
+
+						if (g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action.ActionType == kBattleActionThrowItem)
+						{
+							for (i = 0; i < MAX_INVENTORY; i++)
+							{
+								if (gpGlobals->rgInventory[i].wItem ==
+									g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action.wActionID)
+								{
+									gpGlobals->rgInventory[i].nAmountInUse--;
+									break;
+								}
+							}
+						}
+						else if (g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action.ActionType == kBattleActionUseItem)
+						{
+							if (gpGlobals->g.rgObject[g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action.wActionID].item.wFlags & kItemFlagConsuming)
+							{
+								for (i = 0; i < MAX_INVENTORY; i++)
+								{
+									if (gpGlobals->rgInventory[i].wItem ==
+										g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action.wActionID)
+									{
+										gpGlobals->rgInventory[i].nAmountInUse--;
+										break;
+									}
+								}
+							}
+						}
+					} while (g_Battle.UI.wCurPlayerIndex > 0 &&
+						(gpGlobals->g.PlayerRoles.rgwHP[gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole] == 0 ||
+							gpGlobals->rgPlayerStatus[gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole][kStatusConfused] > 0 ||
+							gpGlobals->rgPlayerStatus[gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole][kStatusSleep] > 0 ||
+							gpGlobals->rgPlayerStatus[gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole][kStatusParalyzed] > 0));
+				}
+			}
 #else
-                        g_Battle.UI.iSelectedIndex = g_Battle.UI.wCurPlayerIndex;
+			else if (g_InputState.dwKeyPress & kKeyMenu)
+			{
+				float flMin = -1;
+				j = -1;
+
+				for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+				{
+					if (g_Battle.rgPlayer[i].flTimeMeter >= 100)
+					{
+						g_Battle.rgPlayer[i].flTimeMeter += 100; // HACKHACK: Prevent the time meter from going below 100
+
+						if ((g_Battle.rgPlayer[i].flTimeMeter < flMin || flMin < 0) &&
+							i != (int)g_Battle.UI.wCurPlayerIndex &&
+							g_Battle.rgPlayer[i].state == kFighterWait)
+						{
+							flMin = g_Battle.rgPlayer[i].flTimeMeter;
+							j = i;
+						}
+					}
+				}
+
+				if (j != -1)
+				{
+					g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].flTimeMeter = flMin - 99;
+					g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].state = kFighterWait;
+					g_Battle.UI.state = kBattleUIWait;
+				}
+			}
 #endif
-                        g_Battle.UI.state = kBattleUISelectTargetPlayer;
-                     }
-                  }
-               }
-            }
-            break;
+			break;
 
-         case kBattleMenuUseItemSelect:
-            PAL_BattleUIUseItem();
-            break;
+		case kBattleMenuMagicSelect:
+			w = PAL_MagicSelectionMenuUpdate();
 
-         case kBattleMenuThrowItemSelect:
-            PAL_BattleUIThrowItem();
-            break;
+			if (w != 0xFFFF)
+			{
+				g_Battle.UI.MenuState = kBattleMenuMain;
 
-         case kBattleMenuMisc:
-            w = PAL_BattleUIMiscMenuUpdate();
+				if (w != 0)
+				{
+					g_Battle.UI.wActionType = kBattleActionMagic;
+					g_Battle.UI.wObjectID = w;
 
-            if (w != 0xFFFF)
-            {
-               g_Battle.UI.MenuState = kBattleMenuMain;
-
-               switch (w)
-               {
+					if (gpGlobals->g.rgObject[w].magic.wFlags & kMagicFlagUsableToEnemy)
+					{
+						if (gpGlobals->g.rgObject[w].magic.wFlags & kMagicFlagApplyToAll)
+						{
+							g_Battle.UI.state = kBattleUISelectTargetEnemyAll;
+						}
+						else
+						{
+							if (g_Battle.UI.iPrevEnemyTarget != -1)
+								g_Battle.UI.iSelectedIndex = g_Battle.UI.iPrevEnemyTarget;
+							g_Battle.UI.state = kBattleUISelectTargetEnemy;
+							g_Battle.UI.iSelectedIndex = 0;
+						}
+					}
+					else
+					{
+						if (gpGlobals->g.rgObject[w].magic.wFlags & kMagicFlagApplyToAll)
+						{
+							g_Battle.UI.state = kBattleUISelectTargetPlayerAll;
+						}
+						else
+						{
 #ifdef PAL_CLASSIC
-               case 2: // item
+							g_Battle.UI.iSelectedIndex = 0;
 #else
-               case 1: // item
+							g_Battle.UI.iSelectedIndex = g_Battle.UI.wCurPlayerIndex;
 #endif
-                  g_Battle.UI.MenuState = kBattleMenuMiscItemSubMenu;
-//                  g_iCurSubMenuItem = 0; //disabled due to not same as both original version
-                  break;
+							g_Battle.UI.state = kBattleUISelectTargetPlayer;
+						}
+					}
+				}
+			}
+			break;
 
+		case kBattleMenuUseItemSelect:
+			PAL_BattleUIUseItem();
+			break;
+
+		case kBattleMenuThrowItemSelect:
+			PAL_BattleUIThrowItem();
+			break;
+
+		case kBattleMenueQuipmentItemSelect:
+			PAL_BattleUIEquipItem();
+			break;
+
+		case kBattleMenuMisc:
+			w = PAL_BattleUIMiscMenuUpdate();
+
+			if (w != 0xFFFF)
+			{
+				g_Battle.UI.MenuState = kBattleMenuMain;
+
+				switch (w)
+				{
 #ifdef PAL_CLASSIC
-               case 3: // defend
+				case 2: // item
 #else
-               case 2: // defend
+				case 1: // item
 #endif
-                  g_Battle.UI.wActionType = kBattleActionDefend;
-                  PAL_BattleCommitAction(FALSE);
-                  break;
+					g_Battle.UI.MenuState = kBattleMenuMiscItemSubMenu;
+					//                  g_iCurSubMenuItem = 0; //disabled due to not same as both original version
+					break;
 
 #ifdef PAL_CLASSIC
-               case 1: // auto
+				case 3: // defend
 #else
-               case 3: // auto
+				case 2: // defend
 #endif
-                  g_Battle.UI.fAutoAttack = TRUE;
-                  break;
-
-               case 4: // flee
-                  g_Battle.UI.wActionType = kBattleActionFlee;
-                  PAL_BattleCommitAction(FALSE);
-                  break;
-
-               case 5: // status
-                  PAL_PlayerStatus();
-                  break;
-               }
-            }
-            break;
-
-         case kBattleMenuMiscItemSubMenu:
-            w = PAL_BattleUIMiscItemSubMenuUpdate();
-
-            if (w != 0xFFFF)
-            {
-               g_Battle.UI.MenuState = kBattleMenuMain;
-
-               switch (w)
-               {
-               case 1: // use
-                  g_Battle.UI.MenuState = kBattleMenuUseItemSelect;
-                  PAL_ItemSelectMenuInit(kItemFlagUsable);
-                  break;
-
-               case 2: // throw
-                  g_Battle.UI.MenuState = kBattleMenuThrowItemSelect;
-                  PAL_ItemSelectMenuInit(kItemFlagThrowable);
-                  break;
-               }
-            }
-            break;
-         }
-      }
-      break;
-
-   case kBattleUISelectTargetEnemy:
-      x = -1;
-      y = 0;
-
-      for (i = 0; i <= g_Battle.wMaxEnemyIndex; i++)
-      {
-         if (g_Battle.rgEnemy[i].wObjectID != 0)
-         {
-            x = i;
-            y++;
-         }
-      }
-
-      if (x == -1)
-      {
-         g_Battle.UI.state = kBattleUISelectMove;
-         break;
-      }
-
-      if (g_Battle.UI.wActionType == kBattleActionCoopMagic)
-      {
-         if (!PAL_BattleUIIsActionValid(kBattleUIActionCoopMagic))
-         {
-            g_Battle.UI.state = kBattleUISelectMove;
-            break;
-         }
-      }
+					g_Battle.UI.wActionType = kBattleActionDefend;
+					PAL_BattleCommitAction(FALSE);
+					break;
 
 #ifdef PAL_CLASSIC
-      //
-      // Don't bother selecting when only 1 enemy left
-      //
-      if (y == 1)
-      {
-//         g_Battle.UI.iPrevEnemyTarget = x;  //disabled due to not same as both original version
-         if( g_Battle.UI.iSelectedIndex == -1 )
-            g_Battle.UI.iSelectedIndex = x;
-         else
-             for (g_Battle.UI.iSelectedIndex = 0; g_Battle.UI.iSelectedIndex < MAX_ENEMIES_IN_TEAM; g_Battle.UI.iSelectedIndex++)
-                 if (g_Battle.rgEnemy[g_Battle.UI.iSelectedIndex].wObjectID != 0)
-                     break;
-         PAL_BattleCommitAction(FALSE);
-         break;
-      }
-#endif
-      if (g_Battle.UI.iSelectedIndex > x)
-      {
-         g_Battle.UI.iSelectedIndex = x;
-      }
-      else if (g_Battle.UI.iSelectedIndex < 0)
-      {
-         g_Battle.UI.iSelectedIndex = 0;
-      }
-
-      for (i = 0; i <= x; i++)
-      {
-         if (g_Battle.rgEnemy[g_Battle.UI.iSelectedIndex].wObjectID != 0)
-         {
-            break;
-         }
-         g_Battle.UI.iSelectedIndex++;
-         g_Battle.UI.iSelectedIndex %= x + 1;
-      }
-
-      //
-      // Highlight the selected enemy
-      //
-      if (s_iFrame & 1)
-      {
-         i = g_Battle.UI.iSelectedIndex;
-
-         x = PAL_X(g_Battle.rgEnemy[i].pos);
-         y = PAL_Y(g_Battle.rgEnemy[i].pos);
-
-         x -= PAL_RLEGetWidth(PAL_SpriteGetFrame(g_Battle.rgEnemy[i].lpSprite, g_Battle.rgEnemy[i].wCurrentFrame)) / 2;
-         y -= PAL_RLEGetHeight(PAL_SpriteGetFrame(g_Battle.rgEnemy[i].lpSprite, g_Battle.rgEnemy[i].wCurrentFrame));
-
-         PAL_RLEBlitWithColorShift(PAL_SpriteGetFrame(g_Battle.rgEnemy[i].lpSprite, g_Battle.rgEnemy[i].wCurrentFrame),
-            gpScreen, PAL_XY(x, y), 7);
-      }
-
-      if (g_InputState.dwKeyPress & kKeyMenu)
-      {
-         g_Battle.UI.state = kBattleUISelectMove;
-      }
-      else if (g_InputState.dwKeyPress & kKeySearch)
-      {
-//         g_Battle.UI.iPrevEnemyTarget = g_Battle.UI.iSelectedIndex; //disabled due to not same as both original version
-         PAL_BattleCommitAction(FALSE);
-      }
-      else if (g_InputState.dwKeyPress & (kKeyLeft | kKeyDown))
-      {
-         g_Battle.UI.iSelectedIndex--;
-         if( g_Battle.UI.iSelectedIndex < 0 ) g_Battle.UI.iSelectedIndex = MAX_ENEMIES_IN_TEAM-1;
-         while (g_Battle.UI.iSelectedIndex != 0 &&
-            g_Battle.rgEnemy[g_Battle.UI.iSelectedIndex].wObjectID == 0)
-         {
-            g_Battle.UI.iSelectedIndex--;
-            if( g_Battle.UI.iSelectedIndex < 0 ) g_Battle.UI.iSelectedIndex = MAX_ENEMIES_IN_TEAM-1;
-         }
-      }
-      else if (g_InputState.dwKeyPress & (kKeyRight | kKeyUp))
-      {
-         g_Battle.UI.iSelectedIndex++;
-         if( g_Battle.UI.iSelectedIndex >= MAX_ENEMIES_IN_TEAM ) g_Battle.UI.iSelectedIndex = 0;
-         while (g_Battle.UI.iSelectedIndex < MAX_ENEMIES_IN_TEAM &&
-            g_Battle.rgEnemy[g_Battle.UI.iSelectedIndex].wObjectID == 0)
-         {
-            g_Battle.UI.iSelectedIndex++;
-            if( g_Battle.UI.iSelectedIndex >= MAX_ENEMIES_IN_TEAM ) g_Battle.UI.iSelectedIndex = 0;
-         }
-      }
-      break;
-
-   case kBattleUISelectTargetPlayer:
-#ifdef PAL_CLASSIC
-      //
-      // Don't bother selecting when only 1 player is in the party
-      //
-      if (gpGlobals->wMaxPartyMemberIndex == 0)
-      {
-         g_Battle.UI.iSelectedIndex = 0;
-         PAL_BattleCommitAction(FALSE);
-      }
-#endif
-
-      j = SPRITENUM_BATTLE_ARROW_SELECTEDPLAYER;
-      if (s_iFrame & 1)
-      {
-         j = SPRITENUM_BATTLE_ARROW_SELECTEDPLAYER_RED;
-      }
-
-      //
-      // Draw arrows on the selected player
-      //
-      x = g_rgPlayerPos[gpGlobals->wMaxPartyMemberIndex][g_Battle.UI.iSelectedIndex][0] - 8;
-      y = g_rgPlayerPos[gpGlobals->wMaxPartyMemberIndex][g_Battle.UI.iSelectedIndex][1] - 67;
-
-      PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, j), gpScreen, PAL_XY(x, y));
-
-      if (g_InputState.dwKeyPress & kKeyMenu)
-      {
-         g_Battle.UI.state = kBattleUISelectMove;
-      }
-      else if (g_InputState.dwKeyPress & kKeySearch)
-      {
-         PAL_BattleCommitAction(FALSE);
-      }
-      else if (g_InputState.dwKeyPress & (kKeyLeft | kKeyDown))
-      {
-         if (g_Battle.UI.iSelectedIndex != 0)
-         {
-            g_Battle.UI.iSelectedIndex--;
-         }
-         else
-         {
-            g_Battle.UI.iSelectedIndex = gpGlobals->wMaxPartyMemberIndex;
-         }
-      }
-      else if (g_InputState.dwKeyPress & (kKeyRight | kKeyUp))
-      {
-         if (g_Battle.UI.iSelectedIndex < gpGlobals->wMaxPartyMemberIndex)
-         {
-            g_Battle.UI.iSelectedIndex++;
-         }
-         else
-         {
-            g_Battle.UI.iSelectedIndex = 0;
-         }
-      }
-
-      break;
-
-   case kBattleUISelectTargetEnemyAll:
-#ifdef PAL_CLASSIC
-      //
-      // Don't bother selecting
-      //
-      g_Battle.UI.iSelectedIndex = (WORD)-1;
-      PAL_BattleCommitAction(FALSE);
+				case 1: // auto
 #else
-      if (g_Battle.UI.wActionType == kBattleActionCoopMagic)
-      {
-         if (!PAL_BattleUIIsActionValid(kBattleActionCoopMagic))
-         {
-            g_Battle.UI.state = kBattleUISelectMove;
-            break;
-         }
-      }
-
-      if (s_iFrame & 1)
-      {
-         //
-         // Highlight all enemies
-         //
-         for (i = g_Battle.wMaxEnemyIndex; i >= 0; i--)
-         {
-            if (g_Battle.rgEnemy[i].wObjectID == 0)
-            {
-               continue;
-            }
-
-            x = PAL_X(g_Battle.rgEnemy[i].pos);
-            y = PAL_Y(g_Battle.rgEnemy[i].pos);
-
-            x -= PAL_RLEGetWidth(PAL_SpriteGetFrame(g_Battle.rgEnemy[i].lpSprite, g_Battle.rgEnemy[i].wCurrentFrame)) / 2;
-            y -= PAL_RLEGetHeight(PAL_SpriteGetFrame(g_Battle.rgEnemy[i].lpSprite, g_Battle.rgEnemy[i].wCurrentFrame));
-
-            PAL_RLEBlitWithColorShift(PAL_SpriteGetFrame(g_Battle.rgEnemy[i].lpSprite, g_Battle.rgEnemy[i].wCurrentFrame),
-               gpScreen, PAL_XY(x, y), 7);
-         }
-      }
-      if (g_InputState.dwKeyPress & kKeyMenu)
-      {
-         g_Battle.UI.state = kBattleUISelectMove;
-      }
-      else if (g_InputState.dwKeyPress & kKeySearch)
-      {
-         g_Battle.UI.iSelectedIndex = -1;
-         PAL_BattleCommitAction(FALSE);
-      }
+				case 3: // auto
 #endif
-      break;
+					g_Battle.UI.fAutoAttack = TRUE;
+					break;
 
-   case kBattleUISelectTargetPlayerAll:
+				case 4: // flee
+					g_Battle.UI.wActionType = kBattleActionFlee;
+					PAL_BattleCommitAction(FALSE);
+					break;
+
+				case 5: // status
+					PAL_PlayerStatus();
+					break;
+				}
+			}
+			break;
+
+		case kBattleMenuMiscItemSubMenu:
+			w = PAL_BattleUIMiscItemSubMenuUpdate();
+
+			if (w != 0xFFFF)
+			{
+				g_Battle.UI.MenuState = kBattleMenuMain;
+
+				switch (w)
+				{
+				case 1: // use 使用
+					g_Battle.UI.MenuState = kBattleMenuUseItemSelect;
+					PAL_ItemSelectMenuInit(kItemFlagUsable);
+					break;
+
+				case 2: // throw 投掷
+					g_Battle.UI.MenuState = kBattleMenuThrowItemSelect;
+					PAL_ItemSelectMenuInit(kItemFlagThrowable);
+					break;
+
+				case 3: // 装备
+					//
+					// Show the equipment menu
+					//
+					PAL_GameEquipItem();
+					break;
+				}
+			}
+			break;
+		}
+	}
+	break;
+
+	case kBattleUISelectTargetEnemy:
+		x = -1;
+		y = 0;
+
+		for (i = 0; i <= g_Battle.wMaxEnemyIndex; i++)
+		{
+			if (g_Battle.rgEnemy[i].wObjectID != 0)
+			{
+				x = i;
+				y++;
+			}
+		}
+
+		if (x == -1)
+		{
+			g_Battle.UI.state = kBattleUISelectMove;
+			break;
+		}
+
+		if (g_Battle.UI.wActionType == kBattleActionCoopMagic)
+		{
+			if (!PAL_BattleUIIsActionValid(kBattleUIActionCoopMagic))
+			{
+				g_Battle.UI.state = kBattleUISelectMove;
+				break;
+			}
+		}
+
 #ifdef PAL_CLASSIC
-      //
-      // Don't bother selecting
-      //
-      g_Battle.UI.iSelectedIndex = (WORD)-1;
-      PAL_BattleCommitAction(FALSE);
-#else
-      j = SPRITENUM_BATTLE_ARROW_SELECTEDPLAYER;
-      if (s_iFrame & 1)
-      {
-         j = SPRITENUM_BATTLE_ARROW_SELECTEDPLAYER_RED;
-      }
-      for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
-      {
-         if (g_Battle.UI.wActionType == kBattleActionMagic)
-         {
-            w = gpGlobals->g.rgObject[g_Battle.UI.wObjectID].magic.wMagicNumber;
-
-            if (gpGlobals->g.lprgMagic[w].wType == kMagicTypeTrance)
-            {
-               if (i != g_Battle.UI.wCurPlayerIndex)
-                  continue;
-            }
-         }
-
-         //
-         // Draw arrows on all players, despite of dead or not
-         //
-         x = g_rgPlayerPos[gpGlobals->wMaxPartyMemberIndex][i][0] - 8;
-         y = g_rgPlayerPos[gpGlobals->wMaxPartyMemberIndex][i][1] - 67;
-
-         PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, j), gpScreen, PAL_XY(x, y));
-      }
-
-      if (g_InputState.dwKeyPress & kKeyMenu)
-      {
-         g_Battle.UI.state = kBattleUISelectMove;
-      }
-      else if (g_InputState.dwKeyPress & kKeySearch)
-      {
-         g_Battle.UI.iSelectedIndex = -1;
-         PAL_BattleCommitAction(FALSE);
-      }
+		//
+		// Don't bother selecting when only 1 enemy left
+		//
+		if (y == 1)
+		{
+			//         g_Battle.UI.iPrevEnemyTarget = x;  //disabled due to not same as both original version
+			if (g_Battle.UI.iSelectedIndex == -1)
+				g_Battle.UI.iSelectedIndex = x;
+			else
+				for (g_Battle.UI.iSelectedIndex = 0; g_Battle.UI.iSelectedIndex < MAX_ENEMIES_IN_TEAM; g_Battle.UI.iSelectedIndex++)
+					if (g_Battle.rgEnemy[g_Battle.UI.iSelectedIndex].wObjectID != 0)
+						break;
+			PAL_BattleCommitAction(FALSE);
+			break;
+		}
 #endif
-      break;
-   }
+		if (g_Battle.UI.iSelectedIndex > x)
+		{
+			g_Battle.UI.iSelectedIndex = x;
+		}
+		else if (g_Battle.UI.iSelectedIndex < 0)
+		{
+			g_Battle.UI.iSelectedIndex = 0;
+		}
+
+		for (i = 0; i <= x; i++)
+		{
+			if (g_Battle.rgEnemy[g_Battle.UI.iSelectedIndex].wObjectID != 0)
+			{
+				break;
+			}
+			g_Battle.UI.iSelectedIndex++;
+			g_Battle.UI.iSelectedIndex %= x + 1;
+		}
+
+		//
+		// Highlight the selected enemy
+		//
+		if (s_iFrame & 1)
+		{
+			i = g_Battle.UI.iSelectedIndex;
+
+			x = PAL_X(g_Battle.rgEnemy[i].pos);
+			y = PAL_Y(g_Battle.rgEnemy[i].pos);
+
+			x -= PAL_RLEGetWidth(PAL_SpriteGetFrame(g_Battle.rgEnemy[i].lpSprite, g_Battle.rgEnemy[i].wCurrentFrame)) / 2;
+			y -= PAL_RLEGetHeight(PAL_SpriteGetFrame(g_Battle.rgEnemy[i].lpSprite, g_Battle.rgEnemy[i].wCurrentFrame));
+
+			PAL_RLEBlitWithColorShift(PAL_SpriteGetFrame(g_Battle.rgEnemy[i].lpSprite, g_Battle.rgEnemy[i].wCurrentFrame),
+				gpScreen, PAL_XY(x, y), 7);
+		}
+
+		if (g_InputState.dwKeyPress & kKeyMenu)
+		{
+			g_Battle.UI.state = kBattleUISelectMove;
+		}
+		else if (g_InputState.dwKeyPress & kKeySearch)
+		{
+			//         g_Battle.UI.iPrevEnemyTarget = g_Battle.UI.iSelectedIndex; //disabled due to not same as both original version
+			PAL_BattleCommitAction(FALSE);
+		}
+		else if (g_InputState.dwKeyPress & (kKeyLeft | kKeyDown))
+		{
+			g_Battle.UI.iSelectedIndex--;
+			if (g_Battle.UI.iSelectedIndex < 0) g_Battle.UI.iSelectedIndex = MAX_ENEMIES_IN_TEAM - 1;
+			while (g_Battle.UI.iSelectedIndex != 0 &&
+				g_Battle.rgEnemy[g_Battle.UI.iSelectedIndex].wObjectID == 0)
+			{
+				g_Battle.UI.iSelectedIndex--;
+				if (g_Battle.UI.iSelectedIndex < 0) g_Battle.UI.iSelectedIndex = MAX_ENEMIES_IN_TEAM - 1;
+			}
+		}
+		else if (g_InputState.dwKeyPress & (kKeyRight | kKeyUp))
+		{
+			g_Battle.UI.iSelectedIndex++;
+			if (g_Battle.UI.iSelectedIndex >= MAX_ENEMIES_IN_TEAM) g_Battle.UI.iSelectedIndex = 0;
+			while (g_Battle.UI.iSelectedIndex < MAX_ENEMIES_IN_TEAM &&
+				g_Battle.rgEnemy[g_Battle.UI.iSelectedIndex].wObjectID == 0)
+			{
+				g_Battle.UI.iSelectedIndex++;
+				if (g_Battle.UI.iSelectedIndex >= MAX_ENEMIES_IN_TEAM) g_Battle.UI.iSelectedIndex = 0;
+			}
+		}
+		break;
+
+	case kBattleUISelectTargetPlayer:
+#ifdef PAL_CLASSIC
+		//
+		// Don't bother selecting when only 1 player is in the party
+		//
+		if (gpGlobals->wMaxPartyMemberIndex == 0)
+		{
+			g_Battle.UI.iSelectedIndex = 0;
+			PAL_BattleCommitAction(FALSE);
+		}
+#endif
+
+		j = SPRITENUM_BATTLE_ARROW_SELECTEDPLAYER;
+		if (s_iFrame & 1)
+		{
+			j = SPRITENUM_BATTLE_ARROW_SELECTEDPLAYER_RED;
+		}
+
+		//
+		// Draw arrows on the selected player
+		//
+		x = g_rgPlayerPos[gpGlobals->wMaxPartyMemberIndex][g_Battle.UI.iSelectedIndex][0] - 8;
+		y = g_rgPlayerPos[gpGlobals->wMaxPartyMemberIndex][g_Battle.UI.iSelectedIndex][1] - 67;
+
+		PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, j), gpScreen, PAL_XY(x, y));
+
+		if (g_InputState.dwKeyPress & kKeyMenu)
+		{
+			g_Battle.UI.state = kBattleUISelectMove;
+		}
+		else if (g_InputState.dwKeyPress & kKeySearch)
+		{
+			PAL_BattleCommitAction(FALSE);
+		}
+		else if (g_InputState.dwKeyPress & (kKeyLeft | kKeyDown))
+		{
+			if (g_Battle.UI.iSelectedIndex != 0)
+			{
+				g_Battle.UI.iSelectedIndex--;
+			}
+			else
+			{
+				g_Battle.UI.iSelectedIndex = gpGlobals->wMaxPartyMemberIndex;
+			}
+		}
+		else if (g_InputState.dwKeyPress & (kKeyRight | kKeyUp))
+		{
+			if (g_Battle.UI.iSelectedIndex < gpGlobals->wMaxPartyMemberIndex)
+			{
+				g_Battle.UI.iSelectedIndex++;
+			}
+			else
+			{
+				g_Battle.UI.iSelectedIndex = 0;
+			}
+		}
+
+		break;
+
+	case kBattleUISelectTargetEnemyAll:
+#ifdef PAL_CLASSIC
+		//
+		// Don't bother selecting
+		//
+		g_Battle.UI.iSelectedIndex = (WORD)-1;
+		PAL_BattleCommitAction(FALSE);
+#else
+		if (g_Battle.UI.wActionType == kBattleActionCoopMagic)
+		{
+			if (!PAL_BattleUIIsActionValid(kBattleActionCoopMagic))
+			{
+				g_Battle.UI.state = kBattleUISelectMove;
+				break;
+			}
+		}
+
+		if (s_iFrame & 1)
+		{
+			//
+			// Highlight all enemies
+			//
+			for (i = g_Battle.wMaxEnemyIndex; i >= 0; i--)
+			{
+				if (g_Battle.rgEnemy[i].wObjectID == 0)
+				{
+					continue;
+				}
+
+				x = PAL_X(g_Battle.rgEnemy[i].pos);
+				y = PAL_Y(g_Battle.rgEnemy[i].pos);
+
+				x -= PAL_RLEGetWidth(PAL_SpriteGetFrame(g_Battle.rgEnemy[i].lpSprite, g_Battle.rgEnemy[i].wCurrentFrame)) / 2;
+				y -= PAL_RLEGetHeight(PAL_SpriteGetFrame(g_Battle.rgEnemy[i].lpSprite, g_Battle.rgEnemy[i].wCurrentFrame));
+
+				PAL_RLEBlitWithColorShift(PAL_SpriteGetFrame(g_Battle.rgEnemy[i].lpSprite, g_Battle.rgEnemy[i].wCurrentFrame),
+					gpScreen, PAL_XY(x, y), 7);
+			}
+		}
+		if (g_InputState.dwKeyPress & kKeyMenu)
+		{
+			g_Battle.UI.state = kBattleUISelectMove;
+		}
+		else if (g_InputState.dwKeyPress & kKeySearch)
+		{
+			g_Battle.UI.iSelectedIndex = -1;
+			PAL_BattleCommitAction(FALSE);
+		}
+#endif
+		break;
+
+	case kBattleUISelectTargetPlayerAll:
+#ifdef PAL_CLASSIC
+		//
+		// Don't bother selecting
+		//
+		g_Battle.UI.iSelectedIndex = (WORD)-1;
+		PAL_BattleCommitAction(FALSE);
+#else
+		j = SPRITENUM_BATTLE_ARROW_SELECTEDPLAYER;
+		if (s_iFrame & 1)
+		{
+			j = SPRITENUM_BATTLE_ARROW_SELECTEDPLAYER_RED;
+		}
+		for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+		{
+			if (g_Battle.UI.wActionType == kBattleActionMagic)
+			{
+				w = gpGlobals->g.rgObject[g_Battle.UI.wObjectID].magic.wMagicNumber;
+
+				if (gpGlobals->g.lprgMagic[w].wType == kMagicTypeTrance)
+				{
+					if (i != g_Battle.UI.wCurPlayerIndex)
+						continue;
+				}
+			}
+
+			//
+			// Draw arrows on all players, despite of dead or not
+			//
+			x = g_rgPlayerPos[gpGlobals->wMaxPartyMemberIndex][i][0] - 8;
+			y = g_rgPlayerPos[gpGlobals->wMaxPartyMemberIndex][i][1] - 67;
+
+			PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, j), gpScreen, PAL_XY(x, y));
+		}
+
+		if (g_InputState.dwKeyPress & kKeyMenu)
+		{
+			g_Battle.UI.state = kBattleUISelectMove;
+		}
+		else if (g_InputState.dwKeyPress & kKeySearch)
+		{
+			g_Battle.UI.iSelectedIndex = -1;
+			PAL_BattleCommitAction(FALSE);
+		}
+#endif
+		break;
+	}
 
 end:
-   //
-   // Show the text message if there is one.
-   //
+	//
+	// Show the text message if there is one.
+	//
 #ifndef PAL_CLASSIC
-   if (!SDL_TICKS_PASSED(SDL_GetTicks(), g_Battle.UI.dwMsgShowTime))
-   {
-      //
-      // The text should be shown in a small window at the center of the screen
-      //
-      PAL_POS    pos;
-	  int        i, w = wcslen(g_Battle.UI.szMsg), len = 0;
+	if (!SDL_TICKS_PASSED(SDL_GetTicks(), g_Battle.UI.dwMsgShowTime))
+	{
+		//
+		// The text should be shown in a small window at the center of the screen
+		//
+		PAL_POS    pos;
+		int        i, w = wcslen(g_Battle.UI.szMsg), len = 0;
 
-	  for (i = 0; i < w; i++)
-		  len += PAL_CharWidth(g_Battle.UI.szMsg[i]) >> 3;
+		for (i = 0; i < w; i++)
+			len += PAL_CharWidth(g_Battle.UI.szMsg[i]) >> 3;
 
-      //
-      // Create the window box
-      //
-      pos = PAL_XY(160 - len * 4, 40);
-      PAL_CreateSingleLineBox(pos, (len + 1) / 2, FALSE);
+		//
+		// Create the window box
+		//
+		pos = PAL_XY(160 - len * 4, 40);
+		PAL_CreateSingleLineBox(pos, (len + 1) / 2, FALSE);
 
-      //
-      // Show the text on the screen
-      //
-      pos = PAL_XY(PAL_X(pos) + 8 + ((len & 1) << 2), PAL_Y(pos) + 10);
-      PAL_DrawText(g_Battle.UI.szMsg, pos, 0, FALSE, FALSE, FALSE);
-   }
-   else if (g_Battle.UI.szNextMsg[0] != '\0')
-   {
-      wcscpy(g_Battle.UI.szMsg, g_Battle.UI.szNextMsg);
-      g_Battle.UI.dwMsgShowTime = SDL_GetTicks() + g_Battle.UI.wNextMsgDuration;
-      g_Battle.UI.szNextMsg[0] = '\0';
-   }
+		//
+		// Show the text on the screen
+		//
+		pos = PAL_XY(PAL_X(pos) + 8 + ((len & 1) << 2), PAL_Y(pos) + 10);
+		PAL_DrawText(g_Battle.UI.szMsg, pos, 0, FALSE, FALSE, FALSE);
+	}
+	else if (g_Battle.UI.szNextMsg[0] != '\0')
+	{
+		wcscpy(g_Battle.UI.szMsg, g_Battle.UI.szNextMsg);
+		g_Battle.UI.dwMsgShowTime = SDL_GetTicks() + g_Battle.UI.wNextMsgDuration;
+		g_Battle.UI.szNextMsg[0] = '\0';
+	}
 #endif
 
-   //
-   // Draw the numbers
-   //
-   for (i = 0; i < BATTLEUI_MAX_SHOWNUM; i++)
-   {
-      if (g_Battle.UI.rgShowNum[i].wNum > 0)
-      {
-         if ((SDL_GetTicks() - g_Battle.UI.rgShowNum[i].dwTime) / BATTLE_FRAME_TIME > 10)
-         {
-            g_Battle.UI.rgShowNum[i].wNum = 0;
-         }
-         else
-         {
-            PAL_DrawNumber(g_Battle.UI.rgShowNum[i].wNum, 5,
-               PAL_XY(PAL_X(g_Battle.UI.rgShowNum[i].pos), PAL_Y(g_Battle.UI.rgShowNum[i].pos) - (SDL_GetTicks() - g_Battle.UI.rgShowNum[i].dwTime) / BATTLE_FRAME_TIME),
-               g_Battle.UI.rgShowNum[i].color, kNumAlignRight);
-         }
-      }
-   }
+	//
+	// Draw the numbers
+	//
+	for (i = 0; i < BATTLEUI_MAX_SHOWNUM; i++)
+	{
+		if (g_Battle.UI.rgShowNum[i].wNum > 0)
+		{
+			if ((SDL_GetTicks() - g_Battle.UI.rgShowNum[i].dwTime) / BATTLE_FRAME_TIME > 10)
+			{
+				g_Battle.UI.rgShowNum[i].wNum = 0;
+			}
+			else
+			{
+				//PAL_DrawNumber(g_Battle.UI.rgShowNum[i].wNum, 5,
+				//	PAL_XY(PAL_X(g_Battle.UI.rgShowNum[i].pos), PAL_Y(g_Battle.UI.rgShowNum[i].pos) - (SDL_GetTicks() - g_Battle.UI.rgShowNum[i].dwTime) / BATTLE_FRAME_TIME),
+				//	g_Battle.UI.rgShowNum[i].color, kNumAlignRight);
 
-   PAL_ClearKeyState();
+				PAL_DrawNumber(g_Battle.UI.rgShowNum[i].wNum, (g_Battle.UI.rgShowNum[i].wNum >= 100000) ? 10 : 5,
+					PAL_XY(PAL_X(g_Battle.UI.rgShowNum[i].pos), PAL_Y(g_Battle.UI.rgShowNum[i].pos) - (SDL_GetTicks() - g_Battle.UI.rgShowNum[i].dwTime) / BATTLE_FRAME_TIME),
+					g_Battle.UI.rgShowNum[i].color, (g_Battle.UI.rgShowNum[i].wNum >= 100000) ? kNumAlignLeft : kNumAlignRight);
+			}
+		}
+	}
+
+	PAL_ClearKeyState();
 }
 
 VOID
 PAL_BattleUIShowNum(
-   WORD           wNum,
-   PAL_POS        pos,
-   NUMCOLOR       color
+	INT            wNum,
+	PAL_POS        pos,
+	NUMCOLOR       color
 )
 /*++
   Purpose:
 
-    Show a number on battle screen (indicates HP/MP change).
+	Show a number on battle screen (indicates HP/MP change).
 
   Parameters:
 
-    [IN]  wNum - number to be shown.
+	[IN]  wNum - number to be shown.
 
-    [IN]  pos - position of the number on the screen.
+	[IN]  pos - position of the number on the screen.
 
-    [IN]  color - color of the number.
+	[IN]  color - color of the number.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   int     i;
+	int     i;
 
-   for (i = 0; i < BATTLEUI_MAX_SHOWNUM; i++)
-   {
-      if (g_Battle.UI.rgShowNum[i].wNum == 0)
-      {
-         g_Battle.UI.rgShowNum[i].wNum = wNum;
-         g_Battle.UI.rgShowNum[i].pos = PAL_XY(PAL_X(pos) - 15, PAL_Y(pos));
-         g_Battle.UI.rgShowNum[i].color = color;
-         g_Battle.UI.rgShowNum[i].dwTime = SDL_GetTicks();
+	for (i = 0; i < BATTLEUI_MAX_SHOWNUM; i++)
+	{
+		if (g_Battle.UI.rgShowNum[i].wNum == 0)
+		{
+			g_Battle.UI.rgShowNum[i].wNum = wNum;
+			g_Battle.UI.rgShowNum[i].pos = PAL_XY(PAL_X(pos) - 15, PAL_Y(pos));
+			g_Battle.UI.rgShowNum[i].color = color;
+			g_Battle.UI.rgShowNum[i].dwTime = SDL_GetTicks();
 
-         break;
-      }
-   }
+			break;
+		}
+	}
+}
+
+VOID
+PAL_New_BattleUIShowData(
+	VOID
+)
+/*++
+Purpose: 在战斗中显示一些数据。
+--*/
+{
+	int              i, j;
+	WORD             wPlayerRole, w;
+	SHORT            sValue;
+	BYTE             wNum, wNumAlign;
+	INT              iHealth;
+	BATTLEENEMY      be;
+
+	int startPos = 320 - 20 * (gpGlobals->wMaxPartyMemberIndex + 1);
+
+	// 显示敌人血量（三分之一血时可化尸换成特殊颜色）、负面buff回合数
+	for (i = 0; i <= g_Battle.wMaxEnemyIndex; i++)
+	{
+		be = g_Battle.rgEnemy[i];
+		if (be.wObjectID == 0)
+		{
+			be.dwMaxHealth = 0;
+			continue;
+		}
+
+		// 显示的位数
+		iHealth = be.e.wHealth;
+		for (wNum = 3; iHealth > 999; wNum++)
+			iHealth /= 10;
+
+		wNumAlign = (wNum > 3) ? kNumAlignLeft : kNumAlignRight;
+
+		if (be.dwMaxHealth == 0)
+			be.dwMaxHealth = be.e.wHealth;
+
+		// 显示敌人血量, 三分之一血时可化尸
+		if (be.e.wHealth <= 0)
+			PAL_DrawNumber(0, wNum, PAL_XY(45 * i, 0), kNumColorRed, kNumAlignRight);
+		else
+			PAL_DrawNumber(be.e.wHealth, wNum, PAL_XY(45 * i, 0),
+				(be.e.wHealth <= (g_Battle.rgEnemy[i].dwMaxHealth * 20) / 100.0) ? kNumColorRed : kNumColorYellow, wNumAlign);
+
+		// 显示敌方负面buff回合数
+		// 疯魔
+		PAL_DrawNumber(be.rgwStatus[kStatusConfused], wNum, PAL_XY(45 * i, 8), kNumColorPink, kNumAlignRight);
+		// 定身/昏眠
+		PAL_DrawNumber((be.rgwStatus[kStatusParalyzed] > be.rgwStatus[kStatusSleep]) ? be.rgwStatus[kStatusParalyzed] : be.rgwStatus[kStatusSleep],
+			wNum, PAL_XY(45 * i, 16), kNumColorPink, kNumAlignRight);
+		// 咒封
+		PAL_DrawNumber(be.rgwStatus[kStatusSilence], wNum, PAL_XY(45 * i, 24), kNumColorPink, kNumAlignRight);
+	}
+
+	// 显示战场环境对五灵的影响
+	for (i = 0; i < NUM_MAGIC_ELEMENTAL; i++)
+	{
+		sValue = PAL_New_GetBattleFieldComplete(i);
+
+		if (PAL_New_GetDiagramsEffect(i))
+		{
+			wNum = kNumColorRed;
+		}
+		else if (sValue < 0)
+		{
+			sValue = 0 - sValue;
+			wNum = kNumColorYellow;
+		}
+		else
+		{
+			wNum = kNumColorBlue;
+		}
+
+
+		PAL_DrawNumber(sValue, 2, PAL_XY(0, 52 + i * 10), wNum, kNumAlignRight);
+	}
+
+	// 显示我方有益状态的剩余轮次
+	for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+	{
+		wPlayerRole = gpGlobals->rgParty[i].wPlayerRole;
+		for (j = 0; j < kStatusAll - kStatusPuppet; j++)
+		{
+			w = gpGlobals->rgPlayerStatus[wPlayerRole][kStatusPuppet + j];
+			PAL_DrawNumber(min(99, w), 3, PAL_XY(startPos + 20 * i, 8 * j), kNumColorYellow, kNumAlignRight);
+		}
+	}
+
+	// 显示我方负面状态的剩余轮次
+	for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+	{
+		wPlayerRole = gpGlobals->rgParty[i].wPlayerRole;
+		for (j = 0; j < kStatusPuppet; j++)
+		{
+			w = gpGlobals->rgPlayerStatus[wPlayerRole][j];
+			PAL_DrawNumber(min(99, w), 3, PAL_XY(startPos + 20 * i, 40 + 8 * j), kNumColorPink, kNumAlignRight);
+		}
+	}
+
+	// 显示已过总回合数
+	w = g_Battle.rcmMagicType.wCurrentAllRrounds;
+	PAL_DrawNumber(min(999, w), 5, PAL_XY(288, 114), kNumColorYellow, kNumAlignRight);
+
+	// 显示累计回合数和我方累计损失的生命值
+	if (g_Battle.rcmMagicType.wMaxCumulativeRrounds != 0)
+	{
+		w = g_Battle.rcmMagicType.wCurrentCumulativeRrounds;
+		PAL_DrawNumber(min(99, w), 5, PAL_XY(288, 128), kNumColorRed, kNumAlignRight);
+
+		w = g_Battle.rcmMagicType.wCumulativeDamageValue;
+		PAL_DrawNumber(min(20000, w), 5, PAL_XY(288, 138), kNumColorPink, kNumAlignRight);
+	}
+
+	// 显示总的灵葫值
+	w = gpGlobals->wCollectValue;
+	PAL_DrawNumber(w, 5, PAL_XY(288, 152), kNumColorGold, kNumAlignRight);
+}
+
+VOID
+PAL_New_EnemyStatus(
+	VOID
+)
+{
+	PAL_LARGE BYTE		bufBackground[320 * 200];
+	INT					iCurrent, i, x, y, h, iValue, iMagicsResistance;
+	WORD                w;
+	BATTLEENEMY			be;
+	LPCBITMAPRLE			lBMR;
+	PAL_POS				pos;
+
+	// 定义灵抗颜色
+	NUMCOLOR magicsResistanceColor[NUM_MAGIC_ELEMENTAL] = {
+		kNumColorCyan,
+		kNumColorBlue,
+		kNumColorYellow,
+		kNumColorRed,
+		kNumColorPink
+	};
+
+	//const int        rgEquipPos[MAX_PLAYER_EQUIPMENTS][2] = {
+	//		{190, 0}, {248, 40}, {252, 102}, {202, 134}, {142, 142}, {82, 126}
+	//};
+
+	// 将图像解出来，数据放入 bufBackground 中
+	PAL_MKFDecompressChunk(bufBackground, 320 * 200, gpGlobals->wNumBattleField, gpGlobals->f.fpFBP);
+
+	iCurrent = 0;
+
+	//while (iCurrent >= 0 && iCurrent < MAX_ENEMIES_IN_TEAM)
+	while (iCurrent >= 0 && iCurrent <= g_Battle.wMaxEnemyIndex)
+	{
+		i = 0, x = 6, y = 6, h = 19;
+
+		be = g_Battle.rgEnemy[iCurrent];
+		if (be.wObjectID == 0 || be.e.wHealth == 0)
+		{
+			iCurrent++;
+			continue;
+		}
+
+		if (be.dwMaxHealth == 0)
+			be.dwMaxHealth = be.e.wHealth;
+
+		// Draw the background image
+		// 绘制背景图
+		PAL_FBPBlitToSurface(bufBackground, gpScreen);
+
+		// 怪物图像
+		lBMR = PAL_SpriteGetFrame(g_Battle.rgEnemy[iCurrent].lpSprite, g_Battle.rgEnemy[iCurrent].wCurrentFrame);
+		pos = PAL_XY(200, 100);
+		pos = PAL_XY(PAL_X(pos) - PAL_RLEGetWidth(lBMR) / 2, PAL_Y(pos) - PAL_RLEGetHeight(lBMR) / 2);
+		PAL_RLEBlitToSurface(lBMR, gpScreen, pos);
+
+		// 敌方名称
+		PAL_DrawText(PAL_GetWord(be.wObjectID), PAL_XY(101, 6), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+
+		// 战后可得经验值
+		PAL_DrawText(PAL_GetWord(STATUS_LABEL_EXP), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		// 经验值
+		PAL_DrawNumber(be.e.wExp, 5, PAL_XY(x + 64, y + (i - 1) * h + 5), kNumColorYellow, kNumAlignRight);
+
+		// 敌方体力
+		PAL_DrawText(PAL_GetWord(STATUS_LABEL_HP), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		// 剩余体力
+		if (g_Battle.rgEnemy[iCurrent].e.wHealth <= g_Battle.rgEnemy[iCurrent].dwMaxHealth / 3)
+		{
+			// 若体力达到化尸条件则将当前血量以红色显示
+			if (g_Battle.rgEnemy[iCurrent].e.wHealth <= 0)
+				PAL_DrawNumber(0, 7, PAL_XY(x + 37, y + (i - 1) * h - 1), kNumColorRed, kNumAlignRight);
+			else
+				PAL_DrawNumber(be.e.wHealth, 7, PAL_XY(x + 37, y + (i - 1) * h - 1), kNumColorRed, kNumAlignRight);
+		}
+		else
+			PAL_DrawNumber(be.e.wHealth, 7, PAL_XY(x + 37, y + (i - 1) * h - 1), kNumColorYellow, kNumAlignRight);
+
+		if ((&gpGlobals->g.lprgEventObject[g_Battle.wEventsThatCauseFighting])->fIsHasBeenStolen)
+		{
+			// 若该组敌人曾被偷过则显示红色的"已偷窃"
+			PAL_DrawText(PAL_GetWord(LABEL_ALREADY), PAL_XY(69, 44), BATTLECANTMELTCORPSES_COLOR, TRUE, FALSE, FALSE);
+			PAL_DrawText(PAL_GetWord(LABEL_PILFERABLE + 1), PAL_XY(69, 63), BATTLECANTMELTCORPSES_COLOR, TRUE, FALSE, FALSE);
+			PAL_DrawText(PAL_GetWord(LABEL_PILFERABLE + 2), PAL_XY(69, 82), BATTLECANTMELTCORPSES_COLOR, TRUE, FALSE, FALSE);
+		}
+		else
+		{
+			// 若该组敌人未被偷过则显示白色的"可偷窃"
+			PAL_DrawText(PAL_GetWord(LABEL_PILFERABLE), PAL_XY(69, 44), BATTLECANMELTCORPSES_COLOR, TRUE, FALSE, FALSE);
+			PAL_DrawText(PAL_GetWord(LABEL_PILFERABLE + 1), PAL_XY(69, 63), BATTLECANMELTCORPSES_COLOR, TRUE, FALSE, FALSE);
+			PAL_DrawText(PAL_GetWord(LABEL_PILFERABLE + 2), PAL_XY(69, 82), BATTLECANMELTCORPSES_COLOR, TRUE, FALSE, FALSE);
+		}
+
+		// 最大体力
+		PAL_DrawNumber(be.dwMaxHealth, 7, PAL_XY(x + 37, y + (i - 1) * h + 10), kNumColorBlue, kNumAlignRight);
+
+		// 敌方巫抗
+		PAL_DrawText(PAL_GetWord(LABEL_SORCERY_RESISTANCE), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		PAL_DrawNumber(PAL_New_GetEnemySorceryResistance(iCurrent), 3, PAL_XY(x + 37, y + (i - 1) * h + 5), kNumColorYellow,
+			kNumAlignRight);
+
+		// 敌方毒抗
+		PAL_DrawText(PAL_GetWord(LABEL_POISON_RESISTANCE), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		PAL_DrawNumber(PAL_New_GetEnemyPoisonResistance(iCurrent), 3, PAL_XY(x + 37, y + (i - 1) * h + 5), kNumColorYellow,
+			kNumAlignRight);
+
+		// 敌方物抗
+		PAL_DrawText(PAL_GetWord(LABEL_PHYSICAL_RESISTANCE), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		PAL_DrawNumber(PAL_New_GetEnemyPhysicalResistance(iCurrent), 3, PAL_XY(x + 37, y + (i - 1) * h + 5), kNumColorYellow,
+			kNumAlignRight);
+
+		// 敌方灵抗
+		PAL_DrawText(PAL_GetWord(LABEL_MAGICS_RESISTANCE_ALL), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		for (iMagicsResistance = 0; iMagicsResistance < NUM_MAGIC_ELEMENTAL; iMagicsResistance++)
+		{
+			//iValue = be.e.wElemResistance[iMagicsResistance];
+			iValue = PAL_New_GetEnemyElementalResistance(iCurrent, iMagicsResistance);
+			PAL_DrawNumber(min(100, iValue), 3, PAL_XY(37 + x + iMagicsResistance * 25, y + (i - 1) * h + 5), magicsResistanceColor[iMagicsResistance], kNumAlignRight);
+		}
+
+		// 敌方攻击附带
+		PAL_DrawText(PAL_GetWord(LABEL_ATTACK_COLLATERAL), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		iValue = be.e.wAttackEquivItem != 0 ? be.e.wAttackEquivItem : LABEL_NONE;
+		if (iValue != LABEL_NONE)
+		{
+			PAL_DrawNumber((iValue >= 100) ? 100 : be.e.wAttackEquivItemRate, 3, PAL_XY(x + 74, y + (i - 1) * h + 5),
+				kNumColorPink, kNumAlignRight);
+		}
+		PAL_DrawText(PAL_GetWord(iValue), PAL_XY(x + 98, y + (i - 1) * h), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+
+		// 敌方默认仙术
+		PAL_DrawText(PAL_GetWord(LABEL_DEFAULT_MAGIC), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		iValue = be.e.wMagic != 0 ? be.e.wMagic : LABEL_NONE;
+		if (iValue != LABEL_NONE)
+		{
+			PAL_DrawNumber((iValue >= 100) ? 100 : iValue, 3, PAL_XY(x + 74, y + (i - 1) * h + 5), kNumColorPink, kNumAlignRight);
+		}
+		PAL_DrawText(PAL_GetWord(iValue), PAL_XY(x + 98, y + (i - 1) * h), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+
+		// 偷窃敌方可得
+		PAL_DrawText(PAL_GetWord(LABEL_CAN_STEAL_SOMETHING), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		PAL_DrawNumber(min(9999, be.e.nStealItem), 4, PAL_XY(x + 74 - 6, y + (i - 1) * h + 5), kNumColorPink, kNumAlignRight);
+		iValue = be.e.wStealItem != 0 ? be.e.wStealItem : CASH_LABEL;
+		PAL_DrawText(PAL_GetWord(iValue), PAL_XY(x + 98, y + (i - 1) * h), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+
+		// 敌方战后掉落
+		PAL_DrawText(PAL_GetWord(LABEL_CAPTURED_EQUIPMENT), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		PAL_FindEnemyBooty(be.wScriptOnBattleEnd, 0, iCurrent, PAL_XY(x + 74, y + (i - 1) * h + 5), PAL_XY(x + 98, y + (i - 1) * h), FALSE);
+
+		i = 0;
+		x = 250;
+
+		// 敌方修行(下面获取的并不准确，因为怪物每升一级，武术灵力+5,防御身法+3,吉运+2)
+		PAL_DrawText(PAL_GetWord(STATUS_LABEL_LEVEL), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		//PAL_DrawNumber(be.e.wLevel, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorYellow, kNumAlignRight);
+		PAL_DrawNumber(PAL_New_GetEnemyLevel(iCurrent), 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorYellow, kNumAlignRight);
+
+		// 敌方武术
+		PAL_DrawText(PAL_GetWord(STATUS_LABEL_ATTACKPOWER), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		iValue = PAL_New_GetEnemyAttackStrength(iCurrent);
+		if (iValue < 0)
+			PAL_DrawNumber(-1 - iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorBlue,
+				kNumAlignRight);
+		else
+			PAL_DrawNumber(iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorYellow,
+				kNumAlignRight);
+
+		// 敌方灵力
+		PAL_DrawText(PAL_GetWord(STATUS_LABEL_MAGICPOWER), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		iValue = PAL_New_GetEnemyMagicStrength(iCurrent);
+		if (iValue < 0)
+			PAL_DrawNumber(-1 - iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorBlue,
+				kNumAlignRight);
+		else
+			PAL_DrawNumber(iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorYellow,
+				kNumAlignRight);
+
+		// 敌方防御
+		PAL_DrawText(PAL_GetWord(STATUS_LABEL_RESISTANCE), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		iValue = PAL_New_GetEnemyDefense(iCurrent);
+		if (iValue < 0)
+			PAL_DrawNumber(-1 - iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorBlue,
+				kNumAlignRight);
+		else
+			PAL_DrawNumber(iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorYellow,
+				kNumAlignRight);
+
+		// 敌方身法
+		PAL_DrawText(PAL_GetWord(STATUS_LABEL_DEXTERITY), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		iValue = PAL_New_GetEnemyDexterity(iCurrent);
+		if (iValue < 0)
+			PAL_DrawNumber(-1 - iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorBlue,
+				kNumAlignRight);
+		else
+			PAL_DrawNumber(iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorYellow,
+				kNumAlignRight);
+
+		// 敌方吉运
+		PAL_DrawText(PAL_GetWord(STATUS_LABEL_FLEERATE), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		iValue = PAL_New_GetEnemyFleeRate(iCurrent);
+		if (iValue < 0)
+			PAL_DrawNumber(-1 - iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorBlue,
+				kNumAlignRight);
+		else
+			PAL_DrawNumber(iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorYellow,
+				kNumAlignRight);
+
+		// 敌方金钱
+		PAL_DrawText(PAL_GetWord(CASH_LABEL), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		PAL_DrawNumber(be.e.wCash, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorPink, kNumAlignRight);
+
+		// 敌方灵葫
+		PAL_DrawText(PAL_GetWord(LABEL_COLLECT_ENEMY), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		PAL_DrawNumber(be.e.wCollectValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorYellow, kNumAlignRight);
+
+		// 敌方每回合行动次数
+		PAL_DrawText(PAL_GetWord(LABEL_NUM_OF_ACTIONS), PAL_XY(x, y + (i++) * h), 212, TRUE, FALSE, FALSE);
+		PAL_DrawNumber(be.e.wDualMove, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorBlue, kNumAlignRight);
+
+		// 敌方目标索引
+		PAL_DrawText(PAL_GetWord(LABEL_TARGET_INDEX), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+		PAL_DrawNumber(iCurrent + 1, 1, PAL_XY(x + 63, y + (i - 1) * h + 5), kNumColorCyan, kNumAlignRight);
+
+		//
+		// Draw all poisons
+		//将毒的名称写在状态栏里
+		y = 6;
+
+		int wPoisonIntensity = 0;
+
+		for (i = 0; i < MAX_POISONS; i++)
+		{
+			w = g_Battle.rgEnemy[iCurrent].rgPoisons[i].wPoisonID;
+
+			if (w != 0)
+			{
+				wPoisonIntensity = g_Battle.rgEnemy[iCurrent].rgPoisons[i].wPoisonIntensity;
+
+				if (wPoisonIntensity != 0 && wPoisonIntensity < 99)
+				{
+					PAL_DrawText(PAL_GetWord(w), PAL_XY(185, y), (BYTE)(gpGlobals->g.rgObject[w].poison.wColor + 10), TRUE, FALSE, FALSE);
+
+					y += 19;
+				}
+			}
+		}
+
+		//
+		// Draw all poisons
+		// 将毒性为 100 的毒的名称写在状态栏里
+
+		y = 25;
+
+		for (i = 0; i < MAX_POISONS; i++)
+		{
+			w = g_Battle.rgEnemy[iCurrent].rgPoisons[i].wPoisonID;
+
+			if (w != 0)
+			{
+				wPoisonIntensity = g_Battle.rgEnemy[iCurrent].rgPoisons[i].wPoisonIntensity;
+
+				if (wPoisonIntensity != 0 && wPoisonIntensity == 99)
+				{
+					PAL_DrawText(PAL_GetWord(w), PAL_XY(101, y), (BYTE)(gpGlobals->g.rgObject[w].poison.wColor + 10), TRUE, FALSE, FALSE);
+					//PAL_DrawNumber(min(99, wPoisonIntensity), 2, PAL_XY(157, y + 5), kNumColorCyan, kNumAlignRight);
+
+					y += 19;
+				}
+			}
+		}
+
+		//
+		// Update the screen
+		// 更新屏幕
+		VIDEO_UpdateScreen(NULL);
+
+		//
+		// Wait for input
+		// 等待输入
+		PAL_ClearKeyState();
+
+		while (TRUE)
+		{
+			UTIL_Delay(1);
+
+			if (g_InputState.dwKeyPress & kKeyMenu)
+			{
+				iCurrent = -1;
+				break;
+			}
+			else if (g_InputState.dwKeyPress & (kKeyLeft | kKeyUp))
+			{
+				do
+				{
+					iCurrent--;
+					if (iCurrent < 0)
+					{
+						break;
+					}
+					be = g_Battle.rgEnemy[iCurrent];
+				} while (be.wObjectID == 0 && be.dwActualHealth == 0);
+				break;
+			}
+			else if (g_InputState.dwKeyPress & (kKeyRight | kKeyDown | kKeySearch))
+			{
+				do
+				{
+					iCurrent++;
+					if (iCurrent >= MAX_ENEMIES_IN_TEAM)
+					{
+						break;
+					}
+					be = g_Battle.rgEnemy[iCurrent];
+				} while (be.wObjectID == 0 && be.dwActualHealth == 0);
+				break;
+			}
+		}
+	}
+}
+
+VOID
+PAL_New_PlayerLevelmagic(
+	VOID
+)
+{
+	PAL_LARGE BYTE       bufImage[PAL_RLEBUFSIZE];
+	INT					 iPlayerRole = 0, i, iNumXMargin = 10, iNumYMargin = 7, iTextXMargin = 25, iTextYMargin = 0, iXOffset = 100, iYOffset = 20, iRows, iColumns;
+
+	while (iPlayerRole >= 0 && iPlayerRole <= MAX_PLAYABLE_PLAYER_ROLES)
+	{
+		// 重置行数列数
+		iRows = 0, iColumns = 0;
+
+		// 展示标题背景
+		PAL_DrawOpeningMenuBackground();
+
+		// 人物图像
+		if (PAL_MKFReadChunk(bufImage, 16384, gpGlobals->g.PlayerRoles.rgwAvatar[iPlayerRole], gpGlobals->f.fpRGM) > 0)
+		{
+			PAL_RLEBlitToSurface(bufImage, gpScreen, PAL_XY(230, 90));
+		}
+
+		//人物等级法术
+		for (i = 0; i < gpGlobals->g.nLevelUpMagic; i++) {
+			// 只展示等级大于0级的法术
+			if (gpGlobals->g.lprgLevelUpMagic[i].m[min(iPlayerRole, 5)].wLevel > 0)
+			{
+				// 每次都是第三个换行
+				if (i % 3 == 0 && i > 0)
+				{
+					iRows = 0;
+					iColumns++;
+				}
+
+				PAL_DrawNumber(gpGlobals->g.lprgLevelUpMagic[i].m[min(iPlayerRole, 5)].wLevel, 2,
+					PAL_XY(iNumXMargin + iXOffset * iRows, iNumYMargin + iYOffset * iColumns), kNumColorYellow, kNumAlignRight);
+
+				PAL_DrawText(PAL_GetWord(gpGlobals->g.lprgLevelUpMagic[i].m[min(iPlayerRole, 5)].wMagic),
+					PAL_XY(iTextXMargin + iXOffset * iRows++, iTextYMargin + iYOffset * iColumns), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+			}
+		}
+
+		// 更新整个屏幕
+		VIDEO_UpdateScreen(NULL);
+
+		// 等待按键输入
+		PAL_ClearKeyState();
+
+		while (TRUE)
+		{
+			UTIL_Delay(1);
+
+			if (g_InputState.dwKeyPress & kKeyMenu)
+			{
+				iPlayerRole = -1;
+				break;
+			}
+			else if (g_InputState.dwKeyPress & (kKeyLeft | kKeyUp))
+			{
+				iPlayerRole--;
+				break;
+			}
+			else if (g_InputState.dwKeyPress & (kKeyRight | kKeyDown | kKeySearch))
+			{
+				iPlayerRole++;
+				break;
+			}
+		}
+	}
 }
