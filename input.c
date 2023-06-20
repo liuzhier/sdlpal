@@ -1,14 +1,15 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -87,7 +88,11 @@ static const int g_KeyMap[][2] = {
    { SDLK_w,         kKeyThrowItem },
    { SDLK_q,         kKeyFlee },
    { SDLK_f,         kKeyForce },
-   { SDLK_s,         kKeyStatus }
+   { SDLK_s,         kKeyStatus },
+{ SDLK_2,         kKeyEnemyStatus },
+{ SDLK_1,          kKeyData },
+{ SDLK_3,          kKeyMagic },
+{ SDLK_t,           kKeyEquipment },
 };
 
 static VOID
@@ -1011,7 +1016,7 @@ PAL_EventFilter(
    {
 #if SDL_VERSION_ATLEAST(2,0,0)
    case SDL_WINDOWEVENT:
-      if (lpEvent->window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+      if (lpEvent->window.event == SDL_WINDOWEVENT_RESIZED)
       {
          //
          // resized the window
@@ -1238,7 +1243,7 @@ PAL_RegisterInputFilter(
   Parameters:
 
     [IN] init_filter - Filter that will be called inside PAL_InitInput
-	[IN] event_filter - Filter that will be called inside PAL_PollEvent, 
+	[IN] event_filter - Filter that will be called inside PAL_PollEvent,
 	                    return non-zero value from this filter disables
 						further internal event processing.
 	[IN] shutdown_filter - Filter that will be called inside PAL_ShutdownInput

@@ -1,14 +1,15 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -38,7 +39,7 @@ typedef DWORD           PAL_POS;
 #define PAL_XY_OFFSET(xy, x, y)    (PAL_POS)(((((INT)(y) << 16) & 0xFFFF0000) + ((xy) & 0xFFFF0000)) | (((INT)(x) & 0xFFFF) + ((xy) & 0xFFFF)))
 
 // maximum number of players in party
-#define     MAX_PLAYERS_IN_PARTY         3
+#define     MAX_PLAYERS_IN_PARTY         4
 
 // total number of possible player roles
 #define     MAX_PLAYER_ROLES             6
@@ -47,7 +48,7 @@ typedef DWORD           PAL_POS;
 #define     MAX_PLAYABLE_PLAYER_ROLES    5
 
 // maximum entries of inventory
-#define     MAX_INVENTORY                256
+#define     MAX_INVENTORY                999
 
 // maximum items in a store
 #define     MAX_STORE_ITEM               9
@@ -62,29 +63,25 @@ typedef DWORD           PAL_POS;
 #define     MAX_PLAYER_EQUIPMENTS        6
 
 // maximum number of magics for a player
-#define     MAX_PLAYER_MAGICS            32
+#define     MAX_PLAYER_MAGICS            64
 
 // maximum number of scenes
-#define     MAX_SCENES                   300
+#define     MAX_SCENES                   310
 
 // maximum number of objects
-#define     MAX_OBJECTS                  600
+#define     MAX_OBJECTS                  1000
 
 // maximum number of event objects (should be somewhat more than the original,
 // as there are some modified versions which has more)
-#define     MAX_EVENT_OBJECTS            5500
+#define     MAX_EVENT_OBJECTS            10000
 
 // maximum number of effective poisons to players
 #define     MAX_POISONS                  16
 
 // maximum number of level
-#define     MAX_LEVELS                   99
+#define     MAX_LEVELS                999
 
-#define     MINIMAL_WORD_COUNT           (MAX_OBJECTS + 13)
-
-#define PAL_CDTRACK_BASE    10000
-
-#define PAL_RLEBUFSIZE	64000
+#define     MINIMAL_WORD_COUNT           (MAX_OBJECTS + 30)
 
 typedef enum tagPALDIRECTION
 {
@@ -99,26 +96,10 @@ typedef enum tagMUSICTYPE
 {
 	MUSIC_MIDI,
 	MUSIC_RIX,
-    MUSIC_MP3,
-    MUSIC_OGG,
-	MUSIC_OPUS
+	MUSIC_MP3,
+	MUSIC_OGG,
+	MUSIC_SDLCD
 } MUSICTYPE, *LPMUSICTYPE;
-
-typedef enum tagCDTYPE
-{
-    CD_NONE,
-    CD_MP3,
-	CD_OGG,
-    CD_OPUS,
-	CD_SDLCD
-} CDTYPE, *LPCDTYPE;
-
-typedef enum tagMIDISYNTHTYPE
-{
-	SYNTH_NATIVE,
-	SYNTH_TIMIDITY,
-	SYNTH_TINYSOUNDFONT
-} MIDISYNTHTYPE, * LPMIDISYNTHTYPE;
 
 typedef enum tagCODEPAGE {
 	CP_MIN = 0,

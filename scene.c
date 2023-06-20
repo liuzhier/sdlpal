@@ -1,14 +1,15 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -96,7 +97,9 @@ PAL_CalcCoverTiles(
    int             x, y, i, l, iTileHeight;
    LPCBITMAPRLE    lpTile;
 
-   const int       sx = PAL_X(gpGlobals->viewport) + PAL_X(lpSpriteToDraw->pos) - lpSpriteToDraw->iLayer/2;
+ //  const int       sx = PAL_X(gpGlobals->viewport) + PAL_X(lpSpriteToDraw->pos);
+ //  const int       sy = PAL_Y(gpGlobals->viewport) + PAL_Y(lpSpriteToDraw->pos);
+   const int       sx = PAL_X(gpGlobals->viewport) + PAL_X(lpSpriteToDraw->pos) - lpSpriteToDraw->iLayer / 2;
    const int       sy = PAL_Y(gpGlobals->viewport) + PAL_Y(lpSpriteToDraw->pos) - lpSpriteToDraw->iLayer;
    const int       sh = ((sx % 32) ? 1 : 0);
 
@@ -290,7 +293,7 @@ PAL_SceneDrawSprites(
       x = (SHORT)lpEvtObj->x - PAL_X(gpGlobals->viewport);
       x -= PAL_RLEGetWidth(lpFrame) / 2;
 
-      if (x >= 320 || x < -(int)PAL_RLEGetWidth(lpFrame))
+      if (x >= 640 || x < -(int)PAL_RLEGetWidth(lpFrame))
       {
          //
          // outside the screen; skip it
@@ -302,7 +305,7 @@ PAL_SceneDrawSprites(
       y += lpEvtObj->sLayer * 8 + 9;
 
       vy = y - PAL_RLEGetHeight(lpFrame) - lpEvtObj->sLayer * 8 + 2;
-      if (vy >= 200 || vy < -(int)PAL_RLEGetHeight(lpFrame))
+      if (vy >= 400 || vy < -(int)PAL_RLEGetHeight(lpFrame))
       {
          //
          // outside the screen; skip it
@@ -436,9 +439,9 @@ PAL_ApplyWave(
          // Do a shift on the current line with the calculated offset.
          //
          memcpy(buf, p, b);
-         //memmove(p, p + b, 320 - b);
+         memmove(p, p + b, 320 - b);
          memmove(p, &p[b], 320 - b);
-         //memcpy(p + 320 - b, buf, b);
+         memcpy(p + 320 - b, buf, b);
          memcpy(&p[320 - b], buf, b);
       }
 
@@ -490,6 +493,15 @@ PAL_MakeScene(
    //
    PAL_SceneDrawSprites();
 
+  if (gpGlobals->wChaseRange != 1)
+   {
+	   PAL_DrawNumber(gpGlobals->wChasespeedChangeCycles, 3, PAL_XY(300,0), kNumColorYellow, kNumAlignRight);
+   }
+
+   if (gpGlobals->wCollectValue != 0)
+   {
+	   PAL_DrawNumber(gpGlobals->wCollectValue, 8, PAL_XY(270, 190), kNumColorYellow, kNumAlignRight);
+   }
    //
    // Check if we need to fade in.
    //
@@ -498,6 +510,12 @@ PAL_MakeScene(
       VIDEO_UpdateScreen(NULL);
       PAL_FadeIn(gpGlobals->wNumPalette, gpGlobals->fNightPalette, 1);
       gpGlobals->fNeedToFadeIn = FALSE;
+   }
+
+   if (gpGlobals->fDoAutoSave == TRUE)
+   {
+	   PAL_AutoSaveGame();
+	   gpGlobals->fDoAutoSave = FALSE;
    }
 }
 
@@ -528,7 +546,11 @@ PAL_CheckObstacle(
 --*/
 {
    int x, y, h, xr, yr;
-   int blockX = PAL_X(gpGlobals->partyoffset)/32, blockY = PAL_Y(gpGlobals->partyoffset)/16;
+
+   if (PAL_X(pos) < 0 || PAL_X(pos) >= 2048 || PAL_Y(pos) < 0 || PAL_Y(pos) >= 2048)
+   {
+      return TRUE;
+   }
 
    //
    // Check if the map tile at the specified position is blocking
@@ -536,14 +558,6 @@ PAL_CheckObstacle(
    x = PAL_X(pos) / 32;
    y = PAL_Y(pos) / 16;
    h = 0;
-
-   //
-   // Avoid walk out of range, look out of map
-   //
-   if (x < blockX || x >= 2048 || y < blockY || y >= 2048 )
-   {
-      return TRUE;
-   }
 
    xr = PAL_X(pos) % 32;
    yr = PAL_Y(pos) % 16;
@@ -671,18 +685,36 @@ PAL_UpdatePartyGestures(
          gpGlobals->rgParty[i].x = gpGlobals->rgTrail[1].x - PAL_X(gpGlobals->viewport);
          gpGlobals->rgParty[i].y = gpGlobals->rgTrail[1].y - PAL_Y(gpGlobals->viewport);
 
-         if (i == 2)
-         {
-            gpGlobals->rgParty[i].x +=
-               (gpGlobals->rgTrail[1].wDirection == kDirEast || gpGlobals->rgTrail[1].wDirection == kDirWest) ? -16 : 16;
-            gpGlobals->rgParty[i].y += 8;
-         }
-         else
+         if (i == 1)
          {
             gpGlobals->rgParty[i].x +=
                ((gpGlobals->rgTrail[1].wDirection == kDirWest || gpGlobals->rgTrail[1].wDirection == kDirSouth) ? 16 : -16);
             gpGlobals->rgParty[i].y +=
                ((gpGlobals->rgTrail[1].wDirection == kDirWest || gpGlobals->rgTrail[1].wDirection == kDirNorth) ? 8 : -8);
+         }
+         else if (i == 2)
+         {
+            gpGlobals->rgParty[i].x +=
+               (gpGlobals->rgTrail[1].wDirection == kDirEast || gpGlobals->rgTrail[1].wDirection == kDirWest) ? -16 : 16;
+               gpGlobals->rgParty[i].y += 8;
+         }
+         else if (i == 3)
+         {
+            SHORT dx = 0, dy = 0;
+            if (gpGlobals->rgTrail[1].wDirection == kDirSouth || gpGlobals->rgTrail[1].wDirection == kDirWest) {
+               dx = -16;
+            }
+            else {
+               dx = 16;
+            }
+            if (gpGlobals->rgTrail[1].wDirection == kDirWest || gpGlobals->rgTrail[1].wDirection == kDirNorth) {
+               dy = -8;
+            }
+            else {
+               dy = 8;
+            }
+            gpGlobals->rgParty[i].x += dx;
+            gpGlobals->rgParty[i].y += dy;
          }
 
          //
@@ -708,17 +740,17 @@ PAL_UpdatePartyGestures(
          }
       }
 
-      for (i = 1; i <= gpGlobals->nFollower; i++)
+      if (gpGlobals->nFollower > 0)
       {
          //
          // Update the position and gesture for the follower
          //
-         gpGlobals->rgParty[gpGlobals->wMaxPartyMemberIndex + i].x =
-            gpGlobals->rgTrail[2+i].x - PAL_X(gpGlobals->viewport);
-         gpGlobals->rgParty[gpGlobals->wMaxPartyMemberIndex + i].y =
-            gpGlobals->rgTrail[2+i].y - PAL_Y(gpGlobals->viewport);
-         gpGlobals->rgParty[gpGlobals->wMaxPartyMemberIndex + i].wFrame =
-            gpGlobals->rgTrail[2+i].wDirection * 3 + iStepFrameFollower;
+         gpGlobals->rgParty[gpGlobals->wMaxPartyMemberIndex + 1].x =
+            gpGlobals->rgTrail[3].x - PAL_X(gpGlobals->viewport);
+         gpGlobals->rgParty[gpGlobals->wMaxPartyMemberIndex + 1].y =
+            gpGlobals->rgTrail[3].y - PAL_Y(gpGlobals->viewport);
+         gpGlobals->rgParty[gpGlobals->wMaxPartyMemberIndex + 1].wFrame =
+            gpGlobals->rgTrail[3].wDirection * 3 + iStepFrameFollower;
       }
    }
    else
@@ -743,10 +775,10 @@ PAL_UpdatePartyGestures(
          gpGlobals->rgParty[i].wFrame = gpGlobals->rgTrail[2].wDirection * f;
       }
 
-      for (i = 1; i <= gpGlobals->nFollower; i++)
+      if (gpGlobals->nFollower > 0)
       {
-         gpGlobals->rgParty[gpGlobals->wMaxPartyMemberIndex + i].wFrame =
-            gpGlobals->rgTrail[2+i].wDirection * 3;
+         gpGlobals->rgParty[gpGlobals->wMaxPartyMemberIndex + 1].wFrame =
+            gpGlobals->rgTrail[3].wDirection * 3;
       }
 
       s_iThisStepFrame &= 2;
@@ -778,6 +810,7 @@ PAL_UpdateParty(
    //
    // Has user pressed one of the arrow keys?
    //
+
    if (g_InputState.dir != kDirUnknown)
    {
       xOffset = ((g_InputState.dir == kDirWest || g_InputState.dir == kDirSouth) ? -16 : 16);

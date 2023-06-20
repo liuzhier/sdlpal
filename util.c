@@ -1,14 +1,15 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -579,16 +580,6 @@ UTIL_CloseFile(
    }
 }
 
-BOOL
-UTIL_IsFileExist(
-    const char *path
-)
-{
-    if( UTIL_IsAbsolutePath(path) )
-        return UTIL_GetFullPathName(INTERNAL_BUFFER_SIZE_ARGS, "", path) != NULL;
-    else
-        return UTIL_GetFullPathName(INTERNAL_BUFFER_SIZE_ARGS, gConfig.pszGamePath, path) != NULL;
-}
 
 const char *
 UTIL_GetFullPathName(
@@ -611,7 +602,6 @@ UTIL_GetFullPathName(
 		result = internal_buffer[PAL_MAX_GLOBAL_BUFFERS];
 	}
 
-#ifndef __EMSCRIPTEN__
 #if !defined(PAL_FILESYSTEM_IGNORE_CASE) || !PAL_FILESYSTEM_IGNORE_CASE
 	if (result == NULL)
 	{
@@ -643,7 +633,6 @@ UTIL_GetFullPathName(
 			free(list);
 		}
 	}
-#endif
 #endif
 	if (result != NULL)
 	{
@@ -737,14 +726,14 @@ UTIL_CheckResourceFiles(
 	const char *common_files[] = {
 		"abc.mkf", "ball.mkf", "data.mkf", "f.mkf",
 		"fbp.mkf", "fire.mkf", "gop.mkf",  "map.mkf",
-		"mgo.mkf", "pat.mkf",  "rgm.mkf",  "rng.mkf",
+		"mgo.mkf", "palette.mkf",  "rgm.mkf",  "rng.mkf",
 		"sss.mkf"
 	};
 	const char *msg_files[][2] = {
 		{ msgfile, "m.msg"    },
 		{ msgfile, "word.dat" }
 	};
-	const char *sound_files[2] = { "voc.mkf", "sounds.mkf" };
+	const char *sound_files[2] = { "voc.mkf", "newdata.mkf" };
 	const char *music_files[2] = { "midi.mkf", "mus.mkf" };
 	int msgidx = !(msgfile && *msgfile);
 	PALFILE retval = (PALFILE)0;
@@ -968,11 +957,11 @@ UTIL_LogSetPrelude(
 {
     memset(_log_prelude, 0, sizeof(_log_prelude));
     if( prelude )
-        strncpy(_log_prelude, prelude, sizeof(_log_prelude) - 1);
+        strncpy(_log_prelude, prelude, sizeof(_log_prelude));
 }
 
 #if PAL_NEED_STRCASESTR
-PAL_FORCE_INLINE char* stoupper(const char* s)
+inline char* stoupper(char* s)
 {
 	char* p = strdup(s);
 	char* p1 = p;
@@ -980,28 +969,11 @@ PAL_FORCE_INLINE char* stoupper(const char* s)
 	return p1;
 }
 PAL_C_LINKAGE char* strcasestr(const char *a, const char *b) {
-	char *a1 = stoupper(a);
-	char *b1 = stoupper(b);
+	const char *a1 = stoupper(a);
+	const char *b1 = stoupper(b);
 	char *ptr = strstr(a1, b1);
-	if (ptr != NULL) ptr = (char*)a + (ptr - a1);
 	free(a1);
 	free(b1);
 	return ptr;
 }
 #endif
-
-char basename_buf[256];
-
-char *UTIL_basename(const char *filename) {
-    memset(basename_buf, 0, 256);
-    memcpy(basename_buf, filename, strlen(filename));
-    
-    char *pos = NULL;
-    int broked = 0;
-    for( int i=0;i<strlen(PAL_PATH_SEPARATORS);i++)
-        if( (pos = strrchr(basename_buf,PAL_PATH_SEPARATORS[i])) != NULL )
-            *pos='\0', broked = 1;
-    if( !broked )
-        sprintf((char*)basename_buf, "./");
-    return (char*)basename_buf;
-}

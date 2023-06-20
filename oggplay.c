@@ -1,14 +1,15 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -63,8 +64,10 @@ typedef struct tagOGGPLAYER
 	FILE            *fp;
 	void            *resampler[2];
 	INT              iFlags;
+	INT              iMusic;
 	INT              iStage;
 	INT              nChannels;
+	BOOL             fLoop;
 	BOOL             fReady;
 	BOOL             fUseResampler;
 } OGGPLAYER, *LPOGGPLAYER;
@@ -428,12 +431,12 @@ OGG_Play(
 		player->fp = NULL;
 	}
 
-    player->iMusic = iNum;
-
 	if (iNum == -1)
 	{
 		return TRUE;
 	}
+
+	player->iMusic = iNum;
 
 	player->fp = UTIL_OpenFile(PAL_va(0, "ogg%s%.2d.ogg", PAL_NATIVE_PATH_SEPARATOR, iNum));
 	if (player->fp == NULL)

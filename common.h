@@ -1,14 +1,15 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +27,61 @@
 # define PAL_CLASSIC        1
 #endif
 
-#include "defines.h"
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
+#define SHOW_MP_DECREASING	
+#define STRENGTHEN_ENEMY   
+#define SHOW_DATA_IN_BATTLE  
+#define SHOW_ENEMY_STATUS   
+#define ADD_POISON_FAIL_THEN_JUMP                    
+#define ADD_SOME_POISONS_SUCCESSFULLY_ANYTIME		
+#define ADD_SOME_STATUSES_SUCCESSFULLY_ANYTIME		
+#define GAIN_MORE_HIDDEN_EXP						
+#define POISON_STATUS_EXPAND  
+//
+//实际的武术灵力防御
+//敌人可偷窃我方道具
+//一次性偷窃所有敌人携带的道具
+//增加新指令 百分比恢复体力、真气
+//敌人可以被咒封
+//显示人物升级学会法术
+//快速存档、自动存档
+typedef enum tagPlayerRoleID
+{
+	RoleID_LiXiaoYao = 0,
+	RoleID_ZhaoLingEr = 1,
+	RoleID_LinYueRu = 2,
+	RoleID_WuHou = 3,
+	RoleID_ANu = 4,
+	RoleID_GaiLuoJiao = 5,
+} PlayerRoleID;
+
+typedef enum tagPlayerPara
+{
+	Para_Level = 0x0006,
+	Para_MaxHP,
+	Para_MaxMP,
+	Para_HP,
+	Para_MP,
+	Para_AttackStrength = 0x0011,
+	Para_MagicStrength,
+	Para_Defense,
+	Para_Dexterity,
+	Para_FleeRate,
+	Para_PoisonResistance = 0x0016,
+	Para_CloudResistance = 0x0017,
+	Para_ThunderResistance,
+	Para_WaterResistance,
+	Para_FireResistance,
+	Para_EarthResistance,
+	Para_SorceryResistance = 0x001c,
+	Para_Wisdom = 0x0042,
+	Para_Power,
+} PlayerPara;
+   
+
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
@@ -48,9 +103,6 @@
 
 #define __WIDETEXT(quote) L##quote
 #define WIDETEXT(quote) __WIDETEXT(quote)
-
-#define STR_INDIR(x)                    #x
-#define STR(x)                          STR_INDIR(x)
 
 #if !defined(fmax) || !defined(fmin)
 # include <math.h>
@@ -159,11 +211,7 @@ typedef const CHAR         *LPCSTR;
 typedef WCHAR              *LPWSTR;
 typedef const WCHAR        *LPCWSTR;
 
-#ifdef PATH_MAX
 # define PAL_MAX_PATH  PATH_MAX
-#else
-# define PAL_MAX_PATH  1024
-#endif
 
 #endif
 
@@ -182,14 +230,6 @@ typedef const WCHAR        *LPCWSTR;
    The example of this file can be found in directories of existing portings.
  */
 #include "pal_config.h"
-
-#if !SDL_VERSION_ATLEAST(2,0,0)
-# if PAL_HAS_GLSL
-#  undef PAL_HAS_GLSL
-# endif
-#define SDL_strcasecmp strcasecmp
-#define SDL_setenv(a,b,c) 
-#endif
 
 #ifndef PAL_DEFAULT_FULLSCREEN_HEIGHT
 # define PAL_DEFAULT_FULLSCREEN_HEIGHT PAL_DEFAULT_WINDOW_HEIGHT
@@ -217,9 +257,6 @@ typedef const WCHAR        *LPCWSTR;
 #endif
 #ifndef PAL_HAS_OGG
 # define PAL_HAS_OGG          1   /* Try always enable OGG. If compilation/run failed, please change this value to 0. */
-#endif
-#ifndef PAL_HAS_OPUS
-# define PAL_HAS_OPUS         1   /* Try always enable OPUS. If compilation/run failed, please change this value to 0. */
 #endif
 
 #ifndef PAL_CONFIG_PREFIX
@@ -280,7 +317,7 @@ typedef enum tagLOGLEVEL
 # define PAL_HAS_CONFIG_PAGE   FALSE
 #endif
 
-#define PAL_MAX_GLOBAL_BUFFERS 4
+#define PAL_MAX_GLOBAL_BUFFERS 5
 #define PAL_GLOBAL_BUFFER_SIZE 1024
 
 //

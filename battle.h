@@ -1,14 +1,15 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +26,7 @@
 #include "global.h"
 #include "uibattle.h"
 
-#define       BATTLE_FPS               25
+#define       BATTLE_FPS               36
 #define       BATTLE_FRAME_TIME        (1000 / BATTLE_FPS)
 
 typedef enum tagBATTLERESULT
@@ -69,30 +70,29 @@ typedef struct tagBATTLEACTION
 
 typedef struct tagBATTLEENEMY
 {
-   WORD               wObjectID;              // Object ID of this enemy
+   INT               wObjectID;              // Object ID of this enemy
    ENEMY              e;                      // detailed data of this enemy
-   WORD               rgwStatus[kStatusAll];  // status effects
+   INT               rgwStatus[kStatusAll];  // status effects
    FLOAT              flTimeMeter;            // time-charging meter (0 = empty, 100 = full).
    POISONSTATUS       rgPoisons[MAX_POISONS]; // poisons
    LPSPRITE           lpSprite;
    PAL_POS            pos;                    // current position on the screen
    PAL_POS            posOriginal;            // original position on the screen
-   WORD               wCurrentFrame;          // current frame number
+   INT               wCurrentFrame;          // current frame number
    FIGHTERSTATE       state;                  // state of this enemy
-
 #ifndef PAL_CLASSIC
    BOOL               fTurnStart;
    BOOL               fFirstMoveDone;
    BOOL               fDualMove;
 #endif
-
    WORD               wScriptOnTurnStart;
    WORD               wScriptOnBattleEnd;
    WORD               wScriptOnReady;
 
-   WORD               wPrevHP;              // HP value prior to action
+   UINT               iPrevHP;              // HP value prior to action
 
    INT                iColorShift;
+   UINT            iMaxHealth;
 } BATTLEENEMY;
 
 // We only put some data used in battle here; other data can be accessed in the global data.
@@ -110,11 +110,12 @@ typedef struct tagBATTLEPLAYER
    BATTLEACTION       action;               // action to perform
    BATTLEACTION       prevAction;           // action of the previous turn
    BOOL               fDefending;           // TRUE if player is defending
-   WORD               wPrevHP;              // HP value prior to action
-   WORD               wPrevMP;              // MP value prior to action
+   INT               iPrevHP;              // HP value prior to action
+   INT               iPrevMP;              // MP value prior to action
 #ifndef PAL_CLASSIC
    SHORT              sTurnOrder;           // turn order
 #endif
+
 } BATTLEPLAYER;
 
 typedef struct tagSUMMON
@@ -137,12 +138,11 @@ typedef enum tabBATTLEPHASE
 typedef struct tagACTIONQUEUE
 {
    BOOL       fIsEnemy;
-   WORD       wDexterity;
+   INT       wDexterity;
    WORD       wIndex;
-   BOOL       fIsSecond;
 } ACTIONQUEUE;
 
-#define MAX_ACTIONQUEUE_ITEMS (MAX_PLAYERS_IN_PARTY + MAX_ENEMIES_IN_TEAM * 2)
+#define MAX_ACTIONQUEUE_ITEMS (MAX_PLAYERS_IN_PARTY + MAX_ENEMIES_IN_TEAM * 3)
 
 #endif
 
@@ -164,6 +164,8 @@ typedef struct tagBATTLE
 
    INT              iExpGained;           // total experience value gained
    INT              iCashGained;          // total cash gained
+   DWORD              iCollectValue;
+ 
 
    BOOL             fIsBoss;              // TRUE if boss fight
    BOOL             fEnemyCleared;        // TRUE if enemies are cleared
@@ -177,10 +179,13 @@ typedef struct tagBATTLE
 
    BOOL             fEnemyMoving;         // TRUE if enemy is moving
 
+   BOOL             fPlayerMoving;         // TRUE if player is moving
+
    INT              iHidingTime;          // Time of hiding
 
    WORD             wMovingPlayerIndex;   // current moving player index
 
+   WORD             wMovingEnemyIndex;   // new, current moving Enemy index
    int              iBlow;
 
 #ifdef PAL_CLASSIC
@@ -194,7 +199,7 @@ typedef struct tagBATTLE
    BOOL             fPrevPlayerAutoAtk;   // TRUE if auto-attack was used by previous player in the same turn
 
    WORD             coopContributors[MAX_PLAYERS_IN_PARTY];
-   BOOL             fThisTurnCoop;
+   BOOL               fThisTurnCoop;
 #endif
 } BATTLE;
 
@@ -232,6 +237,10 @@ PAL_StartBattle(
    WORD        wEnemyTeam,
    BOOL        fIsBoss
 );
+
+#ifdef STRENGTHEN_ENEMY
+BATTLEENEMY  PAL_New_StrengthenEnemy(BATTLEENEMY be);
+#endif
 
 PAL_C_LINKAGE_END
 

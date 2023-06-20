@@ -1,14 +1,15 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,14 +31,101 @@
 static jmp_buf g_exit_jmp_buf;
 static int g_exit_code = 0;
 
-char gExecutablePath[PAL_MAX_PATH];
-
 #define BITMAPNUM_SPLASH_UP         (gConfig.fIsWIN95 ? 0x03 : 0x26)
 #define BITMAPNUM_SPLASH_DOWN       (gConfig.fIsWIN95 ? 0x04 : 0x27)
 #define SPRITENUM_SPLASH_TITLE      0x47
 #define SPRITENUM_SPLASH_CRANE      0x49
 #define NUM_RIX_TITLE               0x05
 
+VOID
+PAL_AdditionalCredits2(
+   VOID
+)
+/*++
+  Purpose:
+
+   Show the additional credits.
+
+  Parameters:
+
+   None.
+
+  Return value:
+
+   None.
+
+--*/
+{
+   LPCWSTR rgszcps[][CP_MAX] = {
+      // Traditional Chinese, Simplified Chinese
+      { L"", L"", /*L""*/ },
+      { L"         經典特別篇   ",
+        L"DOS版MOD 圆梦终曲",
+        //L"   \x30AF\x30E9\x30B7\x30C3\x30AF\x7279\x5225\x7DE8  "
+      },
+      { L"",
+      L"",
+      /*L""*/ },
+      { L"", L"", /*L""*/ },
+      { L"", L"", /*L""*/ },
+      { L"", L"", /*L""*/ },
+
+      { L"", L"", /*L""*/ },
+
+      { L"   本程式是自由軟體，按照 GNU General",
+        L" ",
+        //L" \x3053\x306E\x30D7\x30ED\x30B0\x30E9\x30E0\x306F\x81EA\x7531\x30BD\x30D5\x30C8\x30A6\x30A7\x30A2\x3067\x3059\x3001"
+      },
+      { L"Public License v3",
+      L"转载请注明MOD作者：碎片天空(Alex)", /*L""*/ },
+
+      { L"Public License v3 或更高版本發佈.",
+        L"严禁用于商业用途，如果您是花钱买到本MOD",
+        //L" GNU General Public License v3 \x306E\x4E0B\x3067"
+      },
+      { L"",
+      L"那么您被骗了，作者不承担任何后果", },
+      { L"                    ...按 Enter 結束",
+        L"                  按回车开始游戏",
+        //L"      ...Enter\x30AD\x30FC\x3092\x62BC\x3057\x3066\x7D42\x4E86\x3057\x307E\x3059"
+      },
+   };
+
+   LPCWSTR rgszStrings[] = {
+      L"                作者的话",
+ #ifdef PAL_CLASSIC
+      L"%ls(" WIDETEXT(__DATE__) L")",
+ #else
+      L"                        (" WIDETEXT(__DATE__) L")",
+ #endif
+      L"圆梦是我第一个修改的仙剑MOD，从一开始构",
+      L"思到现在的终曲，发生了很多事情，感谢各位",
+      L"仙迷的支持也希望以后会作出更好的仙剑MOD",
+      L"带给大家，终曲代表着圆梦MOD的完结",
+      L"但不是仙剑梦的一个完结",  // Porting information line 1
+      L"%ls",  // Porting information line 2
+      L"%ls",  // GNU line 1
+      L"%ls",  // GNU line 2
+      L"%ls",  // GNU line 3
+      L"%ls",  // Press Enter to continue
+   };
+
+   int        i = 0;
+
+   PAL_DrawOpeningMenuBackground();
+
+   for (i = 0; i < 12; i++)
+   {
+      WCHAR buffer[48];
+      PAL_swprintf(buffer, sizeof(buffer) / sizeof(WCHAR), rgszStrings[i], gConfig.pszMsgFile ? g_rcCredits[i] : rgszcps[i][PAL_GetCodePage()]);
+      PAL_DrawText(buffer, PAL_XY(0, 2 + i * 16), DESCTEXT_COLOR, TRUE, FALSE, FALSE);
+   }
+
+   PAL_SetPalette(0, FALSE);
+   VIDEO_UpdateScreen(NULL);
+   AUDIO_PlayMusic(RIX_NUM_OPENINGMENU, TRUE, 1);
+   PAL_WaitForKey(0);
+}
 
 static VOID
 PAL_Init(
@@ -97,15 +185,13 @@ PAL_Init(
    {
       TerminateOnError("Could not load fonts: %d.\n", e);
    }
-
    PAL_InitInput();
    PAL_InitResources();
    AUDIO_OpenDevice();
    PAL_AVIInit();
 
    VIDEO_SetWindowTitle(UTIL_va(UTIL_GlobalBuffer(0), PAL_GLOBAL_BUFFER_SIZE,
-	   "Pal %s%s%s%s",
-	   gConfig.fIsWIN95 ? "Win95" : "DOS",
+      "仙剑奇侠传DOS版  MOD：圆梦终曲 碎片天空(Alex)  %s%s",
 #if defined(_DEBUG) || defined(DEBUG)
 	   " (Debug) ",
 #else
@@ -116,7 +202,7 @@ PAL_Init(
 #else
 	   ""
 #endif
-       ,(gConfig.fEnableGLSL && gConfig.pszShader ? gConfig.pszShader : "")
+	   , (gConfig.fEnableGLSL && gConfig.pszShader ? gConfig.pszShader : "")
    ));
 }
 
@@ -187,7 +273,8 @@ PAL_TrademarkScreen(
    if (PAL_PlayAVI("1.avi")) return;
 
    PAL_SetPalette(3, FALSE);
-   PAL_RNGPlay(6, 0, -1, 25);
+   AUDIO_PlayMusic(106, TRUE, 3);
+   PAL_RNGPlay(6, 0, -1, 50);
    UTIL_Delay(1000);
    PAL_FadeOut(1);
 }
@@ -437,10 +524,11 @@ PAL_SplashScreen(
 
    if (!fUseCD)
    {
-      AUDIO_PlayMusic(0, FALSE, 1);
+      AUDIO_PlayMusic(0, TRUE, 1);
    }
 
    PAL_FadeOut(1);
+   PAL_AdditionalCredits2();
 }
 
 
@@ -467,11 +555,6 @@ main(
 
 --*/
 {
-#if !defined( __EMSCRIPTEN__ ) && !defined(__WINRT__) && !defined(__N3DS__)
-   memset(gExecutablePath,0,PAL_MAX_PATH);
-   strncpy(gExecutablePath, argv[0], PAL_MAX_PATH);
-#endif
-
 #if PAL_HAS_PLATFORM_STARTUP
    UTIL_Platform_Startup(argc,argv);
 #endif
@@ -530,7 +613,7 @@ main(
    //
    // Show the trademark screen and splash screen
    //
-   PAL_TrademarkScreen();
+//   PAL_TrademarkScreen();
    PAL_SplashScreen();
 
    //

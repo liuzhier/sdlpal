@@ -1,14 +1,15 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +30,7 @@ typedef struct tagRESOURCES
    LPSPRITE        *lppEventObjectSprites;                      // event object sprites
    int              nEventObject;                               // number of event objects
 
-   LPSPRITE         rglpPlayerSprite[MAX_PLAYABLE_PLAYER_ROLES]; // player sprites
+   LPSPRITE         rglpPlayerSprite[MAX_PLAYERS_IN_PARTY + 1]; // player sprites
 } RESOURCES, *LPRESOURCES;
 
 static LPRESOURCES gpResources = NULL;
@@ -90,7 +91,7 @@ PAL_FreePlayerSprites(
 {
    int i;
 
-   for (i = 0; i < MAX_PLAYABLE_PLAYER_ROLES; i++)
+   for (i = 0; i < MAX_PLAYERS_IN_PARTY + 1; i++)
    {
       free(gpResources->rglpPlayerSprite[i]);
       gpResources->rglpPlayerSprite[i] = NULL;
@@ -215,15 +216,6 @@ PAL_LoadResources(
    }
 
    //
-   // Load global data
-   //
-   if (gpResources->bLoadFlags & kLoadGlobalData)
-   {
-      PAL_InitGameData(gpGlobals->bCurrentSaveSlot);
-      AUDIO_PlayMusic(gpGlobals->wNumMusic, TRUE, 1);
-   }
-
-   //
    // Load scene
    //
    if (gpResources->bLoadFlags & kLoadScene)
@@ -332,18 +324,18 @@ PAL_LoadResources(
             gpGlobals->f.fpMGO);
       }
 
-      for (i = 1; i <= gpGlobals->nFollower; i++)
+      if (gpGlobals->nFollower > 0)
       {
          //
          // Load the follower sprite
          //
-         wSpriteNum = gpGlobals->rgParty[(short)gpGlobals->wMaxPartyMemberIndex+i].wPlayerRole;
+         wSpriteNum = gpGlobals->rgParty[i].wPlayerRole;
 
          l = PAL_MKFGetDecompressedSize(wSpriteNum, gpGlobals->f.fpMGO);
 
-         gpResources->rglpPlayerSprite[(short)gpGlobals->wMaxPartyMemberIndex+i] = (LPSPRITE)UTIL_malloc(l);
+         gpResources->rglpPlayerSprite[i] = (LPSPRITE)UTIL_malloc(l);
 
-         PAL_MKFDecompressChunk(gpResources->rglpPlayerSprite[(short)gpGlobals->wMaxPartyMemberIndex+i], l, wSpriteNum,
+         PAL_MKFDecompressChunk(gpResources->rglpPlayerSprite[i], l, wSpriteNum,
             gpGlobals->f.fpMGO);
       }
    }
@@ -400,7 +392,7 @@ PAL_GetPlayerSprite(
 
 --*/
 {
-   if (gpResources == NULL || bPlayerIndex > MAX_PLAYABLE_PLAYER_ROLES-1)
+   if (gpResources == NULL || bPlayerIndex > MAX_PLAYERS_IN_PARTY)
    {
       return NULL;
    }

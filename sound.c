@@ -1,14 +1,15 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,6 +30,8 @@
 #include "midi.h"
 #include "riff.h"
 #include <math.h>
+
+#define PAL_CDTRACK_BASE    10000
 
 typedef struct tagWAVESPEC
 {
@@ -66,7 +69,6 @@ typedef struct tagSOUNDPLAYER
 	SoundLoader         LoadSound;	/* The function pointer for load WAVE/VOC data */
 	WAVEDATA            soundlist;
 	int                 cursounds;
-	int					lastSFX;
 } SOUNDPLAYER, *LPSOUNDPLAYER;
 
 static const void *
@@ -766,11 +768,6 @@ SOUND_Play(
 		return FALSE;
 	}
 
-	if (player->lastSFX == iSoundNum)
-		return FALSE;
-
-	player->lastSFX = iSoundNum;
-
 	//
 	// Get the length of the sound file.
 	//
@@ -927,7 +924,6 @@ SOUND_FillBuffer(
 					free((void *)cursnd->base);
 					cursnd->base = cursnd->current = cursnd->end = NULL;
 					player->cursounds--;
-					player->lastSFX = 0;
 				}
 				else
 					sounds++;
@@ -955,19 +951,20 @@ SOUND_Init(
 
 --*/
 {
-	char *mkfs[2];
-	SoundLoader func[2];
+	char *mkfs[3];
+	SoundLoader func[3];
 	int i;
 
 	if (gConfig.fIsWIN95)
 	{
-		mkfs[0] = "sounds.mkf"; func[0] = SOUND_LoadWAVEData;
+		mkfs[0] = "newdata.mkf"; func[0] = SOUND_LoadWAVEData;
 		mkfs[1] = "voc.mkf"; func[1] = SOUND_LoadVOCData;
+
 	}
 	else
 	{
 		mkfs[0] = "voc.mkf"; func[0] = SOUND_LoadVOCData;
-		mkfs[1] = "sounds.mkf"; func[1] = SOUND_LoadWAVEData;
+		mkfs[1] = "newdata.mkf"; func[1] = SOUND_LoadWAVEData;
 	}
 
 	for (i = 0; i < 2; i++)

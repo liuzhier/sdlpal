@@ -1,14 +1,15 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -52,6 +53,12 @@ typedef enum tagSTATUS
    kStatusProtect,       // more defense value
    kStatusHaste,         // faster
    kStatusDualAttack,    // dual attack
+   kStatusMagic,    
+   kStatusSlow,    
+   kStatusStrDown,   
+   kStatusAtsDown,    
+   kStatusDefDown,    
+   kStatusDefUp,    
    kStatusAll
 } STATUS;
 
@@ -89,7 +96,8 @@ typedef enum tagTRIGGERMODE
    kTriggerTouchNormal           = 5,
    kTriggerTouchFar              = 6,
    kTriggerTouchFarther          = 7,
-   kTriggerTouchFarthest         = 8
+   kTriggerTouchFarthest         = 8 ,
+   kTriggerTouchVeryFar         = 9
 } TRIGGERMODE;
 
 typedef struct tagEVENTOBJECT
@@ -245,8 +253,8 @@ typedef struct tagSCRIPTENTRY
 typedef struct tagINVENTORY
 {
    WORD          wItem;             // item object code
-   USHORT        nAmount;           // amount of this item
-   USHORT        nAmountInUse;      // in-use amount of this item
+   SHORT        nAmount;           // amount of this item
+   SHORT        nAmountInUse;      // in-use amount of this item
 } INVENTORY, *LPINVENTORY;
 
 typedef struct tagSTORE
@@ -256,37 +264,39 @@ typedef struct tagSTORE
 
 typedef struct tagENEMY
 {
-   WORD        wIdleFrames;         // total number of frames when idle
-   WORD        wMagicFrames;        // total number of frames when using magics
-   WORD        wAttackFrames;       // total number of frames when doing normal attack
-   WORD        wIdleAnimSpeed;      // speed of the animation when idle
-   WORD        wActWaitFrames;      // FIXME: ???
-   WORD        wYPosOffset;
-   SHORT       wAttackSound;        // sound played when this enemy uses normal attack
-   SHORT       wActionSound;        // FIXME: ???
-   SHORT       wMagicSound;         // sound played when this enemy uses magic
-   SHORT       wDeathSound;         // sound played when this enemy dies
-   SHORT       wCallSound;          // sound played when entering the battle
-   WORD        wHealth;             // total HP of the enemy
-   WORD        wExp;                // How many EXPs we'll get for beating this enemy
-   WORD        wCash;               // how many cashes we'll get for beating this enemy
-   WORD        wLevel;              // this enemy's level
-   WORD        wMagic;              // this enemy's magic number
-   WORD        wMagicRate;          // chance for this enemy to use magic
-   WORD        wAttackEquivItem;    // equivalence item of this enemy's normal attack
-   WORD        wAttackEquivItemRate;// chance for equivalence item
-   WORD        wStealItem;          // which item we'll get when stealing from this enemy
-   WORD        nStealItem;          // total amount of the items which can be stolen
-   WORD        wAttackStrength;     // normal attack strength
-   WORD        wMagicStrength;      // magical attack strength
-   WORD        wDefense;            // resistance to all kinds of attacking
-   WORD        wDexterity;          // dexterity
-   WORD        wFleeRate;           // chance for successful fleeing
-   WORD        wPoisonResistance;   // resistance to poison
-   WORD        wElemResistance[NUM_MAGIC_ELEMENTAL]; // resistance to elemental magics
-   WORD        wPhysicalResistance; // resistance to physical attack
-   WORD        wDualMove;           // whether this enemy can do dual move or not
+   INT        wIdleFrames;         // total number of frames when idle
+   INT        wMagicFrames;        // total number of frames when using magics
+   INT        wAttackFrames;       // total number of frames when doing normal attack
+   INT        wIdleAnimSpeed;      // speed of the animation when idle
+   INT        wActWaitFrames;      // FIXME: ???
+   INT        wYPosOffset;
+   INT       wAttackSound;        // sound played when this enemy uses normal attack
+//   INT       wActionSound;        // FIXME: ???
+   INT       wSpoils;        // 战利品
+   INT       wMagicSound;         // sound played when this enemy uses magic
+   INT      wDeathSound;         // sound played when this enemy dies
+   INT      wCallSound;          // sound played when entering the battle
+  UINT      wHealth;             // total HP of the enemy
+   INT        wExp;                // How many EXPs we'll get for beating this enemy
+   INT        wCash;               // how many cashes we'll get for beating this enemy
+   INT        wLevel;              // this enemy's level
+   INT        wMagic;              // this enemy's magic number
+   INT        wMagicRate;          // chance for this enemy to use magic
+   INT        wAttackEquivItem;    // equivalence item of this enemy's normal attack
+   INT        wAttackEquivItemRate;// chance for equivalence item
+   INT        wStealItem;          // which item we'll get when stealing from this enemy
+   INT        nStealItem;          // total amount of the items which can be stolen
+   INT        wAttackStrength;     // normal attack strength
+   INT        wMagicStrength;      // magical attack strength
+   INT        wDefense;            // resistance to all kinds of attacking
+   INT        wDexterity;          // dexterity
+   INT        wFleeRate;           // chance for successful fleeing
+   INT        wPoisonResistance;   // resistance to poison
+   INT        wElemResistance[NUM_MAGIC_ELEMENTAL]; // resistance to elemental magics
+   INT        wPhysicalResistance; // resistance to physical attack
+   INT        wDualMove;           // whether this enemy can do dual move or not
    WORD        wCollectValue;       // value for collecting this enemy for items
+   WORD   wResistanceToSorcery;//巫抗
 } ENEMY, *LPENEMY;
 
 typedef struct tagENEMYTEAM
@@ -294,14 +304,14 @@ typedef struct tagENEMYTEAM
    WORD        rgwEnemy[MAX_ENEMIES_IN_TEAM];
 } ENEMYTEAM, *LPENEMYTEAM;
 
-typedef WORD PLAYERS[MAX_PLAYER_ROLES];
+typedef INT PLAYERS[MAX_PLAYER_ROLES];
 
 typedef struct tagPLAYERROLES
 {
    PLAYERS            rgwAvatar;             // avatar (shown in status view)
    PLAYERS            rgwSpriteNumInBattle;  // sprite displayed in battle (in F.MKF)
    PLAYERS            rgwSpriteNum;          // sprite displayed in normal scene (in MGO.MKF)
-   PLAYERS            rgwName;               // name of player class (in WORD.DAT)
+   PLAYERS            rgwName;               // name of player class (in word.dat)
    PLAYERS            rgwAttackAll;          // whether player can attack everyone in a bulk or not
    PLAYERS            rgwUnknown1;           // FIXME: ???
    PLAYERS            rgwLevel;              // level
@@ -309,23 +319,23 @@ typedef struct tagPLAYERROLES
    PLAYERS            rgwMaxMP;              // maximum MP
    PLAYERS            rgwHP;                 // current HP
    PLAYERS            rgwMP;                 // current MP
-   WORD               rgwEquipment[MAX_PLAYER_EQUIPMENTS][MAX_PLAYER_ROLES]; // equipments
+   INT               rgwEquipment[MAX_PLAYER_EQUIPMENTS][MAX_PLAYER_ROLES]; // equipments
    PLAYERS            rgwAttackStrength;     // normal attack strength
    PLAYERS            rgwMagicStrength;      // magical attack strength
    PLAYERS            rgwDefense;            // resistance to all kinds of attacking
    PLAYERS            rgwDexterity;          // dexterity
    PLAYERS            rgwFleeRate;           // chance of successful fleeing
    PLAYERS            rgwPoisonResistance;   // resistance to poison
-   WORD               rgwElementalResistance[NUM_MAGIC_ELEMENTAL][MAX_PLAYER_ROLES]; // resistance to elemental magics
-   PLAYERS            rgwUnknown2;           // FIXME: ???
-   PLAYERS            rgwUnknown3;           // FIXME: ???
-   PLAYERS            rgwUnknown4;           // FIXME: ???
+   INT               rgwElementalResistance[NUM_MAGIC_ELEMENTAL][MAX_PLAYER_ROLES]; // resistance to elemental magics
+   PLAYERS            rgwSorceryResistance;  // 巫抗
+   PLAYERS            rgwPhysicalResistance; // 物抗
+   PLAYERS            rgwCoveredBy2;           // FIXME: ???
    PLAYERS            rgwCoveredBy;          // who will cover me when I am low of HP or not sane
    WORD               rgwMagic[MAX_PLAYER_MAGICS][MAX_PLAYER_ROLES]; // magics
    PLAYERS            rgwWalkFrames;         // walk frame (???)
    PLAYERS            rgwCooperativeMagic;   // cooperative magic
-   PLAYERS            rgwUnknown5;           // FIXME: ???
-   PLAYERS            rgwUnknown6;           // FIXME: ???
+   PLAYERS             rgwWisdom;           // 气劲
+   PLAYERS            rgwPower;           // 力道
    PLAYERS            rgwDeathSound;         // sound played when player dies
    PLAYERS            rgwAttackSound;        // sound played when player attacks
    PLAYERS            rgwWeaponSound;        // weapon sound (???)
@@ -349,22 +359,22 @@ typedef enum tagMAGIC_TYPE
 
 typedef struct tagMAGIC
 {
-   WORD               wEffect;               // effect sprite
-   WORD               wType;                 // type of this magic
-   WORD               wXOffset;
-   WORD               wYOffset;
-   WORD               wSummonEffect;         // summon effect sprite (in F.MKF)
-   SHORT              wSpeed;                // speed of the effect
-   WORD               wKeepEffect;           // FIXME: ???
-   WORD               wFireDelay;            // start frame of the magic fire stage
-   WORD               wEffectTimes;          // total times of effect
-   WORD               wShake;                // shake screen
-   WORD               wWave;                 // wave screen
-   WORD               wUnknown;              // FIXME: ???
-   WORD               wCostMP;               // MP cost
-   WORD               wBaseDamage;           // base damage
-   WORD               wElemental;            // elemental (0 = No Elemental, last = poison)
-   SHORT              wSound;                // sound played when using this magic
+	INT               wEffect;               // effect sprite
+	INT               wType;                 // type of this magic
+	INT               wXOffset;
+	INT               wYOffset;
+	INT               wSummonEffect;         // summon effect sprite (in F.MKF)
+	INT              wSpeed;                // speed of the effect
+	INT               wKeepEffect;           // FIXME: ???
+	INT               wFireDelay;            // start frame of the magic fire stage
+	INT               wEffectTimes;          // total times of effect
+	INT               wShake;                // shake screen
+	INT               wWave;                 // wave screen
+	INT               wUnknown;              // FIXME: ???
+	INT               wCostMP;               // MP cost
+	INT               wBaseDamage;           // base damage
+	INT               wElemental;            // elemental (0 = No Elemental, last = poison)
+	INT              wSound;                // sound played when using this magic
 } MAGIC, *LPMAGIC;
 
 typedef struct tagBATTLEFIELD
@@ -397,7 +407,7 @@ typedef struct tagENEMYPOS
 } ENEMYPOS, *LPENEMYPOS;
 
 // Exp. points needed for the next level
-typedef WORD LEVELUPEXP, *LPLEVELUPEXP;
+typedef DWORD LEVELUPEXP, *LPLEVELUPEXP;
 
 // game data which is available in data files.
 typedef struct tagGAMEDATA
@@ -467,10 +477,10 @@ typedef struct tagTRAIL
 
 typedef struct tagEXPERIENCE
 {
-   WORD         wExp;                // current experience points
-   WORD         wReserved;
-   WORD         wLevel;              // current level
-   WORD         wCount;
+	INT         wExp;                // current experience points
+   INT        wReserved;
+	INT        wLevel;              // current level   
+	INT        wCount;
 } EXPERIENCE, *LPEXPERIENCE;
 
 typedef struct tagALLEXPERIENCE
@@ -483,12 +493,33 @@ typedef struct tagALLEXPERIENCE
    EXPERIENCE        rgDefenseExp[MAX_PLAYER_ROLES];
    EXPERIENCE        rgDexterityExp[MAX_PLAYER_ROLES];
    EXPERIENCE        rgFleeExp[MAX_PLAYER_ROLES];
+   EXPERIENCE        rgPowerExp[MAX_PLAYER_ROLES];
+   EXPERIENCE        rgWisdom[MAX_PLAYER_ROLES];
 } ALLEXPERIENCE, *LPALLEXPERIENCE;
+
+typedef enum tagExpType
+{
+	PrimaryExp = 0,
+	HealthExp = 1,
+	MagicExp,
+	AttackExp,
+	MagicPowerExp,
+	DefenseExp,
+	DexterityExp,
+	FleeExp ,
+	PowerExp,
+	Wisdom = 9,
+} ExpType;
+
 
 typedef struct tagPOISONSTATUS
 {
    WORD              wPoisonID;       // kind of the poison
    WORD              wPoisonScript;   // script entry
+#ifdef POISON_STATUS_EXPAND
+   WORD			wPoisonIntensity; // 毒的烈度
+#endif
+
 } POISONSTATUS, *LPPOISONSTATUS;
 
 typedef struct tagGLOBALVARS
@@ -500,8 +531,9 @@ typedef struct tagGLOBALVARS
    int              iCurSystemMenuItem;  // current system menu item number
    int              iCurInvMenuItem;     // current inventory menu item number
    int              iCurPlayingRNG;      // current playing RNG animation
-   BYTE             bCurrentSaveSlot;    // current save slot (1-5)
+   BYTE             bCurrentSaveSlot;    // current save slot (1-10)
    BOOL             fInMainGame;         // TRUE if in main game
+   BOOL             fGameStart;          // TRUE if the has just started
    BOOL             fEnteringScene;      // TRUE if entering a new scene
    BOOL             fNeedToFadeIn;       // TRUE if need to fade in when drawing scene
    BOOL             fInBattle;           // TRUE if in battle
@@ -527,7 +559,7 @@ typedef struct tagGLOBALVARS
    WORD             wNumMusic;           // current music number
    WORD             wNumBattleMusic;     // current music number in battle
    WORD             wNumBattleField;     // current battle field number
-   WORD             wCollectValue;       // value of "collected" items
+  DWORD             wCollectValue;       // value of "collected" items
    WORD             wScreenWave;         // level of screen waving
    SHORT            sWaveProgression;
    WORD             wChaseRange;
@@ -541,6 +573,13 @@ typedef struct tagGLOBALVARS
    INVENTORY        rgInventory[MAX_INVENTORY];  // inventory status
    LPOBJECTDESC     lpObjectDesc;
    DWORD            dwFrameNum;
+
+   BOOL             fDoAutoSave;
+
+#ifdef SHOW_DATA_IN_BATTLE
+   BOOL				fShowDataInBattle;
+#endif
+
 } GLOBALVARS, *LPGLOBALVARS;
 
 PAL_C_LINKAGE_BEGIN
@@ -578,14 +617,9 @@ PAL_InitGameData(
    INT           iSaveSlot
 );
 
-VOID
-PAL_ReloadInNextTick(
-	INT           iSaveSlot
-);
-
 INT
 PAL_CountItem(
-   WORD          wObjectID
+	WORD          wObjectID
 );
 
 BOOL
@@ -597,8 +631,8 @@ PAL_AddItemToInventory(
 BOOL
 PAL_IncreaseHPMP(
    WORD          wPlayerRole,
-   SHORT         sHP,
-   SHORT         sMP
+   INT         sHP,
+   INT        sMP
 );
 
 INT
@@ -652,50 +686,81 @@ PAL_IsPlayerPoisonedByKind(
    WORD           wPoisonID
 );
 
-WORD
+INT
+PAL_GetPlayerMaxHP(
+	WORD           wPlayerRole
+);
+
+INT
+PAL_GetPlayerMaxMP(
+	WORD           wPlayerRole
+);
+
+INT
 PAL_GetPlayerAttackStrength(
-   WORD           wPlayerRole
+	WORD           wPlayerRole
 );
 
-WORD
+INT
 PAL_GetPlayerMagicStrength(
-   WORD           wPlayerRole
+	WORD           wPlayerRole
 );
 
-WORD
+INT
 PAL_GetPlayerDefense(
-   WORD           wPlayerRole
+	WORD           wPlayerRole
 );
 
-WORD
+INT
 PAL_GetPlayerDexterity(
-   WORD           wPlayerRole
+	WORD           wPlayerRole
 );
 
-WORD
+INT
 PAL_GetPlayerFleeRate(
-   WORD           wPlayerRole
+	WORD           wPlayerRole
 );
 
-WORD
+INT
+PAL_GetPlayerWisdom(
+	WORD           wPlayerRole
+);
+
+INT
+PAL_GetPlayerPower(
+	WORD           wPlayerRole
+);
+
+INT
 PAL_GetPlayerPoisonResistance(
-   WORD           wPlayerRole
+	WORD          wPlayerRole
 );
 
-WORD
+INT
 PAL_GetPlayerElementalResistance(
-   WORD           wPlayerRole,
+	WORD          wPlayerRole,
    INT            iAttrib
 );
 
-WORD
-PAL_GetPlayerBattleSprite(
-   WORD           wPlayerRole
+INT
+PAL_New_GetPlayerSorceryResistance(
+	WORD			wPlayerRole
 );
 
-WORD
+INT
+PAL_New_GetPlayerPhysicalResistance(
+	WORD			wPlayerRole
+);
+
+
+INT
+PAL_GetPlayerBattleSprite(
+	WORD          wPlayerRole
+);
+
+INT
 PAL_GetPlayerCooperativeMagic(
-   WORD           wPlayerRole
+	WORD           wPlayerRole
 );
 
 BOOL
@@ -736,8 +801,60 @@ PAL_ClearAllPlayerStatus(
 VOID
 PAL_PlayerLevelUp(
    WORD          wPlayerRole,
-   WORD          wNumLevel
+   INT          wNumLevel
 );
+
+WORD 
+PAL_New_GetPlayerID
+(WORD wPlayerIndex
+);
+
+INT 
+PAL_New_GetPlayerIndex(
+	WORD wPlayerRole
+);
+
+INT 
+PAL_New_GetPlayerIndexByPara(
+	PlayerPara pp, BOOL fGetLowest
+);
+
+BOOL 
+PAL_New_GetTrueByPercentage(
+	WORD wPercentage
+);
+
+VOID 
+PAL_New_SortPoisonsForPlayerByLevel(
+WORD wPlayerRole
+);
+
+BOOL 
+PAL_New_IsPlayerPoisoned(
+	WORD wPlayerRole
+);
+
+INT
+PAL_New_GetPoisonIndexForPlayer(
+	WORD           wPlayerRole,
+	WORD           wPoisonID
+);
+
+
+VOID
+PAL_New_RemovePlayerAllStatus(
+	WORD         wPlayerRole
+);
+
+
+DWORD
+PAL_GetLevelUpBaseExp(
+DWORD		wLevel
+);
+
+VOID PAL_New_SortInventory();
+
+VOID PAL_AutoSaveGame();
 
 PAL_C_LINKAGE_END
 

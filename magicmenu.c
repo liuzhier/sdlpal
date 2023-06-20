@@ -1,14 +1,15 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -118,7 +119,7 @@ PAL_MagicSelectionMenuUpdate(
    //
    // Create the box.
    //
-   PAL_CreateBoxWithShadow(PAL_XY(10, 42 + iBoxYOffset), iLinesPerPage - 1, 16, 1, FALSE, 0);
+   PAL_CreateBoxWithShadow(PAL_XY(10, 40 + iBoxYOffset), iLinesPerPage - 1, 16, 1, FALSE, 6);
 
    if (!gConfig.fIsWIN95)
    {
@@ -163,7 +164,7 @@ PAL_MagicSelectionMenuUpdate(
                   *next++ = '\0';
                }
 
-               PAL_DrawText(d, PAL_XY(102, k), DESCTEXT_COLOR, TRUE, FALSE, FALSE);
+               PAL_DrawText(d, PAL_XY(96, k), DESCTEXT_COLOR, TRUE, FALSE, FALSE);
                k += 16;
 
                if (next == NULL)
@@ -180,10 +181,11 @@ PAL_MagicSelectionMenuUpdate(
          //
          PAL_CreateSingleLineBox(PAL_XY(0, 0), 5, FALSE);
          PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH),
-            gpScreen, PAL_XY(45, 14));
-         PAL_DrawNumber(rgMagicItem[g_iCurrentItem].wMP, 4, PAL_XY(15, 14),
+            gpScreen, PAL_XY(56, 4));
+         PAL_DrawNumber(rgMagicItem[g_iCurrentItem].wMP, 5, PAL_XY(20, 4),
             kNumColorYellow, kNumAlignRight);
-         PAL_DrawNumber(g_wPlayerMP, 4, PAL_XY(50, 14), kNumColorCyan, kNumAlignRight);
+         PAL_DrawNumber(g_wPlayerMP, 7, PAL_XY(51, 4), kNumColorCyan, kNumAlignRight);
+         PAL_DrawNumber(gpGlobals->dwCash, 7, PAL_XY(51, 22), kNumColorYellow, kNumAlignRight);
       }
    }
    else
@@ -207,12 +209,12 @@ PAL_MagicSelectionMenuUpdate(
       //
       // Draw the MP of the selected magic.
       //
-      PAL_CreateSingleLineBox(PAL_XY(0, 0), PAL_X(gConfig.ScreenLayout.MagicMPDescLines), FALSE);
+      PAL_CreateSingleLineBox(PAL_XY(0, 0), 5, FALSE);
       PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH),
-          gpScreen, gConfig.ScreenLayout.MagicMPSlashPos);
-      PAL_DrawNumber(rgMagicItem[g_iCurrentItem].wMP, 4, gConfig.ScreenLayout.MagicMPNeededPos,
-          kNumColorYellow, kNumAlignRight);
-      PAL_DrawNumber(g_wPlayerMP, 4, gConfig.ScreenLayout.MagicMPCurrentPos, kNumColorCyan, kNumAlignRight);
+         gpScreen, PAL_XY(45, 14));
+      PAL_DrawNumber(rgMagicItem[g_iCurrentItem].wMP, 4, PAL_XY(15, 14),
+         kNumColorYellow, kNumAlignRight);
+      PAL_DrawNumber(g_wPlayerMP, 4, PAL_XY(50, 14), kNumColorCyan, kNumAlignRight);
    }
 
 
@@ -443,6 +445,11 @@ PAL_MagicSelectionMenu(
       PAL_MakeScene();
 
       w = 45;
+
+      if (gpGlobals->wMaxPartyMemberIndex >= 3)
+      {
+         w = 7;
+      }
 
       for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
       {

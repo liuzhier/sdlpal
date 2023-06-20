@@ -1,14 +1,15 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,10 +31,7 @@
 #include "aviplay.h"
 #include <math.h>
 
-/* WASAPI need fewer samples for less gapping */
-#ifndef PAL_AUDIO_FORCE_BUFFER_SIZE_WASAPI
-# define PAL_AUDIO_FORCE_BUFFER_SIZE_WASAPI   512
-#endif
+#define PAL_CDTRACK_BASE    10000
 
 typedef void(*ResampleMixFunction)(void *, const void *, int, void *, int, int, uint8_t);
 
@@ -178,14 +176,6 @@ AUDIO_FillBuffer(
    AVI_FillAudioBuffer(AVI_GetPlayState(), (LPBYTE)stream, len);
 }
 
-BOOL
-AUDIO_CD_Available(
-   VOID
-)
-{
-   return gConfig.eCDType != CD_NONE;
-}
-
 INT
 AUDIO_OpenDevice(
    VOID
@@ -214,39 +204,21 @@ AUDIO_OpenDevice(
       //
       return -1;
    }
+#if defined( __EMSCRIPTEN__ ) // Now either music/sound enabled will makes whole app crash in emscripten. Disabled until a solution is found.
+   return -1;
+#endif
 
    gAudioDevice.fOpened = FALSE;
    gAudioDevice.fMusicEnabled = TRUE;
    gAudioDevice.fSoundEnabled = TRUE;
    gAudioDevice.iMusicVolume = gConfig.iMusicVolume * SDL_MIX_MAXVOLUME / PAL_MAX_VOLUME;
    gAudioDevice.iSoundVolume = gConfig.iSoundVolume * SDL_MIX_MAXVOLUME / PAL_MAX_VOLUME;
-   if(gConfig.eMIDISynth == SYNTH_NATIVE)
    MIDI_SetVolume(gConfig.iMusicVolume);
 
    //
    // Initialize the resampler module
    //
    resampler_init();
-
-#if SDL_VERSION_ATLEAST(2,0,0)
-    for( int i = 0; i<SDL_GetNumAudioDrivers();i++)
-    {
-        UTIL_LogOutput(LOGLEVEL_VERBOSE, "Available audio driver %d:%s\n", i, SDL_GetAudioDriver(i));
-    }
-    const char* driver_name = SDL_GetCurrentAudioDriver();
-    if (driver_name) {
-        UTIL_LogOutput(LOGLEVEL_VERBOSE, "Audio subsystem initialized; current driver is %s.\n", driver_name);
-        if(SDL_strncmp(driver_name, "wasapi", 6)==0)
-            gConfig.wAudioBufferSize = PAL_AUDIO_FORCE_BUFFER_SIZE_WASAPI;
-    } else {
-        UTIL_LogOutput(LOGLEVEL_VERBOSE, "Audio subsystem not initialized.\n");
-    }
-    for( int i = 0; i<SDL_GetNumAudioDevices(0);i++)
-    {
-        UTIL_LogOutput(LOGLEVEL_VERBOSE, "Available audio device %d:%s\n", i, SDL_GetAudioDeviceName(i,0));
-    }
-    UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio: requesting audio device: %s\n",(gConfig.iAudioDevice >= 0 ? SDL_GetAudioDeviceName(gConfig.iAudioDevice, 0) : "default"));
-#endif
 
    //
    // Open the audio device.
@@ -256,8 +228,25 @@ AUDIO_OpenDevice(
    gAudioDevice.spec.channels = gConfig.iAudioChannels;
    gAudioDevice.spec.samples = gConfig.wAudioBufferSize;
    gAudioDevice.spec.callback = AUDIO_FillBuffer;
-
+    
+#if SDL_VERSION_ATLEAST(2,0,0)
+   for( int i = 0; i<SDL_GetNumAudioDrivers();i++)
+   {
+      UTIL_LogOutput(LOGLEVEL_VERBOSE, "Available audio driver %d:%s\n", i, SDL_GetAudioDriver(i));
+   }
+   const char* driver_name = SDL_GetCurrentAudioDriver();
+   if (driver_name) {
+      UTIL_LogOutput(LOGLEVEL_VERBOSE, "Audio subsystem initialized; current driver is %s.\n", driver_name);
+   } else {
+      UTIL_LogOutput(LOGLEVEL_VERBOSE, "Audio subsystem not initialized.\n");
+   }
+   for( int i = 0; i<SDL_GetNumAudioDevices(0);i++)
+   {
+      UTIL_LogOutput(LOGLEVEL_VERBOSE, "Available audio device %d:%s\n", i, SDL_GetAudioDeviceName(i,0));
+   }
+   UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio: requesting audio device: %s\n",(gConfig.iAudioDevice >= 0 ? SDL_GetAudioDeviceName(gConfig.iAudioDevice, 0) : "default"));
    UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio: requesting audio spec:freq %d, format %d, channels %d, samples %d\n", gAudioDevice.spec.freq, gAudioDevice.spec.format,  gAudioDevice.spec.channels, gAudioDevice.spec.samples);
+#endif
 
    if (SDL_OpenAudio(&gAudioDevice.spec, &spec) < 0)
    {
@@ -269,7 +258,7 @@ AUDIO_OpenDevice(
    }
    else
    {
-      UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio succeed, got spec:freq %d, format %d, channels %d, samples %d\n", spec.freq, spec.format, spec.channels,  spec.samples);
+      UTIL_LogOutput(LOGLEVEL_VERBOSE, "OpenAudio succeed\n");
       gAudioDevice.pSoundBuffer = malloc(gConfig.wAudioBufferSize * gConfig.iAudioChannels * sizeof(short));
    }
 
@@ -294,14 +283,8 @@ AUDIO_OpenDevice(
    case MUSIC_OGG:
 	   gAudioDevice.pMusPlayer = OGG_Init();
 	   break;
-   case MUSIC_OPUS:
-	   gAudioDevice.pMusPlayer = OPUS_Init();
-	   break;
    case MUSIC_MIDI:
-	   if (gConfig.eMIDISynth == SYNTH_TIMIDITY)
-		   gAudioDevice.pMusPlayer = TIMIDITY_Init();
-	   else if (gConfig.eMIDISynth == SYNTH_TINYSOUNDFONT)
-		   gAudioDevice.pMusPlayer = TSF_Init();
+	   gAudioDevice.pMusPlayer = NULL;
 	   break;
    default:
 	   break;
@@ -312,7 +295,7 @@ AUDIO_OpenDevice(
    //
    switch (gConfig.eCDType)
    {
-   case CD_SDLCD:
+   case MUSIC_SDLCD:
    {
 #if PAL_HAS_SDLCD
 	   int i;
@@ -338,17 +321,13 @@ AUDIO_OpenDevice(
 	   gAudioDevice.pCDPlayer = NULL;
 	   break;
    }
-   case CD_MP3:
+   case MUSIC_MP3:
 	   gAudioDevice.pCDPlayer = MP3_Init();
 	   break;
-   case CD_OGG:
+   case MUSIC_OGG:
 	   gAudioDevice.pCDPlayer = OGG_Init();
 	   break;
-   case CD_OPUS:
-	   gAudioDevice.pCDPlayer = OPUS_Init();
-	   break;
    default:
-      gAudioDevice.pCDPlayer = NULL;
 	   break;
    }
 
@@ -413,7 +392,7 @@ AUDIO_CloseDevice(
 	  gAudioDevice.pSoundBuffer = NULL;
    }
 
-   if (gConfig.eMIDISynth == SYNTH_NATIVE && gConfig.eMusicType == MUSIC_MIDI)
+   if (gConfig.eMusicType == MUSIC_MIDI)
    {
       MIDI_Play(0, FALSE);
    }
@@ -466,7 +445,6 @@ AUDIO_IncreaseVolume(
    AUDIO_ChangeVolumeByValue(&gConfig.iSoundVolume, 3);
    gAudioDevice.iMusicVolume = gConfig.iMusicVolume * SDL_MIX_MAXVOLUME / PAL_MAX_VOLUME;
    gAudioDevice.iSoundVolume = gConfig.iSoundVolume * SDL_MIX_MAXVOLUME / PAL_MAX_VOLUME;
-   if(gConfig.eMIDISynth == SYNTH_NATIVE)
    MIDI_SetVolume(gConfig.iMusicVolume);
 }
 
@@ -493,7 +471,6 @@ AUDIO_DecreaseVolume(
    AUDIO_ChangeVolumeByValue(&gConfig.iSoundVolume, -3);
    gAudioDevice.iMusicVolume = gConfig.iMusicVolume * SDL_MIX_MAXVOLUME / PAL_MAX_VOLUME;
    gAudioDevice.iSoundVolume = gConfig.iSoundVolume * SDL_MIX_MAXVOLUME / PAL_MAX_VOLUME;
-   if(gConfig.eMIDISynth == SYNTH_NATIVE)
    MIDI_SetVolume(gConfig.iMusicVolume);
 }
 
@@ -541,7 +518,7 @@ AUDIO_PlayMusic(
 		AUDIO_PlayCDTrack(-1);
 	}
 
-   if (gConfig.eMIDISynth == SYNTH_NATIVE && gConfig.eMusicType == MUSIC_MIDI)
+   if (gConfig.eMusicType == MUSIC_MIDI)
    {
       MIDI_Play(iNumRIX, fLoop);
       return;
@@ -567,7 +544,6 @@ AUDIO_PlayCDTrack(
   Parameters:
 
     [IN]  iNumTrack - number of the CD Audio Track.
-                      special case: -2: do NOTHING
 
   Return value:
 
@@ -580,10 +556,6 @@ AUDIO_PlayCDTrack(
 	{
 		AUDIO_PlayMusic(-1, FALSE, 0);
 	}
-   if (iNumTrack == -2 && gAudioDevice.pCDPlayer->iMusic > PAL_CDTRACK_BASE )
-   {
-       return TRUE;
-   }
 #if PAL_HAS_SDLCD
    if (gAudioDevice.pCD != NULL)
    {

@@ -1,14 +1,15 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,12 +27,13 @@
 
 #define CHUNKNUM_SPRITEUI                  9
 
-#define MENUITEM_COLOR                     0x4F
-#define MENUITEM_COLOR_INACTIVE            0x1C
+#define MENUITEM_COLOR                     0x0F
+#define MENUITEM_COLOR_INACTIVE            0x1B
 #define MENUITEM_COLOR_CONFIRMED           0x2C
-#define MENUITEM_COLOR_SELECTED_INACTIVE   0x1F
+#define MENUITEM_COLOR_SELECTED_INACTIVE   0x1E
 #define MENUITEM_COLOR_SELECTED_FIRST      0xF9
 #define MENUITEM_COLOR_SELECTED_TOTALNUM   6
+#define MENUITEM_COLOR2                     0x3F
 
 #define MENUITEM_COLOR_SELECTED                                    \
    (MENUITEM_COLOR_SELECTED_FIRST +                                \
@@ -40,7 +42,7 @@
 
 #define MENUITEM_COLOR_EQUIPPEDITEM        0xC8
 
-#define DESCTEXT_COLOR                     0x2E
+#define DESCTEXT_COLOR                     0x3C
 
 #define MAINMENU_BACKGROUND_FBPNUM         (gConfig.fIsWIN95 ? 2 :60)
 
@@ -48,12 +50,20 @@
 #define MAINMENU_LABEL_NEWGAME             7
 #define MAINMENU_LABEL_LOADGAME            8
 
-#define LOADMENU_LABEL_SLOT_FIRST          43
 
-#define CONFIRMMENU_LABEL_NO               19
-#define CONFIRMMENU_LABEL_YES              20
+#define LOADMENU_LABEL_SLOT_1          43
+#define LOADMENU_LABEL_SLOT_2          44
+#define LOADMENU_LABEL_SLOT_3         45
+#define LOADMENU_LABEL_SLOT_4         46
+#define LOADMENU_LABEL_SLOT_5          47
+
+
+
+#define CONFIRMMENU_LABEL_YES              19
+#define CONFIRMMENU_LABEL_NO               20
 
 #define CASH_LABEL                         21
+
 
 #define SWITCHMENU_LABEL_DISABLE           17
 #define SWITCHMENU_LABEL_ENABLE            18
@@ -68,8 +78,10 @@
 #define SYSMENU_LABEL_MUSIC                13
 #define SYSMENU_LABEL_SOUND                14
 #define SYSMENU_LABEL_QUIT                 15
-#define SYSMENU_LABEL_BATTLEMODE           606
-#define SYSMENU_LABEL_LAUNCHSETTING        612
+#define SYSMENU_LABEL_BATTLEMODE           998
+#define SYSMENU_LABEL_LAUNCHSETTING       999
+
+
 
 #define BATTLESPEEDMENU_LABEL_1            (SYSMENU_LABEL_BATTLEMODE + 1)
 #define BATTLESPEEDMENU_LABEL_2            (SYSMENU_LABEL_BATTLEMODE + 2)
@@ -77,10 +89,11 @@
 #define BATTLESPEEDMENU_LABEL_4            (SYSMENU_LABEL_BATTLEMODE + 4)
 #define BATTLESPEEDMENU_LABEL_5            (SYSMENU_LABEL_BATTLEMODE + 5)
 
-#define INVMENU_LABEL_USE                  23
 #define INVMENU_LABEL_EQUIP                22
+#define INVMENU_LABEL_USE                  23
 
 #define STATUS_BACKGROUND_FBPNUM           0
+#define STATUS_MAGICBACKGROUND_FBPNUM           70
 #define STATUS_LABEL_EXP                   2
 #define STATUS_LABEL_LEVEL                 48
 #define STATUS_LABEL_HP                    49
@@ -94,14 +107,24 @@
 #define STATUS_LABEL_RESISTANCE            53
 #define STATUS_LABEL_DEXTERITY             54
 #define STATUS_LABEL_FLEERATE              55
-#define STATUS_COLOR_EQUIPMENT             0xBE
+#define STATUS_LABEL_Power           (SYSMENU_LABEL_LAUNCHSETTING + 1)
+#define STATUS_LABEL_Wisdom          (SYSMENU_LABEL_LAUNCHSETTING + 2)
+#define LOADMENU_LABEL_SLOT_6          (SYSMENU_LABEL_LAUNCHSETTING + 3)
+#define LOADMENU_LABEL_SLOT_7          (SYSMENU_LABEL_LAUNCHSETTING + 4)
+#define LOADMENU_LABEL_SLOT_8          (SYSMENU_LABEL_LAUNCHSETTING + 5)
+#define LOADMENU_LABEL_SLOT_9          (SYSMENU_LABEL_LAUNCHSETTING + 6)
+#define LOADMENU_LABEL_SLOT_10        (SYSMENU_LABEL_LAUNCHSETTING + 7)
+#define LOADMENU_LABEL_SLOT_11        (SYSMENU_LABEL_LAUNCHSETTING + 10)
 
-#define EQUIP_LABEL_HEAD                   600
-#define EQUIP_LABEL_SHOULDER               601
-#define EQUIP_LABEL_BODY                   602
-#define EQUIP_LABEL_HAND                   603
-#define EQUIP_LABEL_FOOT                   604
-#define EQUIP_LABEL_NECK                   605
+#define STATUS_COLOR_EQUIPMENT             0x2F
+#define STATUS_COLOR_MAGIC             0xFC
+
+#define EQUIP_LABEL_HEAD                   982
+#define EQUIP_LABEL_SHOULDER               983
+#define EQUIP_LABEL_BODY                   984
+#define EQUIP_LABEL_HAND                   985
+#define EQUIP_LABEL_FOOT                   986
+#define EQUIP_LABEL_NECK                   987
 
 #define BUYMENU_LABEL_CURRENT              35
 #define SELLMENU_LABEL_PRICE               25
@@ -112,17 +135,20 @@
 #define SPRITENUM_CURSOR                   69
 #define SPRITENUM_PLAYERINFOBOX            18
 #define SPRITENUM_PLAYERFACE_FIRST         48
+#define SPRITENUM_PLAYERFACE_poison         71
 
 #define EQUIPMENU_BACKGROUND_FBPNUM        1
 
-#define ITEMUSEMENU_COLOR_STATLABEL        0xBB
+#define ITEMUSEMENU_COLOR_STATLABEL        0x0F
 
 #define BATTLEWIN_GETEXP_LABEL             30
 #define BATTLEWIN_BEATENEMY_LABEL          9
 #define BATTLEWIN_DOLLAR_LABEL             10
 #define BATTLEWIN_LEVELUP_LABEL            32
 #define BATTLEWIN_ADDMAGIC_LABEL           33
-#define BATTLEWIN_LEVELUP_LABEL_COLOR      0xBB
+#define BATTLEWIN_LINGHU_LABEL             (SYSMENU_LABEL_LAUNCHSETTING + 8)
+#define SHOP_LINGHU_LABEL             (SYSMENU_LABEL_LAUNCHSETTING + 9)
+#define BATTLEWIN_LEVELUP_LABEL_COLOR      0x3B
 #define SPRITENUM_ARROW                    47
 
 #define BATTLE_LABEL_ESCAPEFAIL            31

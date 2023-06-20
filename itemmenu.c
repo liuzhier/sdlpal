@@ -1,14 +1,15 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -198,14 +199,14 @@ PAL_ItemSelectMenuUpdate(
          //
 		 if ((SHORT)gpGlobals->rgInventory[i].nAmount - (SHORT)gpGlobals->rgInventory[i].nAmountInUse > 1)
 		 {
-            PAL_DrawNumber(gpGlobals->rgInventory[i].nAmount - gpGlobals->rgInventory[i].nAmountInUse,
-               2, PAL_XY(15 + iAmountXOffset + k * iItemTextWidth, 17 + j * 18), kNumColorCyan, kNumAlignRight);
+            PAL_DrawNumber(gpGlobals->rgInventory[i].nAmount - gpGlobals->rgInventory[i].nAmountInUse, 
+               3, PAL_XY(11 + iAmountXOffset + k * iItemTextWidth, 17 + j * 18), kNumColorCyan, kNumAlignRight);
 		 }
 
          i++;
       }
    }
-
+    
    int xBase = 0, yBase = 140;
    //
    // Draw the picture of current selected item
@@ -259,7 +260,7 @@ PAL_ItemSelectMenuUpdate(
                   *next++ = '\0';
                }
 
-               PAL_DrawText(d, PAL_XY(75, k), DESCTEXT_COLOR, TRUE, FALSE, FALSE);
+               PAL_DrawText(d, PAL_XY(66, k), DESCTEXT_COLOR, TRUE, FALSE, FALSE);
                k += 16;
 
                if (next == NULL)
@@ -353,7 +354,6 @@ PAL_ItemSelectMenuInit(
    {
       g_iNumInventory++;
    }
-
    //
    // Also add usable equipped items to the list
    //
@@ -423,11 +423,21 @@ PAL_ItemSelectMenu(
 
    while (TRUE)
    {
-      if (lpfnMenuItemChanged == NULL)
+      if (lpfnMenuItemChanged == NULL && !gpGlobals->fInBattle)
       {
-         PAL_MakeScene();
+		  PAL_MakeScene();
       }
-
+	  else if (lpfnMenuItemChanged != NULL)
+	  {
+		  PAL_MakeScene();
+		  g_fNoDesc = TRUE;
+		  (*lpfnMenuItemChanged)(gpGlobals->rgInventory[gpGlobals->iCurInvMenuItem].wItem);
+	  }
+	  else 
+	  {
+		  PAL_BattleMakeScene();
+		  VIDEO_CopyEntireSurface(g_Battle.lpSceneBuf, gpScreen);
+	  }
       w = PAL_ItemSelectMenuUpdate();
       VIDEO_UpdateScreen(NULL);
 

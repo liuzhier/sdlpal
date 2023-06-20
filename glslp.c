@@ -1,13 +1,14 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -160,7 +161,6 @@ static int token_conform( const char *name, LineType type, GLSLP *pGLSLP ) {
 
 static char *strip_quotes(char *str) {
     char *begin = (char*)str;
-    if(!begin[0]) return begin;
     while(*begin == '"') begin++;
     size_t len = strlen(begin)-1;
     while( begin[len] == '\r' || begin[len] == '\n' || begin[len] == '"' )
@@ -313,12 +313,23 @@ static char * wrap_mode_to_string(enum wrap_mode type) {
     return value;
 }
 
+static char *GLSLP_basename(const char *filename) {
+    char *pos = NULL;
+    int broked = 0;
+    for( int i=0;i<strlen(PAL_PATH_SEPARATORS);i++)
+        if( (pos = strrchr(filename,PAL_PATH_SEPARATORS[i])) != NULL )
+            *pos='\0', broked = 1;
+    if( !broked )
+        sprintf((char*)filename, "./");
+    return (char*)filename;
+}
+
 static char *GLSLP_reflow(char *path) {
 	char *ptr;
 	while ((ptr = strstr(path, "..")) != NULL) {
 		char *dup = strdup(path);
 		dup[ptr - path - 1] = '\0';
-		dup = UTIL_basename(dup);
+		dup = GLSLP_basename(dup);
 		sprintf(path, "%s/%s", dup, ptr + 3);
 		free(dup);
 	}
@@ -342,7 +353,7 @@ bool parse_glslp(const char *filename, GLSLP *pGLSLP) {
     destroy_glslp(pGLSLP);
     
     FILE *fp = UTIL_OpenRequiredFile(filename);
-    char *basedir = UTIL_basename(filename);
+    char *basedir = GLSLP_basename(strdup(filename));
 
     if (fp)
     {
@@ -464,6 +475,7 @@ bool parse_glslp(const char *filename, GLSLP *pGLSLP) {
             }
         }
     }
+    free(basedir);
     
     return true;
 }
@@ -519,7 +531,7 @@ void glslp_add_parameter(char *line, size_t len, GLSLP *pGLSLP) {
     if( found == -1 ) {
         nfound = 1;
         found = pGLSLP->uniform_parameters++;
-        pGLSLP->uniform_params = realloc(pGLSLP->uniform_params, pGLSLP->uniform_parameters * sizeof(uniform_param));
+        pGLSLP->uniform_params = SDL_realloc(pGLSLP->uniform_params, pGLSLP->uniform_parameters * sizeof(uniform_param));
     }
     uniform_param *param = &pGLSLP->uniform_params[found];
     param->value_default = tempParam.value_default;

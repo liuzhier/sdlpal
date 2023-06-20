@@ -1,14 +1,15 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2023, SDLPAL development team.
+// Copyright (c) 2011-2019, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
 //
 // SDLPAL is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License, version 3
-// as published by the Free Software Foundation.
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -146,12 +147,6 @@ VIDEO_Startup(
 
 --*/
 {
-	extern SDL_Surface* STBIMG_Load(const char* file);
-	extern char *dirname(char *path);
-#if APPIMAGE
-	SDL_Surface *surf = STBIMG_Load( PAL_va(0, "%s%s", dirname(dirname(dirname(gExecutablePath))), "/usr/share/icons/hicolor/256x256/apps/sdlpal.png" ) );
-#endif
-
 #if SDL_VERSION_ATLEAST(2,0,0)
    int render_w, render_h;
 
@@ -176,18 +171,12 @@ VIDEO_Startup(
    //
    if (gpWindow == NULL)
    gpWindow = SDL_CreateWindow("Pal", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                               gConfig.dwScreenWidth, gConfig.dwScreenHeight, PAL_VIDEO_INIT_FLAGS);
+                               gConfig.dwScreenWidth, gConfig.dwScreenHeight, PAL_VIDEO_INIT_FLAGS | (gConfig.fFullScreen ? SDL_WINDOW_BORDERLESS : 0));
 
    if (gpWindow == NULL)
    {
       return -1;
    }
-
-# if APPIMAGE
-	if(surf){
-		SDL_SetWindowIcon(gpWindow, surf);
-	}
-# endif
 
    gpRenderer = SDL_CreateRenderer(gpWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
@@ -218,8 +207,7 @@ VIDEO_Startup(
    if(!gConfig.fEnableGLSL)
       SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, gConfig.pszScaleQuality);
    gpTexture = gRenderBackend.CreateTexture(render_w, render_h);
-   if(gConfig.fEnableGLSL)
-      SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
    //
    // Create palette object
@@ -240,21 +228,19 @@ VIDEO_Startup(
    //
    if (gConfig.fUseTouchOverlay)
    {
-      extern const unsigned char bmpData[];
-      extern unsigned int bmpLen;
+      extern const void * PAL_LoadOverlayBMP(void);
+      extern int PAL_OverlayBMPLength();
 
-      void *bmp = UTIL_malloc(bmpLen);
-      YJ1_Decompress(bmpData, bmp, bmpLen);
-      SDL_Surface *overlay = SDL_LoadBMP_RW(SDL_RWFromConstMem(bmp, bmpLen), 1);
-      free(bmp);
-
+      const void *bmp = PAL_LoadOverlayBMP();
+      SDL_Surface *overlay = SDL_LoadBMP_RW(SDL_RWFromConstMem(bmp, PAL_OverlayBMPLength()), 1);
+      free((void*)bmp);
       if (overlay != NULL)
       {
          SDL_SetColorKey(overlay, SDL_RLEACCEL, SDL_MapRGB(overlay->format, 255, 0, 255));
          SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, gConfig.pszScaleQuality);
          gpTouchOverlay = SDL_CreateTextureFromSurface(gpRenderer, overlay);
          SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-         SDL_SetTextureAlphaMod(gpTouchOverlay, TOUCHOVERLAY_ALPHAMOD );
+         SDL_SetTextureAlphaMod(gpTouchOverlay, 120);
          SDL_FreeSurface(overlay);
       }
    }
@@ -268,18 +254,12 @@ VIDEO_Startup(
    {
 	   BYTE pixels[4*PIXELS*PIXELS];
 	   memset(pixels, 0, sizeof(pixels));
-	   SDL_Surface *temp = SDL_CreateRGBSurfaceFrom(pixels, PIXELS, PIXELS, 32, PIXELS, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+	   SDL_Surface *temp = SDL_CreateRGBSurfaceFrom(pixels, PIXELS, PIXELS, 32, PIXELS, 0, 0, 0, 0);
 	   gpTouchOverlay = SDL_CreateTextureFromSurface(gpRenderer, temp);
 	   SDL_FreeSurface(temp);
    }
 # endif
 #else
-
-# if APPIMAGE
-	if(surf){
-		SDL_WM_SetIcon(surf, NULL);
-	}
-# endif
 
    //
    // Create the screen surface.
@@ -330,11 +310,6 @@ VIDEO_Startup(
       SDL_ShowCursor(FALSE);
    }
 
-#endif
-
-#if APPIMAGE
-	if(surf)
-		SDL_FreeSurface(surf);
 #endif
 
    return 0;
@@ -942,7 +917,7 @@ VIDEO_SaveScreenshot(
 
 --*/
 {
-	char filename[80];
+	char filename[32];
 #ifdef _WIN32
 	SYSTEMTIME st;
 	GetLocalTime(&st);
