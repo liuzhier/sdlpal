@@ -3568,7 +3568,13 @@ begin:
 	   if (gConfig.fIsWIN95)
 	   {
 		   int XBase = (wEventObjectID & PAL_ITEM_DESC_BOTTOM) ? 71 : gConfig.ScreenLayout.MagicDescMsgPos;
-		   int YBase = (wEventObjectID & PAL_ITEM_DESC_BOTTOM) ? 151 - gConfig.ScreenLayout.ExtraItemDescLines * 16 : 3;
+
+#if HACK_VIDEO
+           int YBase = (wEventObjectID & PAL_ITEM_DESC_BOTTOM) ? 151 - gConfig.ScreenLayout.ExtraItemDescLines * 32 : 3;
+#else
+           int YBase = (wEventObjectID & PAL_ITEM_DESC_BOTTOM) ? 151 - gConfig.ScreenLayout.ExtraItemDescLines * 16 : 3;
+#endif
+
 		   int iDescLine = (wEventObjectID & ~PAL_ITEM_DESC_BOTTOM);
 
 		   if (gConfig.pszMsgFile)
@@ -3579,14 +3585,22 @@ begin:
 			   {
 				   if (iMsg > 0)
 				   {
+#if HACK_VIDEO
+                       PAL_DrawText(PAL_GetMsg(iMsg), PAL_XY(XBase, iDescLine * 32 + YBase), DESCTEXT_COLOR, TRUE, FALSE, FALSE);
+#else
 					   PAL_DrawText(PAL_GetMsg(iMsg), PAL_XY(XBase, iDescLine * 16 + YBase), DESCTEXT_COLOR, TRUE, FALSE, FALSE);
+#endif
 					   iDescLine++;
 				   }
 			   }
 		   }
 		   else
 		   {
-			   PAL_DrawText(PAL_GetMsg(pScript->rgwOperand[0]), PAL_XY(XBase, iDescLine * 16 + YBase), DESCTEXT_COLOR, TRUE, FALSE, FALSE);
+#if HACK_VIDEO
+			   PAL_DrawText(PAL_GetMsg(pScript->rgwOperand[0]), PAL_XY(XBase, iDescLine * 32 + YBase), DESCTEXT_COLOR, TRUE, FALSE, FALSE);
+#else
+               PAL_DrawText(PAL_GetMsg(pScript->rgwOperand[0]), PAL_XY(XBase, iDescLine * 16 + YBase), DESCTEXT_COLOR, TRUE, FALSE, FALSE);
+#endif
 			   wScriptEntry++;
 		   }
 	   }

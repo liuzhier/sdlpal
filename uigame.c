@@ -100,6 +100,17 @@ PAL_OpeningMenu(
 {
    WORD          wItemSelected;
    WORD          wDefaultItem     = 0;
+
+#if HACK_VIDEO
+   INT           w[3] = { PAL_WordWidth(MAINMENU_LABEL_NEWGAME), PAL_WordWidth(MAINMENU_LABEL_LOADGAME), PAL_WordWidth(SYSMENU_LABEL_QUIT) };
+
+   MENUITEM      rgMainMenuItem[3] = {
+     // value   label                     enabled   position
+     {  0,      MAINMENU_LABEL_NEWGAME,   TRUE,     PAL_XY((VIDEO_WIDTH - wcslen(PAL_GetWord(MAINMENU_LABEL_NEWGAME)) * 32) / 2, VIDEO_HEIGHT / 2 - 53) },
+     {  1,      MAINMENU_LABEL_LOADGAME,  TRUE,     PAL_XY((VIDEO_WIDTH - wcslen(PAL_GetWord(MAINMENU_LABEL_LOADGAME)) * 32) / 2, VIDEO_HEIGHT / 2 - 17) },
+     {  2,      SYSMENU_LABEL_QUIT,  TRUE,     PAL_XY((VIDEO_WIDTH - wcslen(PAL_GetWord(SYSMENU_LABEL_QUIT)) * 32) / 2, VIDEO_HEIGHT / 2 + 17) }
+   };
+#else
    INT           w[2] = { PAL_WordWidth(MAINMENU_LABEL_NEWGAME), PAL_WordWidth(MAINMENU_LABEL_LOADGAME) };
 
    MENUITEM      rgMainMenuItem[2] = {
@@ -107,6 +118,7 @@ PAL_OpeningMenu(
       {  0,      MAINMENU_LABEL_NEWGAME,   TRUE,     PAL_XY(125 - (w[0] > 4 ? (w[0] - 4) * 8 : 0), 95)  },
       {  1,      MAINMENU_LABEL_LOADGAME,  TRUE,     PAL_XY(125 - (w[1] > 4 ? (w[1] - 4) * 8 : 0), 112) }
    };
+#endif // HACK_VIDEO
 
    //
    // Play the background music
@@ -184,39 +196,56 @@ PAL_SaveSlotMenu(
 
 --*/
 {
-   LPBOX           rgpBox[5];
-   int             i, w = PAL_WordMaxWidth(LOADMENU_LABEL_SLOT_FIRST, 5);
-   int             dx = (w > 4) ? (w - 4) * 16 : 0;
    WORD            wItemSelected;
+   int             i;
 
+#if HACK_VIDEO
+   MENUITEM        rgMenuItem[15];
+#else
+   LPBOX           rgpBox[5];
    MENUITEM        rgMenuItem[5];
+   int             w = PAL_WordMaxWidth(LOADMENU_LABEL_SLOT_FIRST, 5);
+   int             dx = (w > 4) ? (w - 4) * 16 : 0;
 
    const SDL_Rect  rect = { 195 - dx, 7, 120 + dx, 190 };
+#endif
+
+   INT             nMenuItem = sizeof(rgMenuItem) / sizeof(MENUITEM);
 
    //
    // Create the boxes and create the menu items
    //
-   for (i = 0; i < 5; i++)
+   for (i = 0; i < nMenuItem; i++)
    {
       // Fix render problem with shadow
-      rgpBox[i] = PAL_CreateSingleLineBox(PAL_XY(195 - dx, 7 + 38 * i), 6 + (w > 4 ? w - 4 : 0), FALSE);
-
       rgMenuItem[i].wValue = i + 1;
       rgMenuItem[i].fEnabled = TRUE;
-      rgMenuItem[i].wNumWord = LOADMENU_LABEL_SLOT_FIRST + i;
-	  rgMenuItem[i].pos = PAL_XY(210 - dx, 17 + 38 * i);
+
+#if HACK_VIDEO
+      rgMenuItem[i].wNumWord = (i < 5) ? (LOADMENU_LABEL_SLOT_FIRST + i) : (LOADMENU_LABEL_SLOT_SIXTH + i - 5);
+      rgMenuItem[i].pos = PAL_XY(VIDEO_WIDTH - 250, 38 * i + 15);
+
+      //
+      // Draw the numbers of saved times
+      //
+      PAL_DrawNumber((UINT)GetSavedTimes(i + 1), 5, PAL_XY(VIDEO_WIDTH - 30, 38 * i + 18), (i >= 15) ? kNumColorCyan : kNumColorYellow, kNumAlignRight);
    }
 
    //
-   // Draw the numbers of saved times
+   // Activate the menu
    //
-   for (i = 1; i <= 5; i++)
-   {
+   wItemSelected = PAL_ReadMenu(NULL, rgMenuItem, nMenuItem, wDefaultSlot - 1, MENUITEM_COLOR);
+
+   VIDEO_UpdateScreen(NULL);
+#else
+      rgpBox[i] = PAL_CreateSingleLineBox(PAL_XY(195 - dx, 7 + 38 * i), 6 + (w > 4 ? w - 4 : 0), FALSE);
+      rgMenuItem[i].wNumWord = LOADMENU_LABEL_SLOT_FIRST + i;
+      rgMenuItem[i].pos = PAL_XY(210 - dx, 17 + 38 * i);
+
       //
-      // Draw the number
+      // Draw the numbers of saved times
       //
-      PAL_DrawNumber((UINT)GetSavedTimes(i), 4, PAL_XY(270, 38 * i - 17),
-         kNumColorYellow, kNumAlignRight);
+      PAL_DrawNumber((UINT)GetSavedTimes(i + 1), 4, PAL_XY(270, 38 * (i + 1) - 17), kNumColorYellow, kNumAlignRight);
    }
 
    //
@@ -229,10 +258,11 @@ PAL_SaveSlotMenu(
    //
    for (i = 0; i < 5; i++)
    {
-      PAL_DeleteBox(rgpBox[i]);
+      //PAL_DeleteBox(rgpBox[i]);
    }
 
    VIDEO_UpdateScreen(&rect);
+#endif
 
    return wItemSelected;
 }

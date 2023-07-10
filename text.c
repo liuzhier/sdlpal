@@ -52,11 +52,28 @@ static LPWSTR gc_rgszAdditionalWords[CP_MAX][ATB_WORD_COUNT] = {
 static LPWSTR gc_rgszDefaultAdditionalWords[ATB_WORD_COUNT] = { NULL, L"\xFF11", L"\xFF12", L"\xFF13", L"\xFF14", L"\xFF15" };
 #endif
 
+#if HACK_VIDEO
+#define SDLPAL_EXTRA_WORD_COUNT     17
+static LPWSTR gc_rgszSDLPalWords[CP_MAX][SDLPAL_EXTRA_WORD_COUNT] = {
+	{ L"\x8FD4\x56DE\x8A2D\x5B9A", L"\x529b\x9053", L"\x6c14\x52b2", L"\x8fdb\x5ea6\x516d",
+	L"\x8fdb\x5ea6\x4e03", L"\x8fdb\x5ea6\x516b", L"\x8fdb\x5ea6\x4e5d", L"\x8fdb\x5ea6\x5341",
+	L"\x8fdb\x5ea6\x5341\x4e00", L"\x8fdb\x5ea6\x5341\x4e8c", L"\x8fdb\x5ea6\x5341\x4e09",
+	L"\x8fdb\x5ea6\x5341\x56db", L"\x4fbf\x6377\x5b58\x6863", L"\x83b7\x5f97\x7075\x846b\x503c",
+	L"\x7075\x846b\x503c", L"\x81ea\x52a8\x5b58\x6863"},
+
+	{ L"\x8FD4\x56DE\x8BBE\x7F6E", L"\x529b\x9053", L"\x6c14\x52b2", L"\x8fdb\x5ea6\x516d",
+	L"\x8fdb\x5ea6\x4e03", L"\x8fdb\x5ea6\x516b", L"\x8fdb\x5ea6\x4e5d", L"\x8fdb\x5ea6\x5341",
+	L"\x8fdb\x5ea6\x5341\x4e00", L"\x8fdb\x5ea6\x5341\x4e8c", L"\x8fdb\x5ea6\x5341\x4e09",
+	L"\x8fdb\x5ea6\x5341\x56db", L"\x4fbf\x6377\x5b58\x6863", L"\x83b7\x5f97\x7075\x846b\x503c",
+	L"\x7075\x846b\x503c", L"\x81ea\x52a8\x5b58\x6863"},
+};
+#else
 #define SDLPAL_EXTRA_WORD_COUNT     1
 static LPWSTR gc_rgszSDLPalWords[CP_MAX][SDLPAL_EXTRA_WORD_COUNT] = {
 	{ L"\x8FD4\x56DE\x8A2D\x5B9A" },
 	{ L"\x8FD4\x56DE\x8BBE\x7F6E" },
 };
+#endif
 
 LPWSTR g_rcCredits[12];
 
@@ -981,7 +998,7 @@ PAL_GetWord(
 
 --*/
 {
-   return (iNumWord >= g_TextLib.nWords || !g_TextLib.lpWordBuf[iNumWord]) ? L"" : g_TextLib.lpWordBuf[iNumWord];
+	return (iNumWord >= g_TextLib.nWords || !g_TextLib.lpWordBuf[iNumWord]) ? L"" : g_TextLib.lpWordBuf[iNumWord];
 }
 
 LPCWSTR
@@ -1129,7 +1146,7 @@ PAL_DrawTextUnescape(
    urect.w = 0;
 
    // Handle text overflow
-   if (rect.x >= 320) return;
+   if (rect.x >= VIDEO_WIDTH) return;
 
    if(fUnescape)
       lpszText = PAL_UnescapeText(lpszText);
@@ -1143,7 +1160,12 @@ PAL_DrawTextUnescape(
 
       if (fShadow)
       {
+#if HACK_VIDEO
+		  PAL_DrawCharOnSurface(*lpszText, gpScreen, PAL_XY(rect.x + 2, rect.y), 0, fUse8x8Font);
+		  PAL_DrawCharOnSurface(*lpszText, gpScreen, PAL_XY(rect.x + 2, rect.y + 2), 0, fUse8x8Font);
+#else
 		  PAL_DrawCharOnSurface(*lpszText, gpScreen, PAL_XY(rect.x + 1, rect.y + 1), 0, fUse8x8Font);
+#endif
       }
 	  PAL_DrawCharOnSurface(*lpszText++, gpScreen, PAL_XY(rect.x, rect.y), bColor, fUse8x8Font);
 	  rect.x += char_width; urect.w += char_width;
@@ -1159,17 +1181,23 @@ PAL_DrawTextUnescape(
 	  urect.x -= PROT_OFFSET;
 	  urect.w += 2 * PROT_OFFSET;
 	  urect.y -= PROT_OFFSET;
-	  urect.h += 2*PROT_OFFSET;
+	  urect.h += 2 * PROT_OFFSET;
 	  if (urect.x < 0) urect.x = 0;
 	  if (urect.y < 0) urect.y = 0;
-      if (urect.x + urect.w > 320)
+      if (urect.x + urect.w > VIDEO_WIDTH)
       {
-         urect.w = 320 - urect.x;
+         urect.w = VIDEO_WIDTH - urect.x;
       }
-	  if (urect.y + urect.h > 200)
+	  if (urect.y + urect.h > VIDEO_HEIGHT)
 	  {
-		  urect.h = 200 - urect.y;
+		  urect.h = VIDEO_HEIGHT - urect.y;
 	  }
+
+#if HACK_VIDEO
+	  urect.w *= 2;
+	  urect.h *= 2;
+#endif // HACK_VIDEO
+
       VIDEO_UpdateScreen(&urect);
    }
 }
@@ -1305,12 +1333,22 @@ PAL_StartDialogWithOffset(
             VIDEO_UpdateScreen(&rect);
          }
       }
+
+#if HACK_VIDEO
+	  g_TextLib.posDialogTitle = PAL_XY(VIDEO_WIDTH / (iNumCharFace > 0 ? 5 : 10), 8);
+	  g_TextLib.posDialogText = PAL_XY(PAL_X(g_TextLib.posDialogTitle) + 32, PAL_Y(g_TextLib.posDialogTitle) + 36);
+#else
       g_TextLib.posDialogTitle = PAL_XY(iNumCharFace > 0 ? 80 : 12, 8);
       g_TextLib.posDialogText = PAL_XY(iNumCharFace > 0 ? 96 : 44, 26);
+#endif // HACK_VIDEO
       break;
 
    case kDialogCenter:
+#if HACK_VIDEO
+	  g_TextLib.posDialogText = PAL_XY(VIDEO_WIDTH / 5, VIDEO_WIDTH / 5);
+#else
       g_TextLib.posDialogText = PAL_XY(80, 40);
+#endif // HACK_VIDEO
       break;
 
    case kDialogLower:
@@ -1321,20 +1359,35 @@ PAL_StartDialogWithOffset(
          //
          if (PAL_MKFReadChunk(buf, PAL_RLEBUFSIZE, iNumCharFace, gpGlobals->f.fpRGM) > 0)
          {
-            rect.x = 270 - PAL_RLEGetWidth((LPCBITMAPRLE)buf) / 2 + xOff;
-            rect.y = 144 - PAL_RLEGetHeight((LPCBITMAPRLE)buf) / 2 + yOff;
+#if HACK_VIDEO
+			rect.x = VIDEO_WIDTH - PAL_RLEGetWidth((LPCBITMAPRLE)buf);
+			rect.y = VIDEO_HEIGHT - PAL_RLEGetHeight((LPCBITMAPRLE)buf);
+#else
+			rect.x = VIDEO_WIDTH - 50 - PAL_RLEGetWidth((LPCBITMAPRLE)buf) / 2 + xOff;
+			rect.y = VIDEO_HEIGHT - 56 - PAL_RLEGetHeight((LPCBITMAPRLE)buf) / 2 + yOff;
+#endif // HACK_VIDEO
 
             PAL_RLEBlitToSurface((LPCBITMAPRLE)buf, gpScreen, PAL_XY(rect.x, rect.y));
 
             VIDEO_UpdateScreen(NULL);
          }
       }
+
+#if HACK_VIDEO
+	  g_TextLib.posDialogTitle = PAL_XY(VIDEO_WIDTH / (iNumCharFace > 0 ? 10 : 5), VIDEO_HEIGHT / 3 * 2);
+	  g_TextLib.posDialogText = PAL_XY(PAL_X(g_TextLib.posDialogTitle) + 32, PAL_Y(g_TextLib.posDialogTitle) + 36);
+#else
       g_TextLib.posDialogTitle = PAL_XY(iNumCharFace > 0 ? 4 : 12, 108);
       g_TextLib.posDialogText = PAL_XY(iNumCharFace > 0 ? 20 : 44, 126);
+#endif // HACK_VIDEO
       break;
 
    case kDialogCenterWindow:
+#if HACK_VIDEO
+	  g_TextLib.posDialogText = PAL_XY(VIDEO_WIDTH / 5, VIDEO_HEIGHT / 5);
+#else
       g_TextLib.posDialogText = PAL_XY(160, 40);
+#endif // HACK_VIDEO
       break;
    }
    
@@ -1650,7 +1703,11 @@ PAL_ShowDialogText(
    }
 
    x = PAL_X(g_TextLib.posDialogText);
+#if HACK_VIDEO
+   y = PAL_Y(g_TextLib.posDialogText) + g_TextLib.nCurrentDialogLine * 36;
+#else
    y = PAL_Y(g_TextLib.posDialogText) + g_TextLib.nCurrentDialogLine * 18;
+#endif
 
    if (g_TextLib.bDialogPosition == kDialogCenterWindow)
    {

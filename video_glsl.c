@@ -814,7 +814,7 @@ SDL_Texture *VIDEO_GLSL_CreateTexture(int width, int height)
         
         switch (param->scale_type_x) {
             case SCALE_SOURCE:
-                param->FBO.width = (i == 0 ? 320 : gGLSLP.shader_params[i-1].FBO.width) * param->scale_x;
+                param->FBO.width = (i == 0 ? VIDEO_WIDTH : gGLSLP.shader_params[i-1].FBO.width) * param->scale_x;
                 break;
             case SCALE_VIEWPORT:
                 param->FBO.width = gConfig.dwTextureWidth * param->scale_x;
@@ -825,7 +825,7 @@ SDL_Texture *VIDEO_GLSL_CreateTexture(int width, int height)
         }
         switch (param->scale_type_y) {
             case SCALE_SOURCE:
-                param->FBO.height = (i == 0 ? 200 : gGLSLP.shader_params[i-1].FBO.height) * param->scale_y;
+                param->FBO.height = (i == 0 ? VIDEO_HEIGHT : gGLSLP.shader_params[i-1].FBO.height) * param->scale_y;
                 break;
             case SCALE_VIEWPORT:
                 param->FBO.height = gConfig.dwTextureHeight * param->scale_y;

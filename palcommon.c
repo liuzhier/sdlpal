@@ -674,7 +674,7 @@ PAL_FBPBlitToSurface(
    LPBYTE    p;
 
    if (lpBitmapFBP == NULL || lpDstSurface == NULL ||
-      lpDstSurface->w != 320 || lpDstSurface->h != 200)
+      lpDstSurface->w != VIDEO_WIDTH || lpDstSurface->h != VIDEO_HEIGHT)
    {
       return -1;
    }

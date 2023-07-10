@@ -32,6 +32,11 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#define HACK_VIDEO          1
+//
+// HACK_VIDEO  自定义了800*600分辨率的渲染系统
+//
+
 #include <wchar.h>
 #include <stdio.h>
 #include <stdlib.h>

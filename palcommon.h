@@ -37,6 +37,32 @@ typedef DWORD           PAL_POS;
 #define PAL_Y(xy)       (SHORT)(((xy) >> 16) & 0xFFFF)
 #define PAL_XY_OFFSET(xy, x, y)    (PAL_POS)(((((INT)(y) << 16) & 0xFFFF0000) + ((xy) & 0xFFFF0000)) | (((INT)(x) & 0xFFFF) + ((xy) & 0xFFFF)))
 
+#if HACK_VIDEO
+// video width
+#define     VIDEO_WIDTH                  800
+
+// video height
+#define     VIDEO_HEIGHT                 600
+
+// video width origin
+#define     VIDEO_WIDTH_ORIGIN           320
+
+// video height origin
+#define     VIDEO_HEIGHT_ORIGIN          200
+#else
+// video width
+#define     VIDEO_WIDTH                  320
+
+// video height
+#define     VIDEO_HEIGHT                 200
+#endif // HACK_VIDEO
+
+// video viewport offset X
+#define		VIDEO_PARTYOFFSETX			 VIDEO_WIDTH / 2
+
+// video viewport offset Y
+#define		VIDEO_PARTYOFFSETY			 VIDEO_HEIGHT / 2 + 12
+
 // maximum number of players in party
 #define     MAX_PLAYERS_IN_PARTY         3
 
@@ -68,7 +94,7 @@ typedef DWORD           PAL_POS;
 #define     MAX_SCENES                   300
 
 // maximum number of objects
-#define     MAX_OBJECTS                  600
+#define     MAX_OBJECTS                  1000
 
 // maximum number of event objects (should be somewhat more than the original,
 // as there are some modified versions which has more)
@@ -80,7 +106,7 @@ typedef DWORD           PAL_POS;
 // maximum number of level
 #define     MAX_LEVELS                   99
 
-#define     MINIMAL_WORD_COUNT           (MAX_OBJECTS + 13)
+#define     MINIMAL_WORD_COUNT           (MAX_OBJECTS + 13 + 17)
 
 #define PAL_CDTRACK_BASE    10000
 

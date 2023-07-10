@@ -1,6 +1,6 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
-// Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
+// Copyright (c) VIDEO_HEIGHT9-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
 // Copyright (c) 2011-2023, SDLPAL development team.
 // All rights reserved.
 //
@@ -20,6 +20,17 @@
 //
 #include <float.h>
 #include "main.h"
+
+#if HACK_VIDEO
+// Screen small buffer
+SDL_Surface              *gpScreenSmall      = NULL;
+
+// Backup screen small buffer
+SDL_Surface              *gpScreenSmallBak   = NULL;
+
+// Screen NEWPAL FBP buffer
+SDL_Surface* gpScreenNewPalFBP = NULL;
+#endif // HACK_VIDEO
 
 // Screen buffer
 SDL_Surface              *gpScreen           = NULL;
@@ -84,35 +95,38 @@ static SDL_Texture *VIDEO_CreateTexture(int width, int height)
 	//
 	// Check whether to keep the aspect ratio
 	//
+    texture_width = VIDEO_WIDTH;
+    texture_height = VIDEO_HEIGHT;
 	if (gConfig.fKeepAspectRatio && fabs(ratio - 1.6f) > FLT_EPSILON)
 	{
 		if (ratio > 1.6f)
 		{
-			texture_height = 200;
-			texture_width = (int)(200 * ratio) & ~0x3;
-			ratio = (float)height / 200.0f;
+			texture_width = (int)(VIDEO_HEIGHT * ratio) & ~0x3;
+			ratio = (float)height / (VIDEO_HEIGHT * 1.0f);
 		}
 		else
 		{
-			texture_width = 320;
-			texture_height = (int)(320 / ratio) & ~0x3;
-			ratio = (float)width / 320.0f;
+			texture_height = (int)(VIDEO_WIDTH / ratio) & ~0x3;
+			ratio = (float)width / (VIDEO_WIDTH * 1.0f);
 		}
 
-		WORD w = (WORD)(ratio * 320.0f) & ~0x3;
-		WORD h = (WORD)(ratio * 200.0f) & ~0x3;
-		gTextureRect.x = (texture_width - 320) / 2;
-		gTextureRect.y = (texture_height - 200) / 2;
-		gTextureRect.w = 320; gTextureRect.h = 200;
-		
-		VIDEO_SetupTouchArea(width,height,w,h);
+		WORD w = (WORD)(ratio * (VIDEO_WIDTH * 1.0f)) & ~0x3;
+		WORD h = (WORD)(ratio * (VIDEO_HEIGHT * 1.0f)) & ~0x3;
+		gTextureRect.x = (texture_width - VIDEO_WIDTH) / 2;
+		gTextureRect.y = (texture_height - VIDEO_HEIGHT) / 2;
+
+#if HACK_VIDEO
+        VIDEO_SetupTouchArea(texture_width, texture_height, w, h);
+#else
+        gTextureRect.w = VIDEO_WIDTH; gTextureRect.h = VIDEO_HEIGHT;
+        VIDEO_SetupTouchArea(width, height, w, h);
+#endif // HACK_VIDEO
+
 	}
 	else
 	{
-		texture_width = 320;
-		texture_height = 200;
 		gTextureRect.x = gTextureRect.y = 0;
-		gTextureRect.w = 320; gTextureRect.h = 200;
+		gTextureRect.w = VIDEO_WIDTH; gTextureRect.h = VIDEO_HEIGHT;
 		
 		VIDEO_SetupTouchArea(width,height,width,height);
 	}
@@ -206,9 +220,16 @@ VIDEO_Startup(
    //
    // Create the screen buffer and the backup screen buffer.
    //
-   gpScreen = SDL_CreateRGBSurface(SDL_SWSURFACE, 320, 200, 8, 0, 0, 0, 0);
-   gpScreenBak = SDL_CreateRGBSurface(SDL_SWSURFACE, 320, 200, 8, 0, 0, 0, 0);
-   gpScreenReal = SDL_CreateRGBSurface(SDL_SWSURFACE, 320, 200, 32,
+#if HACK_VIDEO
+   // 小屏幕缓冲区
+   gpScreenSmall = SDL_CreateRGBSurface(SDL_SWSURFACE, VIDEO_WIDTH_ORIGIN, VIDEO_HEIGHT_ORIGIN, 8, 0, 0, 0, 0);
+   // 备份小屏幕缓冲区
+   gpScreenSmallBak = SDL_CreateRGBSurface(SDL_SWSURFACE, VIDEO_WIDTH_ORIGIN, VIDEO_HEIGHT_ORIGIN, 8, 0, 0, 0, 0);
+#endif // HACK_VIDEO
+
+   gpScreen = SDL_CreateRGBSurface(SDL_SWSURFACE, VIDEO_WIDTH, VIDEO_HEIGHT, 8, 0, 0, 0, 0);
+   gpScreenBak = SDL_CreateRGBSurface(SDL_SWSURFACE, VIDEO_WIDTH, VIDEO_HEIGHT, 8, 0, 0, 0, 0);
+   gpScreenReal = SDL_CreateRGBSurface(SDL_SWSURFACE, VIDEO_WIDTH, VIDEO_HEIGHT, 32,
                                        0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
 
    //
@@ -308,11 +329,11 @@ VIDEO_Startup(
    //
    // Create the screen buffer and the backup screen buffer.
    //
-   gpScreen = SDL_CreateRGBSurface(gpScreenReal->flags & ~SDL_HWSURFACE, 320, 200, 8,
+   gpScreen = SDL_CreateRGBSurface(gpScreenReal->flags & ~SDL_HWSURFACE, VIDEO_WIDTH, VIDEO_HEIGHT, 8,
       gpScreenReal->format->Rmask, gpScreenReal->format->Gmask,
       gpScreenReal->format->Bmask, gpScreenReal->format->Amask);
 
-   gpScreenBak = SDL_CreateRGBSurface(gpScreenReal->flags & ~SDL_HWSURFACE, 320, 200, 8,
+   gpScreenBak = SDL_CreateRGBSurface(gpScreenReal->flags & ~SDL_HWSURFACE, VIDEO_WIDTH, VIDEO_HEIGHT, 8,
       gpScreenReal->format->Rmask, gpScreenReal->format->Gmask,
       gpScreenReal->format->Bmask, gpScreenReal->format->Amask);
 
@@ -433,10 +454,14 @@ VIDEO_RenderCopy(
 	uint8_t *src = (uint8_t *)gpScreenReal->pixels;
 	int left_pitch = gTextureRect.x << 2;
 	int right_pitch = texture_pitch - ((gTextureRect.x + gTextureRect.w) << 2);
-	for (int y = 0; y < gTextureRect.h; y++, src += gpScreenReal->pitch)
+#if HACK_VIDEO
+    for (int y = 0; y < VIDEO_HEIGHT; y++, src += gpScreenReal->pitch)
+#else
+    for (int y = 0; y < gTextureRect.h; y++, src += gpScreenReal->pitch)
+#endif // HACK_VIDEO
 	{
 		memset(pixels, 0, left_pitch); pixels += left_pitch;
-		memcpy(pixels, src, 320 << 2); pixels += 320 << 2;
+		memcpy(pixels, src, VIDEO_WIDTH << 2); pixels += VIDEO_WIDTH << 2;
 		memset(pixels, 0, right_pitch); pixels += right_pitch;
 	}
 	memset(pixels, 0, gTextureRect.y * texture_pitch);
@@ -472,7 +497,7 @@ VIDEO_UpdateScreen(
 --*/
 {
    SDL_Rect        srcrect, dstrect;
-   short           offset = 240 - 200;
+   short           offset = 240 - VIDEO_HEIGHT;
    short           screenRealHeight = gpScreenReal->h;
    short           screenRealY = 0;
 
@@ -514,13 +539,13 @@ VIDEO_UpdateScreen(
       //
       srcrect.x = 0;
       srcrect.y = 0;
-      srcrect.w = 320;
-      srcrect.h = 200 - g_wShakeLevel;
+      srcrect.w = VIDEO_WIDTH;
+      srcrect.h = VIDEO_HEIGHT - g_wShakeLevel;
 
       dstrect.x = 0;
       dstrect.y = screenRealY;
-      dstrect.w = 320 * gpScreenReal->w / gpScreen->w;
-      dstrect.h = (200 - g_wShakeLevel) * screenRealHeight / gpScreen->h;
+      dstrect.w = VIDEO_WIDTH * gpScreenReal->w / gpScreen->w;
+      dstrect.h = (VIDEO_HEIGHT - g_wShakeLevel) * screenRealHeight / gpScreen->h;
 
       if (g_wShakeTime & 1)
       {
@@ -605,6 +630,12 @@ VIDEO_SetPalette(
 
    SDL_SetPaletteColors(gpPalette, rgPalette, 0, 256);
 
+#if HACK_VIDEO
+   SDL_SetSurfacePalette(gpScreenSmall, gpPalette);
+   SDL_SetSurfacePalette(gpScreenSmallBak, gpPalette);
+   SDL_SetSurfacePalette(gpScreenNewPalFBP, gpPalette);
+#endif // HACK_VIDEO
+
    SDL_SetSurfacePalette(gpScreen, gpPalette);
    SDL_SetSurfacePalette(gpScreenBak, gpPalette);
 
@@ -612,6 +643,15 @@ VIDEO_SetPalette(
    // HACKHACK: need to invalidate gpScreen->map otherwise the palette
    // would not be effective during blit
    //
+#if HACK_VIDEO
+   SDL_SetSurfaceColorMod(gpScreenSmall, 0, 0, 0);
+   SDL_SetSurfaceColorMod(gpScreenSmall, 0xFF, 0xFF, 0xFF);
+   SDL_SetSurfaceColorMod(gpScreenSmallBak, 0, 0, 0);
+   SDL_SetSurfaceColorMod(gpScreenSmallBak, 0xFF, 0xFF, 0xFF);
+   SDL_SetSurfaceColorMod(gpScreenNewPalFBP, 0, 0, 0);
+   SDL_SetSurfaceColorMod(gpScreenNewPalFBP, 0xFF, 0xFF, 0xFF);
+#endif // HACK_VIDEO
+
    SDL_SetSurfaceColorMod(gpScreen, 0, 0, 0);
    SDL_SetSurfaceColorMod(gpScreen, 0xFF, 0xFF, 0xFF);
    SDL_SetSurfaceColorMod(gpScreenBak, 0, 0, 0);
@@ -619,8 +659,8 @@ VIDEO_SetPalette(
 
    rect.x = 0;
    rect.y = 0;
-   rect.w = 320;
-   rect.h = 200;
+   rect.w = VIDEO_WIDTH;
+   rect.h = VIDEO_HEIGHT;
 
    VIDEO_UpdateScreen(&rect);
 #else
@@ -679,8 +719,8 @@ VIDEO_Resize(
 
    rect.x = 0;
    rect.y = 0;
-   rect.w = 320;
-   rect.h = 200;
+   rect.w = VIDEO_WIDTH;
+   rect.h = VIDEO_HEIGHT;
 
    VIDEO_UpdateScreen(&rect);
 #else
@@ -1015,7 +1055,7 @@ VIDEO_SwitchScreen(
    const int         rgIndex[6] = {0, 3, 1, 5, 2, 4};
    SDL_Rect          dstrect;
 
-   short             offset = 240 - 200;
+   short             offset = 240 - VIDEO_HEIGHT;
    short             screenRealHeight = gpScreenReal->h;
    short             screenRealY = 0;
 
@@ -1090,7 +1130,7 @@ VIDEO_FadeScreen(
    BYTE              a, b;
    const int         rgIndex[6] = {0, 3, 1, 5, 2, 4};
    SDL_Rect          dstrect;
-   short             offset = 240 - 200;
+   short             offset = 240 - VIDEO_HEIGHT;
    short             screenRealHeight = gpScreenReal->h;
    short             screenRealY = 0;
 
@@ -1162,13 +1202,13 @@ VIDEO_FadeScreen(
 
             srcrect.x = 0;
             srcrect.y = 0;
-            srcrect.w = 320;
-            srcrect.h = 200 - g_wShakeLevel;
+            srcrect.w = VIDEO_WIDTH;
+            srcrect.h = VIDEO_HEIGHT - g_wShakeLevel;
 
             dstrect.x = 0;
             dstrect.y = screenRealY;
-            dstrect.w = 320 * gpScreenReal->w / gpScreen->w;
-            dstrect.h = (200 - g_wShakeLevel) * screenRealHeight / gpScreen->h;
+            dstrect.w = VIDEO_WIDTH * gpScreenReal->w / gpScreen->w;
+            dstrect.h = (VIDEO_HEIGHT - g_wShakeLevel) * screenRealHeight / gpScreen->h;
 
             if (g_wShakeTime & 1)
             {

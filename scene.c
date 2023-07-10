@@ -290,7 +290,7 @@ PAL_SceneDrawSprites(
       x = (SHORT)lpEvtObj->x - PAL_X(gpGlobals->viewport);
       x -= PAL_RLEGetWidth(lpFrame) / 2;
 
-      if (x >= 320 || x < -(int)PAL_RLEGetWidth(lpFrame))
+      if (x >= VIDEO_WIDTH || x < -(int)PAL_RLEGetWidth(lpFrame))
       {
          //
          // outside the screen; skip it
@@ -302,7 +302,7 @@ PAL_SceneDrawSprites(
       y += lpEvtObj->sLayer * 8 + 9;
 
       vy = y - PAL_RLEGetHeight(lpFrame) - lpEvtObj->sLayer * 8 + 2;
-      if (vy >= 200 || vy < -(int)PAL_RLEGetHeight(lpFrame))
+      if (vy >= VIDEO_HEIGHT || vy < -(int)PAL_RLEGetHeight(lpFrame))
       {
          //
          // outside the screen; skip it
@@ -469,7 +469,7 @@ PAL_MakeScene(
 
 --*/
 {
-   static SDL_Rect         rect = {0, 0, 320, 200};
+   static SDL_Rect         rect = { 0, 0, VIDEO_WIDTH, VIDEO_HEIGHT };
 
    //
    // Step 1: Draw the complete map, for both of the layers.

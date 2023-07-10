@@ -68,8 +68,8 @@
 #define SYSMENU_LABEL_MUSIC                13
 #define SYSMENU_LABEL_SOUND                14
 #define SYSMENU_LABEL_QUIT                 15
-#define SYSMENU_LABEL_BATTLEMODE           606
-#define SYSMENU_LABEL_LAUNCHSETTING        612
+#define SYSMENU_LABEL_BATTLEMODE           998
+#define SYSMENU_LABEL_LAUNCHSETTING        999
 
 #define BATTLESPEEDMENU_LABEL_1            (SYSMENU_LABEL_BATTLEMODE + 1)
 #define BATTLESPEEDMENU_LABEL_2            (SYSMENU_LABEL_BATTLEMODE + 2)
@@ -126,6 +126,10 @@
 #define SPRITENUM_ARROW                    47
 
 #define BATTLE_LABEL_ESCAPEFAIL            31
+
+#if HACK_VIDEO
+#define LOADMENU_LABEL_SLOT_SIXTH          (SYSMENU_LABEL_LAUNCHSETTING + 3)
+#endif
 
 typedef struct tagBOX
 {

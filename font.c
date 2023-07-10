@@ -531,6 +531,10 @@ PAL_DrawCharOnSurface(
 	int       x = PAL_X(pos), y = PAL_Y(pos);
     int       x_offset, y_offset;
 
+#if HACK_VIDEO
+    INT       iOffsetX, iOffsetY = 0, iHalfOffsetX;
+#endif
+
 	//
 	// Check for NULL pointer & invalid char code.
 	//
@@ -573,6 +577,44 @@ PAL_DrawCharOnSurface(
 	{
 		if (font_width[wChar] == 32)
 		{
+#if HACK_VIDEO
+            for (i = 0; i < _font_height * 2 - 1 && dest < top; dest += lpSurface->pitch, iOffsetY++)
+            {
+                iOffsetX = 0;
+                iHalfOffsetX = 0;
+
+                for (j = 0; j < 8 && x + j + x_offset < lpSurface->w && x + j + x_offset >= 0; iOffsetX++, j += iOffsetX % 2)
+                {
+                    if (unicode_font[wChar][i] & (1 << (7 - j)))
+                    {
+                        dest[j + x_offset + iOffsetX - iHalfOffsetX] = bColor;
+                    }
+                    if (unicode_font[wChar][i] & (1 << (7 - j)))
+                    {
+                        dest[j + x_offset + iOffsetX + 1 - iHalfOffsetX] = bColor;
+                    }
+                    if (iOffsetX % 2 == 1)
+                        iHalfOffsetX++;
+                }
+
+                for (j = 0; j < 8 && x + j + 8 + x_offset < lpSurface->w && x + j + 8 + x_offset >= 0; iOffsetX++, j += iOffsetX % 2)
+                {
+                    if (unicode_font[wChar][i + 1] & (1 << (7 - j)))
+                    {
+                        dest[j + 8 + x_offset + iOffsetX - iHalfOffsetX] = bColor;
+                    }
+                    if (unicode_font[wChar][i + 1] & (1 << (7 - j)))
+                    {
+                        dest[j + 8 + x_offset + iOffsetX + 1 - iHalfOffsetX] = bColor;
+                    }
+                    if (iOffsetX % 2 == 1)
+                        iHalfOffsetX++;
+                }
+
+                if (iOffsetY % 2 == 1)
+                    i += 2;
+            }
+#else
 			for (i = 0; i < _font_height * 2 && dest < top; i += 2, dest += lpSurface->pitch)
 			{
 				for (j = 0; j < 8 && x + j + x_offset < lpSurface->w && x + j + x_offset >= 0; j++)
@@ -590,9 +632,35 @@ PAL_DrawCharOnSurface(
 					}
 				}
 			}
+#endif
 		}
 		else
 		{
+#if HACK_VIDEO
+            for (i = 0; i < _font_height * 2 && dest < top; dest += lpSurface->pitch, iOffsetY++)
+            {
+                iOffsetX = 0;
+                iHalfOffsetX = 0;
+
+                for (j = 0; j < 8 && x + j + x_offset < lpSurface->w && x + j + x_offset >= 0; iOffsetX++, j += iOffsetX % 2)
+                {
+                    if (unicode_font[wChar][i] & (1 << (7 - j)))
+                    {
+                        dest[j + x_offset + iHalfOffsetX] = bColor;
+                    }
+                    if (unicode_font[wChar][i] & (1 << (7 - j)))
+                    {
+                        dest[j + x_offset + 1 + iHalfOffsetX] = bColor;
+                    }
+                    if (iOffsetX % 2 == 0)
+                        iHalfOffsetX++;
+                }
+                if (iOffsetY % 2 == 1)
+                    i++;
+
+                iHalfOffsetX += 8;
+            }
+#else
 			for (i = 0; i < _font_height && dest < top; i++, dest += lpSurface->pitch)
 			{
 				for (j = 0; j < 8 && x + j + x_offset < lpSurface->w && x + j + x_offset >= 0; j++)
@@ -603,6 +671,7 @@ PAL_DrawCharOnSurface(
 					}
 				}
 			}
+#endif
 		}
 	}
 }
@@ -625,7 +694,11 @@ PAL_CharWidth(
 		wChar -= (unicode_upper_base - unicode_lower_top);
 	}
 
+#if HACK_VIDEO
+    return (font_width[wChar] >> 1) * 2;
+#else
 	return font_width[wChar] >> 1;
+#endif // HACK_VIDEO
 }
 
 int
