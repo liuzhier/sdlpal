@@ -1,4 +1,4 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
 // Copyright (c) 2011-2023, SDLPAL development team.
@@ -24,7 +24,8 @@
 #include "palcfg.h"
 
 static GLOBALVARS _gGlobals;
-GLOBALVARS * const  gpGlobals = &_gGlobals;
+GLOBALVARS* const  gpGlobals = &_gGlobals;
+extern WORD GetSavedTimes(int iSaveSlot);
 
 CONFIGURATION gConfig;
 
@@ -49,15 +50,15 @@ CONFIGURATION gConfig;
 
 BOOL
 PAL_IsWINVersion(
-	BOOL *pfIsWIN95
+	BOOL* pfIsWIN95
 )
 {
-	FILE *fps[] = { UTIL_OpenRequiredFile("abc.mkf"), UTIL_OpenRequiredFile("map.mkf"), gpGlobals->f.fpF, gpGlobals->f.fpFBP, gpGlobals->f.fpFIRE, gpGlobals->f.fpMGO };
-	uint8_t *data = NULL;
+	FILE* fps[] = { UTIL_OpenRequiredFile("abc.mkf"), UTIL_OpenRequiredFile("map.mkf"), gpGlobals->f.fpF, gpGlobals->f.fpFBP, gpGlobals->f.fpFIRE, gpGlobals->f.fpMGO };
+	uint8_t* data = NULL;
 	int data_size = 0, dos_score = 0, win_score = 0;
 	BOOL result = FALSE;
 
-	for (int i = 0; i < sizeof(fps) / sizeof(FILE *); i++)
+	for (int i = 0; i < sizeof(fps) / sizeof(FILE*); i++)
 	{
 		//
 		// Find the first non-empty sub-file
@@ -71,7 +72,7 @@ PAL_IsWINVersion(
 		// Note that this check is not 100% correct, however in incorrect situations,
 		// the sub-file will be over 784MB if uncompressed, which is highly unlikely.
 		//
-		if (data_size < size) data = (uint8_t *)realloc(data, data_size = size);
+		if (data_size < size) data = (uint8_t*)realloc(data, data_size = size);
 		PAL_MKFReadChunk(data, data_size, j, fps[i]);
 		if (data[0] == 'Y' && data[1] == 'J' && data[2] == '_' && data[3] == '1')
 		{
@@ -96,7 +97,7 @@ PAL_IsWINVersion(
 	if (data_size % sizeof(OBJECT) == 0 && data_size % sizeof(OBJECT_DOS) != 0 && dos_score > 0) goto PAL_IsWINVersion_Exit;
 	if (data_size % sizeof(OBJECT_DOS) == 0 && data_size % sizeof(OBJECT) != 0 && win_score > 0) goto PAL_IsWINVersion_Exit;
 
-	if (pfIsWIN95) *pfIsWIN95 = (win_score == sizeof(fps) / sizeof(FILE *)) ? TRUE : FALSE;
+	if (pfIsWIN95) *pfIsWIN95 = (win_score == sizeof(fps) / sizeof(FILE*)) ? TRUE : FALSE;
 
 	result = TRUE;
 
@@ -110,11 +111,11 @@ PAL_IsWINVersion_Exit:
 
 CODEPAGE
 PAL_DetectCodePage(
-	const char *   filename
+	const char* filename
 )
 {
-	FILE *fp;
-	char *word_buf = NULL;
+	FILE* fp;
+	char* word_buf = NULL;
 	size_t word_len;
 	CODEPAGE cp = CP_BIG5;
 
@@ -122,12 +123,12 @@ PAL_DetectCodePage(
 	{
 		fseek(fp, 0, SEEK_END);
 		word_len = ftell(fp);
-		word_buf = (char *)malloc(word_len);
+		word_buf = (char*)malloc(word_len);
 		fseek(fp, 0, SEEK_SET);
 		word_len = fread(word_buf, 1, word_len, fp);
 		UTIL_CloseFile(fp);
 		// Eliminates null characters so that PAL_MultiByteToWideCharCP works properly
-		for (char *ptr = word_buf; ptr < word_buf + word_len; ptr++)
+		for (char* ptr = word_buf; ptr < word_buf + word_len; ptr++)
 		{
 			if (!*ptr)
 				*ptr = ' ';
@@ -152,182 +153,182 @@ PAL_DetectCodePage(
 
 INT
 PAL_InitGlobals(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Initialize global data.
+	Initialize global data.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    0 = success, -1 = error.
+	0 = success, -1 = error.
 
 --*/
 {
-   //
-   // Open files
-   //
-   gpGlobals->f.fpFBP = UTIL_OpenRequiredFile("fbp.mkf");
-   gpGlobals->f.fpMGO = UTIL_OpenRequiredFile("mgo.mkf");
-   gpGlobals->f.fpBALL = UTIL_OpenRequiredFile("ball.mkf");
-   gpGlobals->f.fpDATA = UTIL_OpenRequiredFile("data.mkf");
-   gpGlobals->f.fpF = UTIL_OpenRequiredFile("f.mkf");
-   gpGlobals->f.fpFIRE = UTIL_OpenRequiredFile("fire.mkf");
-   gpGlobals->f.fpRGM = UTIL_OpenRequiredFile("rgm.mkf");
-   gpGlobals->f.fpSSS = UTIL_OpenRequiredFile("sss.mkf");
+	//
+	// Open files
+	//
+	gpGlobals->f.fpFBP = UTIL_OpenRequiredFile("fbp.mkf");
+	gpGlobals->f.fpMGO = UTIL_OpenRequiredFile("mgo.mkf");
+	gpGlobals->f.fpBALL = UTIL_OpenRequiredFile("ball.mkf");
+	gpGlobals->f.fpDATA = UTIL_OpenRequiredFile("data.mkf");
+	gpGlobals->f.fpF = UTIL_OpenRequiredFile("f.mkf");
+	gpGlobals->f.fpFIRE = UTIL_OpenRequiredFile("fire.mkf");
+	gpGlobals->f.fpRGM = UTIL_OpenRequiredFile("rgm.mkf");
+	gpGlobals->f.fpSSS = UTIL_OpenRequiredFile("sss.mkf");
 
-   //
-   // Retrieve game resource version
-   //
-   if (!PAL_IsWINVersion(&gConfig.fIsWIN95)) return -1;
+	//
+	// Retrieve game resource version
+	//
+	//if (!PAL_IsWINVersion(&gConfig.fIsWIN95)) return -1;
 
-   //
-   // Enable AVI playing only when the resource is WIN95
-   //
-   gConfig.fEnableAviPlay = gConfig.fEnableAviPlay && gConfig.fIsWIN95;
+	//
+	// Enable AVI playing only when the resource is WIN95
+	//
+	gConfig.fEnableAviPlay = gConfig.fEnableAviPlay && gConfig.fIsWIN95;
 
-   //
-   // Detect game language only when no message file specified
-   //
-   if (!gConfig.pszMsgFile) PAL_SetCodePage(PAL_DetectCodePage("word.dat"));
+	//
+	// Detect game language only when no message file specified
+	//
+	if (!gConfig.pszMsgFile) PAL_SetCodePage(PAL_DetectCodePage("word.dat"));
 
-   //
-   // Set decompress function
-   //
-   Decompress = gConfig.fIsWIN95 ? YJ2_Decompress : YJ1_Decompress;
+	//
+	// Set decompress function
+	//
+	Decompress = YJ2_Decompress;
 
-   gpGlobals->lpObjectDesc = gConfig.fIsWIN95 ? NULL : PAL_LoadObjectDesc("desc.dat");
-   gpGlobals->bCurrentSaveSlot = 1;
+	gpGlobals->lpObjectDesc = gConfig.fIsWIN95 ? NULL : PAL_LoadObjectDesc("desc.dat");
+	gpGlobals->bCurrentSaveSlot = 1;
 
-   return 0;
+	return 0;
 }
 
 VOID
 PAL_FreeGlobals(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Free global data.
+	Free global data.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   //
-   // Close all opened files
-   //
-   UTIL_CloseFile(gpGlobals->f.fpFBP);
-   UTIL_CloseFile(gpGlobals->f.fpMGO);
-   UTIL_CloseFile(gpGlobals->f.fpBALL);
-   UTIL_CloseFile(gpGlobals->f.fpDATA);
-   UTIL_CloseFile(gpGlobals->f.fpF);
-   UTIL_CloseFile(gpGlobals->f.fpFIRE);
-   UTIL_CloseFile(gpGlobals->f.fpRGM);
-   UTIL_CloseFile(gpGlobals->f.fpSSS);
+	//
+	// Close all opened files
+	//
+	UTIL_CloseFile(gpGlobals->f.fpFBP);
+	UTIL_CloseFile(gpGlobals->f.fpMGO);
+	UTIL_CloseFile(gpGlobals->f.fpBALL);
+	UTIL_CloseFile(gpGlobals->f.fpDATA);
+	UTIL_CloseFile(gpGlobals->f.fpF);
+	UTIL_CloseFile(gpGlobals->f.fpFIRE);
+	UTIL_CloseFile(gpGlobals->f.fpRGM);
+	UTIL_CloseFile(gpGlobals->f.fpSSS);
 
-   //
-   // Free the game data
-   //
-   free(gpGlobals->g.lprgEventObject);
-   free(gpGlobals->g.lprgScriptEntry);
-   free(gpGlobals->g.lprgStore);
-   free(gpGlobals->g.lprgEnemy);
-   free(gpGlobals->g.lprgEnemyTeam);
-   free(gpGlobals->g.lprgMagic);
-   free(gpGlobals->g.lprgBattleField);
-   free(gpGlobals->g.lprgLevelUpMagic);
+	//
+	// Free the game data
+	//
+	free(gpGlobals->g.lprgEventObject);
+	free(gpGlobals->g.lprgScriptEntry);
+	free(gpGlobals->g.lprgStore);
+	free(gpGlobals->g.lprgEnemy);
+	free(gpGlobals->g.lprgEnemyTeam);
+	free(gpGlobals->g.lprgMagic);
+	free(gpGlobals->g.lprgBattleField);
+	free(gpGlobals->g.lprgLevelUpMagic);
 
-   //
-   // Free the object description data
-   //
-   if (!gConfig.fIsWIN95)
-      PAL_FreeObjectDesc(gpGlobals->lpObjectDesc);
+	//
+	// Free the object description data
+	//
+	if (!gConfig.fIsWIN95)
+		PAL_FreeObjectDesc(gpGlobals->lpObjectDesc);
 
-   //
-   // Clear the instance
-   //
-   memset(gpGlobals, 0, sizeof(GLOBALVARS));
+	//
+	// Clear the instance
+	//
+	memset(gpGlobals, 0, sizeof(GLOBALVARS));
 
-   PAL_FreeConfig();
+	PAL_FreeConfig();
 }
 
 
 static VOID
 PAL_ReadGlobalGameData(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Read global game data from data files.
+	Read global game data from data files.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   const GAMEDATA    *p = &gpGlobals->g;
+	const GAMEDATA* p = &gpGlobals->g;
 
-   LOAD_DATA(p->lprgScriptEntry, p->nScriptEntry * sizeof(SCRIPTENTRY),
-      4, gpGlobals->f.fpSSS);
+	LOAD_DATA(p->lprgScriptEntry, p->nScriptEntry * sizeof(SCRIPTENTRY),
+		4, gpGlobals->f.fpSSS);
 
-   LOAD_DATA(p->lprgStore, p->nStore * sizeof(STORE), 0, gpGlobals->f.fpDATA);
-   LOAD_DATA(p->lprgEnemy, p->nEnemy * sizeof(ENEMY), 1, gpGlobals->f.fpDATA);
-   LOAD_DATA(p->lprgEnemyTeam, p->nEnemyTeam * sizeof(ENEMYTEAM),
-      2, gpGlobals->f.fpDATA);
-   LOAD_DATA(p->lprgMagic, p->nMagic * sizeof(MAGIC), 4, gpGlobals->f.fpDATA);
-   LOAD_DATA(p->lprgBattleField, p->nBattleField * sizeof(BATTLEFIELD),
-      5, gpGlobals->f.fpDATA);
-   LOAD_DATA(p->lprgLevelUpMagic, p->nLevelUpMagic * sizeof(LEVELUPMAGIC_ALL),
-      6, gpGlobals->f.fpDATA);
-   LOAD_DATA(p->rgwBattleEffectIndex, sizeof(p->rgwBattleEffectIndex),
-      11, gpGlobals->f.fpDATA);
-   PAL_MKFReadChunk((LPBYTE)&(p->EnemyPos), sizeof(p->EnemyPos),
-      13, gpGlobals->f.fpDATA);
-   DO_BYTESWAP(&(p->EnemyPos), sizeof(p->EnemyPos));
-   PAL_MKFReadChunk((LPBYTE)(p->rgLevelUpExp), sizeof(p->rgLevelUpExp),
-      14, gpGlobals->f.fpDATA);
-   DO_BYTESWAP(p->rgLevelUpExp, sizeof(p->rgLevelUpExp));
+	LOAD_DATA(p->lprgStore, p->nStore * sizeof(STORE), 0, gpGlobals->f.fpDATA);
+	LOAD_DATA(p->lprgEnemy, p->nEnemy * sizeof(ENEMY), 1, gpGlobals->f.fpDATA);
+	LOAD_DATA(p->lprgEnemyTeam, p->nEnemyTeam * sizeof(ENEMYTEAM),
+		2, gpGlobals->f.fpDATA);
+	LOAD_DATA(p->lprgMagic, p->nMagic * sizeof(MAGIC), 4, gpGlobals->f.fpDATA);
+	LOAD_DATA(p->lprgBattleField, p->nBattleField * sizeof(BATTLEFIELD),
+		5, gpGlobals->f.fpDATA);
+	LOAD_DATA(p->lprgLevelUpMagic, p->nLevelUpMagic * sizeof(LEVELUPMAGIC_ALL),
+		6, gpGlobals->f.fpDATA);
+	LOAD_DATA(p->rgwBattleEffectIndex, sizeof(p->rgwBattleEffectIndex),
+		11, gpGlobals->f.fpDATA);
+	PAL_MKFReadChunk((LPBYTE) & (p->EnemyPos), sizeof(p->EnemyPos),
+		13, gpGlobals->f.fpDATA);
+	DO_BYTESWAP(&(p->EnemyPos), sizeof(p->EnemyPos));
+	PAL_MKFReadChunk((LPBYTE)(p->rgLevelUpExp), sizeof(p->rgLevelUpExp),
+		14, gpGlobals->f.fpDATA);
+	DO_BYTESWAP(p->rgLevelUpExp, sizeof(p->rgLevelUpExp));
 }
 
 static VOID
 PAL_InitGlobalGameData(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Initialize global game data.
+	Initialize global game data.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   int        len;
+	int        len;
 
 #define PAL_DOALLOCATE(fp, num, type, lptype, ptr, n)                            \
    {                                                                             \
@@ -340,131 +341,133 @@ PAL_InitGlobalGameData(
       }                                                                          \
    }
 
-   //
-   // If the memory has not been allocated, allocate first.
-   //
-   if (gpGlobals->g.lprgEventObject == NULL)
-   {
-      PAL_DOALLOCATE(gpGlobals->f.fpSSS, 0, EVENTOBJECT, LPEVENTOBJECT,
-         gpGlobals->g.lprgEventObject, gpGlobals->g.nEventObject);
+	//
+	// If the memory has not been allocated, allocate first.
+	//
+	if (gpGlobals->g.lprgEventObject == NULL)
+	{
+		PAL_DOALLOCATE(gpGlobals->f.fpSSS, 0, EVENTOBJECT, LPEVENTOBJECT,
+			gpGlobals->g.lprgEventObject, gpGlobals->g.nEventObject);
 
-      PAL_DOALLOCATE(gpGlobals->f.fpSSS, 4, SCRIPTENTRY, LPSCRIPTENTRY,
-         gpGlobals->g.lprgScriptEntry, gpGlobals->g.nScriptEntry);
+		PAL_DOALLOCATE(gpGlobals->f.fpSSS, 4, SCRIPTENTRY, LPSCRIPTENTRY,
+			gpGlobals->g.lprgScriptEntry, gpGlobals->g.nScriptEntry);
 
-      PAL_DOALLOCATE(gpGlobals->f.fpDATA, 0, STORE, LPSTORE,
-         gpGlobals->g.lprgStore, gpGlobals->g.nStore);
+		PAL_DOALLOCATE(gpGlobals->f.fpDATA, 0, STORE, LPSTORE,
+			gpGlobals->g.lprgStore, gpGlobals->g.nStore);
 
-      PAL_DOALLOCATE(gpGlobals->f.fpDATA, 1, ENEMY, LPENEMY,
-         gpGlobals->g.lprgEnemy, gpGlobals->g.nEnemy);
+		PAL_DOALLOCATE(gpGlobals->f.fpDATA, 1, ENEMY, LPENEMY,
+			gpGlobals->g.lprgEnemy, gpGlobals->g.nEnemy);
 
-      PAL_DOALLOCATE(gpGlobals->f.fpDATA, 2, ENEMYTEAM, LPENEMYTEAM,
-         gpGlobals->g.lprgEnemyTeam, gpGlobals->g.nEnemyTeam);
+		PAL_DOALLOCATE(gpGlobals->f.fpDATA, 2, ENEMYTEAM, LPENEMYTEAM,
+			gpGlobals->g.lprgEnemyTeam, gpGlobals->g.nEnemyTeam);
 
-      PAL_DOALLOCATE(gpGlobals->f.fpDATA, 4, MAGIC, LPMAGIC,
-         gpGlobals->g.lprgMagic, gpGlobals->g.nMagic);
+		PAL_DOALLOCATE(gpGlobals->f.fpDATA, 4, MAGIC, LPMAGIC,
+			gpGlobals->g.lprgMagic, gpGlobals->g.nMagic);
 
-      PAL_DOALLOCATE(gpGlobals->f.fpDATA, 5, BATTLEFIELD, LPBATTLEFIELD,
-         gpGlobals->g.lprgBattleField, gpGlobals->g.nBattleField);
+		PAL_DOALLOCATE(gpGlobals->f.fpDATA, 5, BATTLEFIELD, LPBATTLEFIELD,
+			gpGlobals->g.lprgBattleField, gpGlobals->g.nBattleField);
 
-      PAL_DOALLOCATE(gpGlobals->f.fpDATA, 6, LEVELUPMAGIC_ALL, LPLEVELUPMAGIC_ALL,
-         gpGlobals->g.lprgLevelUpMagic, gpGlobals->g.nLevelUpMagic);
+		PAL_DOALLOCATE(gpGlobals->f.fpDATA, 6, LEVELUPMAGIC_ALL, LPLEVELUPMAGIC_ALL,
+			gpGlobals->g.lprgLevelUpMagic, gpGlobals->g.nLevelUpMagic);
 
-      PAL_ReadGlobalGameData();
-   }
+		PAL_ReadGlobalGameData();
+	}
 #undef PAL_DOALLOCATE
 }
 
 static VOID
 PAL_LoadDefaultGame(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Load the default game data.
+	Load the default game data.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   GAMEDATA    *p = &gpGlobals->g;
-   UINT32       i;
+	GAMEDATA* p = &gpGlobals->g;
+	UINT32       i;
 
-   //
-   // Load the default data from the game data files.
-   //
-   LOAD_DATA(p->lprgEventObject, p->nEventObject * sizeof(EVENTOBJECT),
-      0, gpGlobals->f.fpSSS);
-   PAL_MKFReadChunk((LPBYTE)(p->rgScene), sizeof(p->rgScene), 1, gpGlobals->f.fpSSS);
-   DO_BYTESWAP(p->rgScene, sizeof(p->rgScene));
-   if (gConfig.fIsWIN95)
-   {
-      PAL_MKFReadChunk((LPBYTE)(p->rgObject), sizeof(p->rgObject), 2, gpGlobals->f.fpSSS);
-      DO_BYTESWAP(p->rgObject, sizeof(p->rgObject));
-   }
-   else
-   {
-      OBJECT_DOS objects[MAX_OBJECTS];
-	  PAL_MKFReadChunk((LPBYTE)(objects), sizeof(objects), 2, gpGlobals->f.fpSSS);
-	  DO_BYTESWAP(objects, sizeof(objects));
-      //
-      // Convert the DOS-style data structure to WIN-style data structure
-      //
-      for (i = 0; i < MAX_OBJECTS; i++)
-      {
-         memcpy(&p->rgObject[i], &objects[i], sizeof(OBJECT_DOS));
-         p->rgObject[i].rgwData[6] = objects[i].rgwData[5];     // wFlags
-         p->rgObject[i].rgwData[5] = 0;                         // wScriptDesc or wReserved2
-      }
-   }
+	//
+	// Load the default data from the game data files.
+	//
+	LOAD_DATA(p->lprgEventObject, p->nEventObject * sizeof(EVENTOBJECT),
+		0, gpGlobals->f.fpSSS);
+	PAL_MKFReadChunk((LPBYTE)(p->rgScene), sizeof(p->rgScene), 1, gpGlobals->f.fpSSS);
+	DO_BYTESWAP(p->rgScene, sizeof(p->rgScene));
+	if (gConfig.fIsWIN95)
+	{
+		PAL_MKFReadChunk((LPBYTE)(p->rgObject), sizeof(p->rgObject), 2, gpGlobals->f.fpSSS);
+		DO_BYTESWAP(p->rgObject, sizeof(p->rgObject));
+	}
+	else
+	{
+		OBJECT_DOS objects[MAX_OBJECTS];
+		PAL_MKFReadChunk((LPBYTE)(objects), sizeof(objects), 2, gpGlobals->f.fpSSS);
+		DO_BYTESWAP(objects, sizeof(objects));
+		//
+		// Convert the DOS-style data structure to WIN-style data structure
+		//
+		for (i = 0; i < MAX_OBJECTS; i++)
+		{
+			memcpy(&p->rgObject[i], &objects[i], sizeof(OBJECT_DOS));
+			p->rgObject[i].rgwData[6] = objects[i].rgwData[5];     // wFlags
+			p->rgObject[i].rgwData[5] = 0;                         // wScriptDesc or wReserved2
+		}
+	}
 
-   PAL_MKFReadChunk((LPBYTE)(&(p->PlayerRoles)), sizeof(PLAYERROLES),
-      3, gpGlobals->f.fpDATA);
-   DO_BYTESWAP(&(p->PlayerRoles), sizeof(PLAYERROLES));
+	PAL_MKFReadChunk((LPBYTE)(&(p->PlayerRoles)), sizeof(PLAYERROLES),
+		3, gpGlobals->f.fpDATA);
+	DO_BYTESWAP(&(p->PlayerRoles), sizeof(PLAYERROLES));
 
-   //
-   // Set some other default data.
-   //
-   gpGlobals->dwCash = 0;
-   gpGlobals->wNumMusic = 0;
-   gpGlobals->wNumPalette = 0;
-   gpGlobals->wNumScene = 1;
-   gpGlobals->wCollectValue = 0;
-   gpGlobals->fNightPalette = FALSE;
-   gpGlobals->wMaxPartyMemberIndex = 0;
-   gpGlobals->viewport = PAL_XY(0, 0);
-   gpGlobals->wLayer = 0;
-   gpGlobals->nFollower = 0;
-   gpGlobals->wChaseRange = 1;
+	//
+	// Set some other default data.
+	//
+	gpGlobals->dwCash = 0;
+	gpGlobals->wNumMusic = 0;
+	gpGlobals->wNumPalette = 0;
+	gpGlobals->wNumScene = 1;
+	gpGlobals->wCollectValue = 0;
+	gpGlobals->fNightPalette = FALSE;
+	gpGlobals->wMaxPartyMemberIndex = 0;
+	gpGlobals->viewport = PAL_XY(0, 0);
+	gpGlobals->wLayer = 0;
+	gpGlobals->wChaseRange = 1;
+	gpGlobals->nFollower = 0;
 #ifndef PAL_CLASSIC
-   gpGlobals->bBattleSpeed = 2;
+	gpGlobals->bBattleSpeed = 2;
 #endif
 
-   memset(gpGlobals->rgInventory, 0, sizeof(gpGlobals->rgInventory));
-   memset(gpGlobals->rgPoisonStatus, 0, sizeof(gpGlobals->rgPoisonStatus));
-   memset(gpGlobals->rgParty, 0, sizeof(gpGlobals->rgParty));
-   memset(gpGlobals->rgTrail, 0, sizeof(gpGlobals->rgTrail));
-   memset(&(gpGlobals->Exp), 0, sizeof(gpGlobals->Exp));
+	memset(gpGlobals->rgInventory, 0, sizeof(gpGlobals->rgInventory));
+	memset(gpGlobals->rgPoisonStatus, 0, sizeof(gpGlobals->rgPoisonStatus));
+	memset(gpGlobals->rgParty, 0, sizeof(gpGlobals->rgParty));
+	memset(gpGlobals->rgTrail, 0, sizeof(gpGlobals->rgTrail));
+	memset(&(gpGlobals->Exp), 0, sizeof(gpGlobals->Exp));
 
-   for (i = 0; i < MAX_PLAYER_ROLES; i++)
-   {
-      gpGlobals->Exp.rgPrimaryExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
-      gpGlobals->Exp.rgHealthExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
-      gpGlobals->Exp.rgMagicExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
-      gpGlobals->Exp.rgAttackExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
-      gpGlobals->Exp.rgMagicPowerExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
-      gpGlobals->Exp.rgDefenseExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
-      gpGlobals->Exp.rgDexterityExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
-      gpGlobals->Exp.rgFleeExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
-   }
+	for (i = 0; i < MAX_PLAYER_ROLES; i++)
+	{
+		gpGlobals->Exp.rgPrimaryExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
+		gpGlobals->Exp.rgHealthExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
+		gpGlobals->Exp.rgMagicExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
+		gpGlobals->Exp.rgAttackExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
+		gpGlobals->Exp.rgMagicPowerExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
+		gpGlobals->Exp.rgDefenseExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
+		gpGlobals->Exp.rgDexterityExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
+		gpGlobals->Exp.rgFleeExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
+		gpGlobals->Exp.rgPowerExp[i].wLevel = p->PlayerRoles.rgwLevel[i];
+		gpGlobals->Exp.rgWisdom[i].wLevel = p->PlayerRoles.rgwLevel[i];
+	}
 
-   gpGlobals->fEnteringScene = TRUE;
+	gpGlobals->fEnteringScene = TRUE;
 }
 
 typedef struct tagSAVEDGAME_COMMON
@@ -485,7 +488,9 @@ typedef struct tagSAVEDGAME_COMMON
 	WORD             wChaseRange;
 	WORD             wChasespeedChangeCycles;
 	WORD             nFollower;
-	WORD             rgwReserved2[3];         // unused
+	WORD             wNumPalette;         // current palette number
+	WORD             wDifficultyNum;         // unused
+	WORD             rgwReserved2;            // unused
 	DWORD            dwCash;                  // amount of cash
 	PARTY            rgParty[MAX_PLAYABLE_PLAYER_ROLES];       // player party
 	TRAIL            rgTrail[MAX_PLAYABLE_PLAYER_ROLES];       // player trail
@@ -494,7 +499,7 @@ typedef struct tagSAVEDGAME_COMMON
 	POISONSTATUS     rgPoisonStatus[MAX_POISONS][MAX_PLAYABLE_PLAYER_ROLES]; // poison status
 	INVENTORY        rgInventory[MAX_INVENTORY];               // inventory status
 	SCENE            rgScene[MAX_SCENES];
-} SAVEDGAME_COMMON, *LPSAVEDGAME_COMMON;
+} SAVEDGAME_COMMON, * LPSAVEDGAME_COMMON;
 
 typedef struct tagSAVEDGAME_DOS
 {
@@ -514,7 +519,9 @@ typedef struct tagSAVEDGAME_DOS
 	WORD             wChaseRange;
 	WORD             wChasespeedChangeCycles;
 	WORD             nFollower;
-	WORD             rgwReserved2[3];         // unused
+	WORD             wNumPalette;             // current palette number
+	WORD             wDifficultyNum;          // unused
+	WORD             rgwReserved2;            // unused
 	DWORD            dwCash;                  // amount of cash
 	PARTY            rgParty[MAX_PLAYABLE_PLAYER_ROLES];       // player party
 	TRAIL            rgTrail[MAX_PLAYABLE_PLAYER_ROLES];       // player trail
@@ -525,7 +532,7 @@ typedef struct tagSAVEDGAME_DOS
 	SCENE            rgScene[MAX_SCENES];
 	OBJECT_DOS       rgObject[MAX_OBJECTS];
 	EVENTOBJECT      rgEventObject[MAX_EVENT_OBJECTS];
-} SAVEDGAME_DOS, *LPSAVEDGAME_DOS;
+} SAVEDGAME_DOS, * LPSAVEDGAME_DOS;
 
 typedef struct tagSAVEDGAME_WIN
 {
@@ -545,7 +552,9 @@ typedef struct tagSAVEDGAME_WIN
 	WORD             wChaseRange;
 	WORD             wChasespeedChangeCycles;
 	WORD             nFollower;
-	WORD             rgwReserved2[3];         // unused
+	WORD             wNumPalette;             // current palette number
+	WORD             wGameDifficulty;         // unused
+	WORD             rgwReserved2;            // unused
 	DWORD            dwCash;                  // amount of cash
 	PARTY            rgParty[MAX_PLAYABLE_PLAYER_ROLES];       // player party
 	TRAIL            rgTrail[MAX_PLAYABLE_PLAYER_ROLES];       // player trail
@@ -556,7 +565,7 @@ typedef struct tagSAVEDGAME_WIN
 	SCENE            rgScene[MAX_SCENES];
 	OBJECT           rgObject[MAX_OBJECTS];
 	EVENTOBJECT      rgEventObject[MAX_EVENT_OBJECTS];
-} SAVEDGAME_WIN, *LPSAVEDGAME_WIN;
+} SAVEDGAME_WIN, * LPSAVEDGAME_WIN;
 
 static BOOL
 PAL_LoadGame_Common(
@@ -568,7 +577,7 @@ PAL_LoadGame_Common(
 	//
 	// Try to open the specified file
 	//
-	FILE *fp = UTIL_OpenFileAtPath(gConfig.pszSavePath, PAL_va(1, "%d.rpg", iSaveSlot));
+	FILE* fp = UTIL_OpenFileAtPath(gConfig.pszSavePath, PAL_va(1, "%d.rpg", iSaveSlot));
 	//
 	// Read all data from the file and close.
 	//
@@ -603,6 +612,15 @@ PAL_LoadGame_Common(
 	gpGlobals->wMaxPartyMemberIndex = s->nPartyMember;
 	gpGlobals->wNumScene = s->wNumScene;
 	gpGlobals->fNightPalette = (s->wPaletteOffset != 0);
+
+	//
+	// __DEBUG__读取实际难度
+	//
+	if (s->wDifficultyNum != 0 && s->wDifficultyNum != 2)
+		gpGlobals->wDifficultyNum = 1;
+	else
+		gpGlobals->wDifficultyNum = s->wDifficultyNum;
+
 	gpGlobals->wPartyDirection = s->wPartyDirection;
 	gpGlobals->wNumMusic = s->wNumMusic;
 	gpGlobals->wNumBattleMusic = s->wNumBattleMusic;
@@ -613,7 +631,17 @@ PAL_LoadGame_Common(
 	gpGlobals->wLayer = s->wLayer;
 	gpGlobals->wChaseRange = s->wChaseRange;
 	gpGlobals->wChasespeedChangeCycles = s->wChasespeedChangeCycles;
+	
+	//
+	// 修复跟随NPC数量
+	//
+	if (s->nPartyMember >= MAX_PLAYABLE_PLAYER_ROLES || s->rgParty[s->nPartyMember + 1].wPlayerRole == 0)
+		s->nFollower = 0;
+	else if ((s->nFollower != 0) && (s->nFollower != 2))
+		s->nFollower = 1;
 	gpGlobals->nFollower = s->nFollower;
+	gpGlobals->wNumPalette = (s->wNumPalette != 5) ? 0 : 5;
+
 	gpGlobals->dwCash = s->dwCash;
 #ifndef PAL_CLASSIC
 	gpGlobals->bBattleSpeed = s->wBattleSpeed;
@@ -640,92 +668,92 @@ PAL_LoadGame_Common(
 
 static INT
 PAL_LoadGame_DOS(
-   int            iSaveSlot
+	int            iSaveSlot
 )
 /*++
   Purpose:
 
-    Load a saved game.
+	Load a saved game.
 
   Parameters:
 
-    [IN]  szFileName - file name of saved game.
+	[IN]  szFileName - file name of saved game.
 
   Return value:
 
-    0 if success, -1 if failed.
+	0 if success, -1 if failed.
 
 --*/
 {
-   SAVEDGAME_DOS   *s = (SAVEDGAME_DOS*)malloc(sizeof(SAVEDGAME_DOS));
-   int                       i;
+	SAVEDGAME_DOS* s = (SAVEDGAME_DOS*)malloc(sizeof(SAVEDGAME_DOS));
+	int                       i;
 
-   //
-   // Get all the data from the saved game struct.
-   //
-   if (!PAL_LoadGame_Common(iSaveSlot, (LPSAVEDGAME_COMMON)s, sizeof(SAVEDGAME_DOS)))
-	   return -1;
+	//
+	// Get all the data from the saved game struct.
+	//
+	if (!PAL_LoadGame_Common(iSaveSlot, (LPSAVEDGAME_COMMON)s, sizeof(SAVEDGAME_DOS)))
+		return -1;
 
-   //
-   // Convert the DOS-style data structure to WIN-style data structure
-   //
-   for (i = 0; i < MAX_OBJECTS; i++)
-   {
-      memcpy(&gpGlobals->g.rgObject[i], &s->rgObject[i], sizeof(OBJECT_DOS));
-      gpGlobals->g.rgObject[i].rgwData[6] = s->rgObject[i].rgwData[5];     // wFlags
-      gpGlobals->g.rgObject[i].rgwData[5] = 0;                            // wScriptDesc or wReserved2
-   }
-   memcpy(gpGlobals->g.lprgEventObject, s->rgEventObject, sizeof(EVENTOBJECT) * gpGlobals->g.nEventObject);
+	//
+	// Convert the DOS-style data structure to WIN-style data structure
+	//
+	for (i = 0; i < MAX_OBJECTS; i++)
+	{
+		memcpy(&gpGlobals->g.rgObject[i], &s->rgObject[i], sizeof(OBJECT_DOS));
+		gpGlobals->g.rgObject[i].rgwData[6] = s->rgObject[i].rgwData[5];     // wFlags
+		gpGlobals->g.rgObject[i].rgwData[5] = 0;                            // wScriptDesc or wReserved2
+	}
+	memcpy(gpGlobals->g.lprgEventObject, s->rgEventObject, sizeof(EVENTOBJECT) * gpGlobals->g.nEventObject);
 
-   free(s);
+	free(s);
 
-   //
-   // Success
-   //
-   return 0;
+	//
+	// Success
+	//
+	return 0;
 }
 
 static INT
 PAL_LoadGame_WIN(
-   int            iSaveSlot
+	int            iSaveSlot
 )
 /*++
   Purpose:
 
-    Load a saved game.
+	Load a saved game.
 
   Parameters:
 
-    [IN]  szFileName - file name of saved game.
+	[IN]  szFileName - file name of saved game.
 
   Return value:
 
-    0 if success, -1 if failed.
+	0 if success, -1 if failed.
 
 --*/
 {
-   SAVEDGAME_WIN   *s = (SAVEDGAME_WIN*)malloc(sizeof(SAVEDGAME_WIN));
+	SAVEDGAME_WIN* s = (SAVEDGAME_WIN*)malloc(sizeof(SAVEDGAME_WIN));
 
-   //
-   // Get all the data from the saved game struct.
-   //
-   if (!PAL_LoadGame_Common(iSaveSlot, (LPSAVEDGAME_COMMON)s, sizeof(SAVEDGAME_WIN)))
-	   return -1;
+	//
+	// Get all the data from the saved game struct.
+	//
+	if (!PAL_LoadGame_Common(iSaveSlot, (LPSAVEDGAME_COMMON)s, sizeof(SAVEDGAME_WIN)))
+		return -1;
 
-   memcpy(gpGlobals->g.rgObject, s->rgObject, sizeof(gpGlobals->g.rgObject));
-   memcpy(gpGlobals->g.lprgEventObject, s->rgEventObject, sizeof(EVENTOBJECT) * gpGlobals->g.nEventObject);
-    
-   free(s);
+	memcpy(gpGlobals->g.rgObject, s->rgObject, sizeof(gpGlobals->g.rgObject));
+	memcpy(gpGlobals->g.lprgEventObject, s->rgEventObject, sizeof(EVENTOBJECT) * gpGlobals->g.nEventObject);
 
-   //
-   // Success
-   //
-   return 0;
+	free(s);
+
+	//
+	// Success
+	//
+	return 0;
 }
 
 static INT
 PAL_LoadGame(
-   int            iSaveSlot
+	int            iSaveSlot
 )
 {
 	return gConfig.fIsWIN95 ? PAL_LoadGame_WIN(iSaveSlot) : PAL_LoadGame_DOS(iSaveSlot);
@@ -739,7 +767,7 @@ PAL_SaveGame_Common(
 	size_t             size
 )
 {
-	FILE *fp;
+	FILE* fp;
 	size_t i;
 
 	s->wSavedTimes = wSavedTimes;
@@ -758,6 +786,8 @@ PAL_SaveGame_Common(
 	s->wChaseRange = gpGlobals->wChaseRange;
 	s->wChasespeedChangeCycles = gpGlobals->wChasespeedChangeCycles;
 	s->nFollower = gpGlobals->nFollower;
+	s->wNumPalette = gpGlobals->wNumPalette;
+	s->wDifficultyNum = gpGlobals->wDifficultyNum;
 	s->dwCash = gpGlobals->dwCash;
 #ifndef PAL_CLASSIC
 	s->wBattleSpeed = gpGlobals->bBattleSpeed;
@@ -802,81 +832,81 @@ PAL_SaveGame_Common(
 
 static VOID
 PAL_SaveGame_DOS(
-   int            iSaveSlot,
-   WORD           wSavedTimes
+	int            iSaveSlot,
+	WORD           wSavedTimes
 )
 /*++
   Purpose:
 
-    Save the current game state to file.
+	Save the current game state to file.
 
   Parameters:
 
-    [IN]  szFileName - file name of saved game.
+	[IN]  szFileName - file name of saved game.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   SAVEDGAME_DOS   *s = (SAVEDGAME_DOS*)malloc(sizeof(SAVEDGAME_DOS));
-   UINT32                    i;
+	SAVEDGAME_DOS* s = (SAVEDGAME_DOS*)malloc(sizeof(SAVEDGAME_DOS));
+	UINT32                    i;
 
-   //
-   // Convert the WIN-style data structure to DOS-style data structure
-   //
-   for (i = 0; i < MAX_OBJECTS; i++)
-   {
-      memcpy(&s->rgObject[i], &gpGlobals->g.rgObject[i], sizeof(OBJECT_DOS));
-      s->rgObject[i].rgwData[5] = gpGlobals->g.rgObject[i].rgwData[6];     // wFlags
-   }
-   memcpy(s->rgEventObject, gpGlobals->g.lprgEventObject, sizeof(EVENTOBJECT) * gpGlobals->g.nEventObject);
+	//
+	// Convert the WIN-style data structure to DOS-style data structure
+	//
+	for (i = 0; i < MAX_OBJECTS; i++)
+	{
+		memcpy(&s->rgObject[i], &gpGlobals->g.rgObject[i], sizeof(OBJECT_DOS));
+		s->rgObject[i].rgwData[5] = gpGlobals->g.rgObject[i].rgwData[6];     // wFlags
+	}
+	memcpy(s->rgEventObject, gpGlobals->g.lprgEventObject, sizeof(EVENTOBJECT) * gpGlobals->g.nEventObject);
 
-   //
-   // Put all the data to the saved game struct.
-   //
-   PAL_SaveGame_Common(iSaveSlot, wSavedTimes, (LPSAVEDGAME_COMMON)s, sizeof(SAVEDGAME_DOS));
-   free(s);
+	//
+	// Put all the data to the saved game struct.
+	//
+	PAL_SaveGame_Common(iSaveSlot, wSavedTimes, (LPSAVEDGAME_COMMON)s, sizeof(SAVEDGAME_DOS));
+	free(s);
 }
 
 static VOID
 PAL_SaveGame_WIN(
-   int            iSaveSlot,
-   WORD           wSavedTimes
+	int            iSaveSlot,
+	WORD           wSavedTimes
 )
 /*++
   Purpose:
 
-    Save the current game state to file.
+	Save the current game state to file.
 
   Parameters:
 
-    [IN]  szFileName - file name of saved game.
+	[IN]  szFileName - file name of saved game.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   SAVEDGAME_WIN   *s = (SAVEDGAME_WIN*)malloc(sizeof(SAVEDGAME_WIN));
+	SAVEDGAME_WIN* s = (SAVEDGAME_WIN*)malloc(sizeof(SAVEDGAME_WIN));
 
-   //
-   // Put all the data to the saved game struct.
-   //
-   memcpy(&s->rgObject, gpGlobals->g.rgObject, sizeof(gpGlobals->g.rgObject));
-   memcpy(&s->rgEventObject, gpGlobals->g.lprgEventObject, sizeof(EVENTOBJECT) * gpGlobals->g.nEventObject);
+	//
+	// Put all the data to the saved game struct.
+	//
+	memcpy(&s->rgObject, gpGlobals->g.rgObject, sizeof(gpGlobals->g.rgObject));
+	memcpy(&s->rgEventObject, gpGlobals->g.lprgEventObject, sizeof(EVENTOBJECT) * gpGlobals->g.nEventObject);
 
-   PAL_SaveGame_Common(iSaveSlot, wSavedTimes, (LPSAVEDGAME_COMMON)s, sizeof(SAVEDGAME_WIN));
+	PAL_SaveGame_Common(iSaveSlot, wSavedTimes, (LPSAVEDGAME_COMMON)s, sizeof(SAVEDGAME_WIN));
 
-   free(s);
+	free(s);
 }
 
 VOID
 PAL_SaveGame(
-   int            iSaveSlot,
-   WORD           wSavedTimes
+	int            iSaveSlot,
+	WORD           wSavedTimes
 )
 {
 	if (gConfig.fIsWIN95)
@@ -887,1470 +917,2328 @@ PAL_SaveGame(
 
 VOID
 PAL_ReloadInNextTick(
-    INT           iSaveSlot
+	INT           iSaveSlot
 )
 /*++
   Purpose:
 
-    Reload the game IN NEXT TICK, avoid reentrant problems.
+	Reload the game IN NEXT TICK, avoid reentrant problems.
 
   Parameters:
 
-    [IN]  iSaveSlot - Slot of saved game.
+	[IN]  iSaveSlot - Slot of saved game.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-    gpGlobals->bCurrentSaveSlot = (BYTE)iSaveSlot;
-    PAL_SetLoadFlags(kLoadGlobalData | kLoadScene | kLoadPlayerSprite);
-    gpGlobals->fEnteringScene = TRUE;
-    gpGlobals->fNeedToFadeIn = TRUE;
-    gpGlobals->dwFrameNum = 0;
+	gpGlobals->bCurrentSaveSlot = (BYTE)iSaveSlot;
+	PAL_SetLoadFlags(kLoadGlobalData | kLoadScene | kLoadPlayerSprite);
+	gpGlobals->fEnteringScene = TRUE;
+	gpGlobals->fNeedToFadeIn = TRUE;
+	gpGlobals->dwFrameNum = 0;
 }
 
 VOID
 PAL_InitGameData(
-   INT         iSaveSlot
+	INT         iSaveSlot
 )
 /*++
   Purpose:
 
-    Initialize the game data (used when starting a new game or loading a saved game).
+	Initialize the game data (used when starting a new game or loading a saved game).
 
   Parameters:
 
-    [IN]  iSaveSlot - Slot of saved game.
+	[IN]  iSaveSlot - Slot of saved game.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   PAL_InitGlobalGameData();
+	WORD        wDifficultyNum = -1;
 
-   gpGlobals->bCurrentSaveSlot = (BYTE)iSaveSlot;
+	PAL_InitGlobalGameData();
 
-   //
-   // try loading from the saved game file.
-   //
-   if (iSaveSlot == 0 || PAL_LoadGame(iSaveSlot) != 0)
-   {
-      //
-      // Cannot load the saved game file. Load the defaults.
-      //
-      PAL_LoadDefaultGame();
-   }
+	gpGlobals->bCurrentSaveSlot = (BYTE)iSaveSlot;
 
-   gpGlobals->iCurInvMenuItem = 0;
-   gpGlobals->fInBattle = FALSE;
+	//
+	// try loading from the saved game file.
+	//
+	if (iSaveSlot == 0 || PAL_LoadGame(iSaveSlot) != 0)
+	{
+		//
+		// Cannot load the saved game file. Load the defaults.
+		//
+		PAL_LoadDefaultGame();
+	}
 
-   memset(gpGlobals->rgPlayerStatus, 0, sizeof(gpGlobals->rgPlayerStatus));
+	gpGlobals->iCurInvMenuItem = 0;
+	gpGlobals->fInBattle = FALSE;
 
-   PAL_UpdateEquipments();
+	memset(gpGlobals->rgPlayerStatus, 0, sizeof(gpGlobals->rgPlayerStatus));
+
+	PAL_UpdateEquipments();
+
+	//
+	// __DEBUG__为玩家发放鹿茸
+	//
+	//PAL_AddItemToInventory(283, 1);
 }
 
 INT
 PAL_CountItem(
-   WORD          wObjectID
+	WORD          wObjectID
 )
 /*++
  Purpose:
- 
+
  Count the specified kind of item in the inventory AND in players' equipments.
- 
+
  Parameters:
- 
+
  [IN]  wObjectID - object number of the item.
- 
+
  Return value:
- 
+
  Counted value.
- 
+
  --*/
 {
-    int          index;
-    int          count;
-    int          i,j,w;
+	int          index;
+	int          count;
+	int          i, j, w;
 
-    if (wObjectID == 0)
-    {
-        return FALSE;
-    }
-    
-    index = 0;
-    count = 0;
-    
-    //
-    // Search for the specified item in the inventory
-    //
-    while (index < MAX_INVENTORY)
-    {
-        if (gpGlobals->rgInventory[index].wItem == wObjectID)
-        {
-            count = gpGlobals->rgInventory[index].nAmount;
-            break;
-        }
-        else if (gpGlobals->rgInventory[index].wItem == 0)
-        {
-            break;
-        }
-        index++;
-    }
-    
-    for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
-    {
-        w = gpGlobals->rgParty[i].wPlayerRole;
-        
-        for (j = 0; j < MAX_PLAYER_EQUIPMENTS; j++)
-        {
-            if (gpGlobals->g.PlayerRoles.rgwEquipment[j][w] == wObjectID)
-            {
-                count++;
-            }
-        }
-    }
-    return count;
+	if (wObjectID == 0)
+	{
+		return FALSE;
+	}
+
+	index = 0;
+	count = 0;
+
+	//
+	// Search for the specified item in the inventory
+	//
+	while (index < MAX_INVENTORY)
+	{
+		if (gpGlobals->rgInventory[index].wItem == wObjectID)
+		{
+			count = gpGlobals->rgInventory[index].nAmount;
+			break;
+		}
+		else if (gpGlobals->rgInventory[index].wItem == 0)
+		{
+			break;
+		}
+		index++;
+	}
+
+	for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+	{
+		w = gpGlobals->rgParty[i].wPlayerRole;
+
+		for (j = 0; j < MAX_PLAYER_EQUIPMENTS; j++)
+		{
+			if (gpGlobals->g.PlayerRoles.rgwEquipment[j][w] == wObjectID)
+			{
+				count++;
+			}
+		}
+	}
+	return count;
 }
 
 BOOL
 PAL_AddItemToInventory(
-   WORD          wObjectID,
-   INT           iNum
+	WORD          wObjectID,
+	INT           iNum
 )
 /*++
   Purpose:
 
-    Add or remove the specified kind of item in the inventory.
+	Add or remove the specified kind of item in the inventory.
 
   Parameters:
 
-    [IN]  wObjectID - object number of the item.
+	[IN]  wObjectID - object number of the item.
 
-    [IN]  iNum - number to be added (positive value) or removed (negative value).
+	[IN]  iNum - number to be added (positive value) or removed (negative value).
 
   Return value:
 
-    TRUE if succeeded, FALSE if failed.
+	TRUE if succeeded, FALSE if failed.
 
 --*/
 {
-   int          index;
-   BOOL         fFound;
+	int          index;
+	BOOL         fFound;
 
-   if (wObjectID == 0)
-   {
-      return FALSE;
-   }
+	if (wObjectID == 0)
+	{
+		return FALSE;
+	}
 
-   if (iNum == 0)
-   {
-      iNum = 1;
-   }
+	if (iNum == 0)
+	{
+		iNum = 1;
+	}
 
-   index = 0;
-   fFound = FALSE;
+	index = 0;
+	fFound = FALSE;
 
-   //
-   // Search for the specified item in the inventory
-   //
-   while (index < MAX_INVENTORY)
-   {
-      if (gpGlobals->rgInventory[index].wItem == wObjectID)
-      {
-         fFound = TRUE;
-         break;
-      }
-      else if (gpGlobals->rgInventory[index].wItem == 0)
-      {
-         break;
-      }
-      index++;
-   }
+	//
+	// Search for the specified item in the inventory
+	//
+	while (index < MAX_INVENTORY)
+	{
+		if (gpGlobals->rgInventory[index].wItem == wObjectID)
+		{
+			fFound = TRUE;
+			break;
+		}
+		else if (gpGlobals->rgInventory[index].wItem == 0)
+		{
+			break;
+		}
+		index++;
+	}
 
-   if (iNum > 0)
-   {
-      //
-      // Add item
-      //
-      if (index >= MAX_INVENTORY)
-      {
-         //
-         // inventory is full. cannot add item
-         //
-         return FALSE;
-      }
+	if (iNum > 0)
+	{
+		//
+		// Add item
+		//
+		if (index >= MAX_INVENTORY)
+		{
+			//
+			// inventory is full. cannot add item
+			//
+			return FALSE;
+		}
 
-      if (fFound)
-      {
-         gpGlobals->rgInventory[index].nAmount += iNum;
-         if (gpGlobals->rgInventory[index].nAmount > 99)
-         {
-            //
-            // Maximum number is 99
-            //
-            gpGlobals->rgInventory[index].nAmount = 99;
-         }
-      }
-      else
-      {
-         gpGlobals->rgInventory[index].wItem = wObjectID;
-         if (iNum > 99)
-         {
-            iNum = 99;
-         }
-         gpGlobals->rgInventory[index].nAmount = iNum;
-      }
+		//if (wObjectID <= 60 || wObjectID >= 295)
+		if (wObjectID <= 60)
+		{
+			gpGlobals->rgInventory[index].wItem = wObjectID;
+			if (iNum >= 1)
+			{
+				iNum = 0;
+			}
+		}
 
-      return TRUE;
-   }
-   else
-   {
-      //
-      // Remove item
-      //
-      if (fFound)
-      {
-         iNum *= -1;
-         if (gpGlobals->rgInventory[index].nAmount < iNum)
-         {
-            //
-            // This item has been run out
-            //
-            gpGlobals->rgInventory[index].nAmount = 0;
-            return FALSE;
-         }
+		if (fFound)
+		{
+			gpGlobals->rgInventory[index].nAmount += iNum;
+			if (gpGlobals->rgInventory[index].nAmount > 999)
+			{
+				//
+				// Maximum number is 999
+				//
+				gpGlobals->rgInventory[index].nAmount = 999;
+			}
+		}
+		else
+		{
+			gpGlobals->rgInventory[index].wItem = wObjectID;
+			if (iNum > 999)
+			{
+				iNum = 999;
+			}
+			gpGlobals->rgInventory[index].nAmount = iNum;
+		}
 
-         gpGlobals->rgInventory[index].nAmount -= iNum;
-         //
-         /// Need process last item
-         //
-         if(gpGlobals->rgInventory[index].nAmount == 0 && index == gpGlobals->iCurInvMenuItem && index+1 < MAX_INVENTORY && gpGlobals->rgInventory[index+1].nAmount <= 0)
-            gpGlobals->iCurInvMenuItem --;
-         return TRUE;
-      }
+		return TRUE;
+	}
+	else
+	{
+		//
+		// Remove item
+		//
+		if (fFound)
+		{
+			iNum *= -1;
+			if (gpGlobals->rgInventory[index].nAmount < iNum)
+			{
+				//
+				// This item has been run out
+				//
+				gpGlobals->rgInventory[index].nAmount = 0;
+				return FALSE;
+			}
 
-      return FALSE;
-   }
+			gpGlobals->rgInventory[index].nAmount -= iNum;
+			//
+			/// Need process last item
+			//
+			if (gpGlobals->rgInventory[index].nAmount == 0 && index == gpGlobals->iCurInvMenuItem && index + 1 < MAX_INVENTORY && gpGlobals->rgInventory[index + 1].nAmount <= 0)
+				gpGlobals->iCurInvMenuItem--;
+			return TRUE;
+		}
+
+		return FALSE;
+	}
 }
 
 INT
 PAL_GetItemAmount(
-   WORD        wItem
+	WORD        wItem
 )
 /*++
   Purpose:
 
-    Get the amount of the specified item in the inventory.
+	Get the amount of the specified item in the inventory.
 
   Parameters:
 
-    [IN]  wItem - the object ID of the item.
+	[IN]  wItem - the object ID of the item.
 
   Return value:
 
-    The amount of the item in the inventory.
+	The amount of the item in the inventory.
 
 --*/
 {
-   int i;
+	int i;
 
-   for (i = 0; i < MAX_INVENTORY; i++)
-   {
-      if (gpGlobals->rgInventory[i].wItem == 0)
-      {
-         break;
-      }
+	for (i = 0; i < MAX_INVENTORY; i++)
+	{
+		if (gpGlobals->rgInventory[i].wItem == 0)
+		{
+			break;
+		}
 
-      if (gpGlobals->rgInventory[i].wItem == wItem)
-      {
-         return gpGlobals->rgInventory[i].nAmount;
-      }
-   }
+		if (gpGlobals->rgInventory[i].wItem == wItem)
+		{
+			return gpGlobals->rgInventory[i].nAmount;
+		}
+	}
 
-   return 0;
+	return 0;
 }
 
 VOID
 PAL_CompressInventory(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Remove all the items in inventory which has a number of zero.
+	Remove all the items in inventory which has a number of zero.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   int i, j;
+	int i, j;
 
-   j = 0;
+	j = 0;
 
-   for (i = 0; i < MAX_INVENTORY; i++)
-   {
-      //removed detect zero then break code, due to incompatible with save file hacked by palmod
+	for (i = 0; i < MAX_INVENTORY; i++)
+	{
+		if (gpGlobals->rgInventory[i].wItem == 0)
+		{
+			break;
+		}
 
-      if (gpGlobals->rgInventory[i].nAmount > 0)
-      {
-         gpGlobals->rgInventory[j] = gpGlobals->rgInventory[i];
-         j++;
-      }
-   }
+		if (gpGlobals->rgInventory[i].nAmount > 0)
+		{
+			gpGlobals->rgInventory[j] = gpGlobals->rgInventory[i];
+			j++;
+		}
+	}
 
-   for (; j < MAX_INVENTORY; j++)
-   {
-      gpGlobals->rgInventory[j].nAmount = 0;
-      gpGlobals->rgInventory[j].nAmountInUse = 0;
-      gpGlobals->rgInventory[j].wItem = 0;
-   }
+	for (i = 0; i < MAX_INVENTORY; i++)
+	{
+		//if (gpGlobals->rgInventory[i].wItem <= 60 || gpGlobals->rgInventory[i].wItem >= 295)
+		if (gpGlobals->rgInventory[i].wItem <= 60)
+		{
+			gpGlobals->rgInventory[i].nAmount = 0;
+		}
+	}
+
+	for (; j < MAX_INVENTORY; j++)
+	{
+		gpGlobals->rgInventory[j].nAmount = 0;
+		gpGlobals->rgInventory[j].nAmountInUse = 0;
+		gpGlobals->rgInventory[j].wItem = 0;
+	}
 }
 
 BOOL
 PAL_IncreaseHPMP(
-   WORD          wPlayerRole,
-   SHORT         sHP,
-   SHORT         sMP
+	WORD          wPlayerRole,
+	INT         sHP,
+	INT         sMP
 )
 /*++
   Purpose:
 
-    Increase or decrease player's HP and/or MP.
+	Increase or decrease player's HP and/or MP.
 
   Parameters:
 
-    [IN]  wPlayerRole - the number of player role.
+	[IN]  wPlayerRole - the number of player role.
 
-    [IN]  sHP - number of HP to be increased (positive value) or decrased
-                (negative value).
+	[IN]  sHP - number of HP to be increased (positive value) or decrased
+				(negative value).
 
-    [IN]  sMP - number of MP to be increased (positive value) or decrased
-                (negative value).
+	[IN]  sMP - number of MP to be increased (positive value) or decrased
+				(negative value).
 
   Return value:
 
-    TRUE if the operation is succeeded, FALSE if not.
+	TRUE if the operation is succeeded, FALSE if not.
 
 --*/
 {
-   BOOL           fSuccess = FALSE;
-   WORD           wOrigHP = gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole];
-   WORD           wOrigMP = gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole];
+	BOOL           fSuccess = FALSE;
+	INT            wOrigHP = gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole];
+	INT            wOrigMP = gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole];
 
-   //
-   // Only care about alive players
-   //
-   if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] > 0)
-   {
-      //
-      // change HP
-      //
-      gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] += sHP;
+	//
+	// Only care about alive players
+	//
+	if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] > 0)
+	{
+		//
+		// change HP
+		//
+		gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] += sHP;
 
-      if ((SHORT)(gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole]) < 0)
-      {
-         gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] = 0;
-      }
-      else if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] >
-         gpGlobals->g.PlayerRoles.rgwMaxHP[wPlayerRole])
-      {
-         gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] =
-            gpGlobals->g.PlayerRoles.rgwMaxHP[wPlayerRole];
-      }
+		if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] < 0)
+		{
+			gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] = 0;
+		}
+		else if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] > PAL_GetPlayerMaxHP(wPlayerRole))
+		{
+			gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] = PAL_GetPlayerMaxHP(wPlayerRole);
+		}
 
-      //
-      // Change MP
-      //
-      gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole] += sMP;
+		//
+		// Change MP
+		//
+		gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole] += sMP;
 
-      if ((SHORT)(gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole]) < 0)
-      {
-         gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole] = 0;
-      }
-      else if (gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole] >
-         gpGlobals->g.PlayerRoles.rgwMaxMP[wPlayerRole])
-      {
-         gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole] =
-            gpGlobals->g.PlayerRoles.rgwMaxMP[wPlayerRole];
-      }
+		if (gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole] < 0)
+		{
+			gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole] = 0;
+		}
+		else if (gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole] > PAL_GetPlayerMaxMP(wPlayerRole))
+		{
+			gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole] = PAL_GetPlayerMaxMP(wPlayerRole);
+		}
 
-      //
-      // Avoid over treatment
-      //
-      if (wOrigHP != gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] ||
-          wOrigMP != gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole])
-         fSuccess = TRUE;
-   }
+		//
+		// Avoid over treatment
+		//
+		if (wOrigHP != gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] ||
+			wOrigMP != gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole])
+			fSuccess = TRUE;
+	}
 
-   return fSuccess;
+	return fSuccess;
 }
 
 VOID
 PAL_UpdateEquipments(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Update the effects of all equipped items for all players.
+	Update the effects of all equipped items for all players.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   int      i, j;
-   WORD     w;
+	int      i, j;
+	WORD     w;
 
-   memset(&(gpGlobals->rgEquipmentEffect), 0, sizeof(gpGlobals->rgEquipmentEffect));
+	memset(&(gpGlobals->rgEquipmentEffect), 0, sizeof(gpGlobals->rgEquipmentEffect));
 
-   for (i = 0; i < MAX_PLAYER_ROLES; i++)
-   {
-      for (j = 0; j < MAX_PLAYER_EQUIPMENTS; j++)
-      {
-         w = gpGlobals->g.PlayerRoles.rgwEquipment[j][i];
+	for (i = 0; i < MAX_PLAYER_ROLES; i++)
+	{
+		for (j = 0; j < MAX_PLAYER_EQUIPMENTS; j++)
+		{
+			w = gpGlobals->g.PlayerRoles.rgwEquipment[j][i];
 
-         if (w != 0)
-         {
-            gpGlobals->g.rgObject[w].item.wScriptOnEquip =
-               PAL_RunTriggerScript(gpGlobals->g.rgObject[w].item.wScriptOnEquip, (WORD)i);
-         }
-      }
-   }
+			if (w != 0)
+			{
+				gpGlobals->g.rgObject[w].item.wScriptOnEquip =
+					PAL_RunTriggerScript(gpGlobals->g.rgObject[w].item.wScriptOnEquip, (INT)i);
+			}
+		}
+	}
 }
 
 VOID
 PAL_RemoveEquipmentEffect(
-   WORD         wPlayerRole,
-   WORD         wEquipPart
+	WORD         wPlayerRole,
+	WORD         wEquipPart
 )
 /*++
   Purpose:
 
-    Remove all the effects of the equipment for the player.
+	Remove all the effects of the equipment for the player.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role.
+	[IN]  wPlayerRole - the player role.
 
-    [IN]  wEquipPart - the part of the equipment.
+	[IN]  wEquipPart - the part of the equipment.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   WORD       *p;
-   int         i, j;
+	INT* p;
+	int         i, j;
 
-   p = (WORD *)(&gpGlobals->rgEquipmentEffect[wEquipPart]); // HACKHACK
+	p = (INT*)(&gpGlobals->rgEquipmentEffect[wEquipPart]); // HACKHACK
 
-   for (i = 0; i < sizeof(PLAYERROLES) / sizeof(PLAYERS); i++)
-   {
-      p[i * MAX_PLAYER_ROLES + wPlayerRole] = 0;
-   }
+	for (i = 0; i < sizeof(PLAYERROLES) / sizeof(PLAYERS); i++)
+	{
+		p[i * MAX_PLAYER_ROLES + wPlayerRole] = 0;
+	}
 
-   //
-   // Reset some parameters to default when appropriate
-   //
-   if (wEquipPart == kBodyPartHand)
-   {
-      //
-      // reset the dual attack status
-      //
-      gpGlobals->rgPlayerStatus[wPlayerRole][kStatusDualAttack] = 0;
-   }
-   else if (wEquipPart == kBodyPartWear)
-   {
-      //
-      // Remove all poisons leveled 99
-      //
-      for (i = 0; i <= (short)gpGlobals->wMaxPartyMemberIndex; i++)
-      {
-         if (gpGlobals->rgParty[i].wPlayerRole == wPlayerRole)
-         {
-            wPlayerRole = i;
-            break;
-         }
-      }
+	//
+	// Reset some parameters to default when appropriate
+	//
+	if (wEquipPart == kBodyPartHand)
+	{
+		//
+		// reset the dual attack status
+		//
+		// 删除天罡/醉仙/
+		gpGlobals->rgPlayerStatus[wPlayerRole][kStatusDualAttack] = 0;
+		gpGlobals->rgPlayerStatus[wPlayerRole][kStatusBravery] = 0;
+	}
+	else  if (wEquipPart == kBodyPartFeet)
+	{
+		//
+		//删除仙风云体术
+		//
+		gpGlobals->rgPlayerStatus[wPlayerRole][kStatusHaste] = 0;
 
-      if (i <= (short)gpGlobals->wMaxPartyMemberIndex)
-      {
-         j = 0;
+	}
+	else if (wEquipPart == kBodyPartWear)
+	{
+		//
+		// Remove all poisons leveled 99
+		//
 
-         for (i = 0; i < MAX_POISONS; i++)
-         {
-            WORD w = gpGlobals->rgPoisonStatus[i][wPlayerRole].wPoisonID;
+		gpGlobals->rgPlayerStatus[wPlayerRole][kStatusMagic] = 0;
 
-            if (w == 0)
-            {
-               break;
-            }
+		for (i = 0; i <= (short)gpGlobals->wMaxPartyMemberIndex; i++)
+		{
+			if (gpGlobals->rgParty[i].wPlayerRole == wPlayerRole)
+			{
+				wPlayerRole = i;
+				break;
+			}
+		}
 
-            if (gpGlobals->g.rgObject[w].poison.wPoisonLevel < 99)
-            {
-               gpGlobals->rgPoisonStatus[j][wPlayerRole] =
-                  gpGlobals->rgPoisonStatus[i][wPlayerRole];
-               j++;
-            }
-         }
+		if (i <= (short)gpGlobals->wMaxPartyMemberIndex)
+		{
+			j = 0;
 
-         while (j < MAX_POISONS)
-         {
-            gpGlobals->rgPoisonStatus[j][wPlayerRole].wPoisonID = 0;
-            gpGlobals->rgPoisonStatus[j][wPlayerRole].wPoisonScript = 0;
-            j++;
-         }
-      }
-   }
+			for (i = 0; i < MAX_POISONS; i++)
+			{
+				WORD w = gpGlobals->rgPoisonStatus[i][wPlayerRole].wPoisonID;
+
+				if (w == 0)
+				{
+					break;
+				}
+
+				if (gpGlobals->g.rgObject[w].poison.wPoisonLevel < 99)
+				{
+					gpGlobals->rgPoisonStatus[j][wPlayerRole] =
+						gpGlobals->rgPoisonStatus[i][wPlayerRole];
+					j++;
+				}
+			}
+
+			while (j < MAX_POISONS)
+			{
+				gpGlobals->rgPoisonStatus[j][wPlayerRole].wPoisonID = 0;
+				gpGlobals->rgPoisonStatus[j][wPlayerRole].wPoisonScript = 0;
+				j++;
+			}
+		}
+	}
 }
 
 VOID
 PAL_AddPoisonForPlayer(
-   WORD           wPlayerRole,
-   WORD           wPoisonID
+	WORD           wPlayerRole,
+	WORD           wPoisonID
 )
 /*++
   Purpose:
 
-    Add the specified poison to the player.
+	Add the specified poison to the player.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
-    [IN]  wPoisonID - the poison to be added.
+	[IN]  wPoisonID - the poison to be added.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   int         i, index;
-   WORD        w;
+	int         i, index, iPoisonIndex;
+	WORD        w;
 
-   for (index = 0; index <= gpGlobals->wMaxPartyMemberIndex; index++)
-   {
-      if (gpGlobals->rgParty[index].wPlayerRole == wPlayerRole)
-      {
-         break;
-      }
-   }
+	index = PAL_New_GetPlayerIndex(wPlayerRole);
+	WORD wPoisonLevel = gpGlobals->g.rgObject[wPoisonID].poison.wPoisonLevel;
 
-   if (index > gpGlobals->wMaxPartyMemberIndex)
-   {
-      return; // don't go further
-   }
+	if (index == -1 || gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] == 0)
+	{
+		return; // don't go further
+	}
 
-   for (i = 0; i < MAX_POISONS; i++)
-   {
-      w = gpGlobals->rgPoisonStatus[i][index].wPoisonID;
+	iPoisonIndex = PAL_New_GetPoisonIndexForPlayer(wPlayerRole, wPoisonID);
+	if (iPoisonIndex != -1)
+	{
+		// already poisoned
+#ifdef POISON_STATUS_EXPAND // 增加毒的烈度
+		INT iSuccessRate = 100;
+		iSuccessRate -= wPoisonLevel * 20;
+		iSuccessRate = max(iSuccessRate, 0);
+		//   iSuccessRate *= (100 - PAL_GetPlayerPoisonResistance(wPlayerRole)) / 100.0;
+		if (PAL_New_GetTrueByPercentage(iSuccessRate))
+		{
+			gpGlobals->rgPoisonStatus[iPoisonIndex][index].wPoisonIntensity++;
+		}
+		switch (wPoisonLevel)
+		{
+		case 0:
+		case 1:
+		case 2:
+			gpGlobals->rgPoisonStatus[iPoisonIndex][index].wPoisonIntensity =
+				min(gpGlobals->rgPoisonStatus[iPoisonIndex][index].wPoisonIntensity, 3);
+			break;
 
-      if (w == 0)
-      {
-         break;
-      }
+		default:
+			gpGlobals->rgPoisonStatus[iPoisonIndex][index].wPoisonIntensity = 0;
+			break;
+		}
+#endif
+		return;
+	}
 
-      if (w == wPoisonID)
-      {
-         return; // already poisoned
-      }
-   }
+	for (i = 0; i < MAX_POISONS; i++)
+	{
+		w = gpGlobals->rgPoisonStatus[i][index].wPoisonID;
+		if (w == wPoisonID)
+		{   // already poisoned
+			return;
+		}
+		else if (w == 0)
+		{
+			break;
+		}
+	}
 
-   if (i < MAX_POISONS)
-   {
-      gpGlobals->rgPoisonStatus[i][index].wPoisonID = wPoisonID;
-      gpGlobals->rgPoisonStatus[i][index].wPoisonScript =
-		  PAL_RunTriggerScript(gpGlobals->g.rgObject[wPoisonID].poison.wPlayerScript, wPlayerRole);
-   }
+	i = min(i, MAX_POISONS - 1);
+	gpGlobals->rgPoisonStatus[i][index].wPoisonID = wPoisonID;
+	gpGlobals->rgPoisonStatus[i][index].wPoisonScript = PAL_RunTriggerScript(gpGlobals->g.rgObject[wPoisonID].poison.wPlayerScript, wPlayerRole);
 }
 
 VOID
 PAL_CurePoisonByKind(
-   WORD           wPlayerRole,
-   WORD           wPoisonID
+	WORD           wPlayerRole,
+	WORD           wPoisonID
 )
 /*++
   Purpose:
 
-    Remove the specified poison from the player.
+	Remove the specified poison from the player.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
-    [IN]  wPoisonID - the poison to be removed.
+	[IN]  wPoisonID - the poison to be removed.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   int i, index;
+	int i, index;
 
-   for (index = 0; index <= gpGlobals->wMaxPartyMemberIndex; index++)
-   {
-      if (gpGlobals->rgParty[index].wPlayerRole == wPlayerRole)
-      {
-         break;
-      }
-   }
+	for (index = 0; index <= gpGlobals->wMaxPartyMemberIndex; index++)
+	{
+		if (gpGlobals->rgParty[index].wPlayerRole == wPlayerRole)
+		{
+			break;
+		}
+	}
 
-   if (index > gpGlobals->wMaxPartyMemberIndex)
-   {
-      return; // don't go further
-   }
+	if (index > gpGlobals->wMaxPartyMemberIndex)
+	{
+		return; // don't go further
+	}
 
-   for (i = 0; i < MAX_POISONS; i++)
-   {
-      if (gpGlobals->rgPoisonStatus[i][index].wPoisonID == wPoisonID)
-      {
-         gpGlobals->rgPoisonStatus[i][index].wPoisonID = 0;
-         gpGlobals->rgPoisonStatus[i][index].wPoisonScript = 0;
-      }
-   }
+	for (i = 0; i < MAX_POISONS; i++)
+	{
+#ifdef POISON_STATUS_EXPAND
+		memset(&gpGlobals->rgPoisonStatus[i][index], 0, sizeof(gpGlobals->rgPoisonStatus[i][index]));
+#else
+		gpGlobals->rgPoisonStatus[i][index].wPoisonID = 0;
+		gpGlobals->rgPoisonStatus[i][index].wPoisonScript = 0;
+#endif
+	}
 }
 
 VOID
 PAL_CurePoisonByLevel(
-   WORD           wPlayerRole,
-   WORD           wMaxLevel
+	WORD           wPlayerRole,
+	WORD           wMaxLevel
 )
 /*++
   Purpose:
 
-    Remove the poisons which have a maximum level of wMaxLevel from the player.
+	Remove the poisons which have a maximum level of wMaxLevel from the player.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
-    [IN]  wMaxLevel - the maximum level of poisons to be removed.
+	[IN]  wMaxLevel - the maximum level of poisons to be removed.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   int        i, index;
-   WORD       w;
+	int        i, index;
+	WORD       w;
 
-   for (index = 0; index <= gpGlobals->wMaxPartyMemberIndex; index++)
-   {
-      if (gpGlobals->rgParty[index].wPlayerRole == wPlayerRole)
-      {
-         break;
-      }
-   }
+	for (index = 0; index <= gpGlobals->wMaxPartyMemberIndex; index++)
+	{
+		if (gpGlobals->rgParty[index].wPlayerRole == wPlayerRole)
+		{
+			break;
+		}
+	}
 
-   if (index > gpGlobals->wMaxPartyMemberIndex)
-   {
-      return; // don't go further
-   }
+	if (index > gpGlobals->wMaxPartyMemberIndex)
+	{
+		return; // don't go further
+	}
 
-   for (i = 0; i < MAX_POISONS; i++)
-   {
-      w = gpGlobals->rgPoisonStatus[i][index].wPoisonID;
+	for (i = 0; i < MAX_POISONS; i++)
+	{
+		w = gpGlobals->rgPoisonStatus[i][index].wPoisonID;
 
-      if (gpGlobals->g.rgObject[w].poison.wPoisonLevel <= wMaxLevel)
-      {
-         gpGlobals->rgPoisonStatus[i][index].wPoisonID = 0;
-         gpGlobals->rgPoisonStatus[i][index].wPoisonScript = 0;
-      }
-   }
+		if (gpGlobals->g.rgObject[w].poison.wPoisonLevel <= wMaxLevel)
+		{
+#ifdef POISON_STATUS_EXPAND
+			memset(&gpGlobals->rgPoisonStatus[i][index], 0, sizeof(gpGlobals->rgPoisonStatus[i][index]));
+#else
+			gpGlobals->rgPoisonStatus[i][index].wPoisonID = 0;
+			gpGlobals->rgPoisonStatus[i][index].wPoisonScript = 0;
+#endif
+		}
+	}
 }
 
 BOOL
 PAL_IsPlayerPoisonedByLevel(
-   WORD           wPlayerRole,
-   WORD           wMinLevel
+	WORD           wPlayerRole,
+	WORD           wMinLevel
 )
 /*++
   Purpose:
 
-    Check if the player is poisoned by poisons at a minimum level of wMinLevel.
+	Check if the player is poisoned by poisons at a minimum level of wMinLevel.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
-    [IN]  wMinLevel - the minimum level of poison.
+	[IN]  wMinLevel - the minimum level of poison.
 
   Return value:
 
-    TRUE if the player is poisoned by poisons at a minimum level of wMinLevel;
-    FALSE if not.
+	TRUE if the player is poisoned by poisons at a minimum level of wMinLevel;
+	FALSE if not.
 
 --*/
 {
-   int         i, index;
-   WORD        w;
+	int         i, index;
+	WORD        w;
 
-   for (index = 0; index <= gpGlobals->wMaxPartyMemberIndex; index++)
-   {
-      if (gpGlobals->rgParty[index].wPlayerRole == wPlayerRole)
-      {
-         break;
-      }
-   }
+	for (index = 0; index <= gpGlobals->wMaxPartyMemberIndex; index++)
+	{
+		if (gpGlobals->rgParty[index].wPlayerRole == wPlayerRole)
+		{
+			break;
+		}
+	}
 
-   if (index > gpGlobals->wMaxPartyMemberIndex)
-   {
-      return FALSE; // don't go further
-   }
+	if (index > gpGlobals->wMaxPartyMemberIndex)
+	{
+		return FALSE; // don't go further
+	}
 
-   for (i = 0; i < MAX_POISONS; i++)
-   {
-      w = gpGlobals->rgPoisonStatus[i][index].wPoisonID;
-      w = gpGlobals->g.rgObject[w].poison.wPoisonLevel;
+	for (i = 0; i < MAX_POISONS; i++)
+	{
+		w = gpGlobals->rgPoisonStatus[i][index].wPoisonID;
+		w = gpGlobals->g.rgObject[w].poison.wPoisonLevel;
 
-      if (w >= 99)
-      {
-         //
-         // Ignore poisons which has a level of 99 (usually effect of equipment)
-         //
-         continue;
-      }
+		if (w >= 99)
+		{
+			//
+			// Ignore poisons which has a level of 99 (usually effect of equipment)
+			//
+			continue;
+		}
 
-      if (w >= wMinLevel)
-      {
-         return TRUE;
-      }
-   }
+		if (w >= wMinLevel)
+		{
+			return TRUE;
+		}
+	}
 
-   return FALSE;
+	return FALSE;
 }
 
 BOOL
 PAL_IsPlayerPoisonedByKind(
-   WORD           wPlayerRole,
-   WORD           wPoisonID
+	WORD           wPlayerRole,
+	WORD           wPoisonID
 )
 /*++
   Purpose:
 
-    Check if the player is poisoned by the specified poison.
+	Check if the player is poisoned by the specified poison.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
-    [IN]  wPoisonID - the poison to be checked.
+	[IN]  wPoisonID - the poison to be checked.
 
   Return value:
 
-    TRUE if player is poisoned by the specified poison;
-    FALSE if not.
+	TRUE if player is poisoned by the specified poison;
+	FALSE if not.
 
 --*/
 {
-   int i, index;
+	int i, index;
 
-   for (index = 0; index <= gpGlobals->wMaxPartyMemberIndex; index++)
-   {
-      if (gpGlobals->rgParty[index].wPlayerRole == wPlayerRole)
-      {
-         break;
-      }
-   }
+	for (index = 0; index <= gpGlobals->wMaxPartyMemberIndex; index++)
+	{
+		if (gpGlobals->rgParty[index].wPlayerRole == wPlayerRole)
+		{
+			break;
+		}
+	}
 
-   if (index > gpGlobals->wMaxPartyMemberIndex)
-   {
-      return FALSE; // don't go further
-   }
+	if (index > gpGlobals->wMaxPartyMemberIndex)
+	{
+		return FALSE; // don't go further
+	}
 
-   for (i = 0; i < MAX_POISONS; i++)
-   {
-      if (gpGlobals->rgPoisonStatus[i][index].wPoisonID == wPoisonID)
-      {
-         return TRUE;
-      }
-   }
+	for (i = 0; i < MAX_POISONS; i++)
+	{
+		if (gpGlobals->rgPoisonStatus[i][index].wPoisonID == wPoisonID)
+		{
+			return TRUE;
+		}
+	}
 
-   return FALSE;
+	return FALSE;
 }
 
-WORD
+INT
+PAL_GetPlayerMaxHP(
+	WORD           wPlayerRole
+)
+/*++
+Purpose:
+Get the player's maxhp, count in the effect of equipments.
+Parameters:
+[IN]  wPlayerRole - the player role ID.
+Return value:
+The total attack strength of the player.
+--*/
+{
+	INT       w;
+	int        i;
+
+	w = gpGlobals->g.PlayerRoles.rgwMaxHP[wPlayerRole];
+
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	{
+		w += gpGlobals->rgEquipmentEffect[i].rgwMaxHP[wPlayerRole];
+	}
+
+	if (w < 0)
+	{
+		w = 0;
+	}
+
+	return w;
+}
+
+INT
+PAL_GetPlayerMaxMP(
+	WORD           wPlayerRole
+)
+/*++
+Purpose:
+Get the player's maxmp, count in the effect of equipments.
+Parameters:
+[IN]  wPlayerRole - the player role ID.
+Return value:
+The total attack strength of the player.
+--*/
+{
+	INT       w;
+	int        i;
+
+	w = gpGlobals->g.PlayerRoles.rgwMaxMP[wPlayerRole];
+
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	{
+		w += gpGlobals->rgEquipmentEffect[i].rgwMaxMP[wPlayerRole];
+	}
+	if (w < 0)
+	{
+		w = 0;
+	}
+	return w;
+}
+
+INT
 PAL_GetPlayerAttackStrength(
-   WORD           wPlayerRole
+	WORD           wPlayerRole
 )
 /*++
   Purpose:
 
-    Get the player's attack strength, count in the effect of equipments.
+	Get the player's attack strength, count in the effect of equipments.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
   Return value:
 
-    The total attack strength of the player.
+	The total attack strength of the player.
 
 --*/
 {
-   WORD       w;
-   int        i;
+	INT        w;
+	int        i;
 
-   w = gpGlobals->g.PlayerRoles.rgwAttackStrength[wPlayerRole];
+	w = gpGlobals->g.PlayerRoles.rgwAttackStrength[wPlayerRole];
 
-   for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
-   {
-      w += gpGlobals->rgEquipmentEffect[i].rgwAttackStrength[wPlayerRole];
-   }
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	{
+		w += gpGlobals->rgEquipmentEffect[i].rgwAttackStrength[wPlayerRole];
+	}
 
-   return w;
+	if (w < 0)
+	{
+		w = 0;
+	}
+
+	return w;
 }
 
-WORD
+INT
 PAL_GetPlayerMagicStrength(
-   WORD           wPlayerRole
+	WORD           wPlayerRole
 )
 /*++
   Purpose:
 
-    Get the player's magic strength, count in the effect of equipments.
+	Get the player's magic strength, count in the effect of equipments.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
   Return value:
 
-    The total magic strength of the player.
+	The total magic strength of the player.
 
 --*/
 {
-   WORD       w;
-   int        i;
+	INT        w;
+	int        i;
 
-   w = gpGlobals->g.PlayerRoles.rgwMagicStrength[wPlayerRole];
+	w = gpGlobals->g.PlayerRoles.rgwMagicStrength[wPlayerRole];
 
-   for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
-   {
-      w += gpGlobals->rgEquipmentEffect[i].rgwMagicStrength[wPlayerRole];
-   }
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	{
+		w += gpGlobals->rgEquipmentEffect[i].rgwMagicStrength[wPlayerRole];
+	}
 
-   return w;
+	if (w < 0)
+	{
+		w = 0;
+	}
+
+	return w;
 }
 
-WORD
+INT
 PAL_GetPlayerDefense(
-   WORD           wPlayerRole
+	WORD           wPlayerRole
 )
 /*++
   Purpose:
 
-    Get the player's defense value, count in the effect of equipments.
+	Get the player's defense value, count in the effect of equipments.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
   Return value:
 
-    The total defense value of the player.
+	The total defense value of the player.
 
 --*/
 {
-   WORD       w;
-   int        i;
+	INT        w;
+	int        i;
 
-   w = gpGlobals->g.PlayerRoles.rgwDefense[wPlayerRole];
+	w = gpGlobals->g.PlayerRoles.rgwDefense[wPlayerRole];
 
-   for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
-   {
-      w += gpGlobals->rgEquipmentEffect[i].rgwDefense[wPlayerRole];
-   }
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	{
+		w += gpGlobals->rgEquipmentEffect[i].rgwDefense[wPlayerRole];
+	}
 
-   return w;
+	if (w < 0)
+	{
+		w = 0;
+	}
+
+	return w;
 }
 
-WORD
+INT
 PAL_GetPlayerDexterity(
-   WORD           wPlayerRole
+	WORD           wPlayerRole
 )
 /*++
   Purpose:
 
-    Get the player's dexterity, count in the effect of equipments.
+	Get the player's dexterity, count in the effect of equipments.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
   Return value:
 
-    The total dexterity of the player.
+	The total dexterity of the player.
 
 --*/
 {
-   WORD       w;
-   int        i;
+	INT        w;
+	int        i;
 
-   w = gpGlobals->g.PlayerRoles.rgwDexterity[wPlayerRole];
+	w = gpGlobals->g.PlayerRoles.rgwDexterity[wPlayerRole];
 
 #ifdef PAL_CLASSIC
-   for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
 #else
-   for (i = 0; i <= MAX_PLAYER_EQUIPMENTS - 1; i++)
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS - 1; i++)
 #endif
-   {
-      w += gpGlobals->rgEquipmentEffect[i].rgwDexterity[wPlayerRole];
-   }
+	{
+		w += gpGlobals->rgEquipmentEffect[i].rgwDexterity[wPlayerRole];
+	}
 
-   return w;
+	if (w < 0)
+	{
+		w = 0;
+	}
+
+	return w;
 }
 
-WORD
+INT
 PAL_GetPlayerFleeRate(
-   WORD           wPlayerRole
+	WORD           wPlayerRole
 )
 /*++
   Purpose:
 
-    Get the player's flee rate, count in the effect of equipments.
+	Get the player's flee rate, count in the effect of equipments.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
   Return value:
 
-    The total flee rate of the player.
+	The total flee rate of the player.
 
 --*/
 {
-   WORD       w;
-   int        i;
+	INT        w;
+	int        i;
 
-   w = gpGlobals->g.PlayerRoles.rgwFleeRate[wPlayerRole];
+	w = gpGlobals->g.PlayerRoles.rgwFleeRate[wPlayerRole];
 
-   for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
-   {
-      w += gpGlobals->rgEquipmentEffect[i].rgwFleeRate[wPlayerRole];
-   }
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	{
+		w += gpGlobals->rgEquipmentEffect[i].rgwFleeRate[wPlayerRole];
+	}
 
-   return w;
+	if (w < 0)
+	{
+		w = 0;
+	}
+
+	return w;
 }
 
-WORD
+INT
+PAL_GetPlayerWisdom(
+	WORD           wPlayerRole
+)
+/*++
+Purpose:
+Get the player's flee rate, count in the effect of equipments.
+Parameters:
+[IN]  wPlayerRole - the player role ID.
+Return value:
+The total flee rate of the player.
+--*/
+{
+	INT        w;
+	int        i;
+
+	w = gpGlobals->g.PlayerRoles.rgwWisdom[wPlayerRole];
+
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	{
+		w += gpGlobals->rgEquipmentEffect[i].rgwWisdom[wPlayerRole];
+	}
+	if (w < 0)
+	{
+		w = 0;
+	}
+	if (w > 12000)
+	{
+		w = 12000;
+	}
+	return w;
+}
+
+INT
+PAL_GetPlayerPower(
+	WORD           wPlayerRole
+)
+/*++
+Purpose:
+Get the player's flee rate, count in the effect of equipments.
+Parameters:
+[IN]  wPlayerRole - the player role ID.
+Return value:
+The total flee rate of the player.
+--*/
+{
+	INT        w;
+	int        i;
+
+	w = gpGlobals->g.PlayerRoles.rgwPower[wPlayerRole];
+
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	{
+		w += gpGlobals->rgEquipmentEffect[i].rgwPower[wPlayerRole];
+	}
+	if (w < 0)
+	{
+		w = 0;
+	}
+	if (w > 12000)
+	{
+		w = 12000;
+	}
+	return w;
+}
+
+INT
 PAL_GetPlayerPoisonResistance(
-   WORD           wPlayerRole
+	WORD           wPlayerRole
 )
 /*++
   Purpose:
 
-    Get the player's resistance to poisons, count in the effect of equipments.
+	Get the player's resistance to poisons, count in the effect of equipments.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
   Return value:
 
-    The total resistance to poisons of the player.
+	The total resistance to poisons of the player.
 
 --*/
 {
-   WORD       w;
-   int        i;
+	INT        w;
+	int        i;
 
-   w = gpGlobals->g.PlayerRoles.rgwPoisonResistance[wPlayerRole];
+	w = gpGlobals->g.PlayerRoles.rgwPoisonResistance[wPlayerRole];
 
-   for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
-   {
-      w += gpGlobals->rgEquipmentEffect[i].rgwPoisonResistance[wPlayerRole];
-   }
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	{
+		w += gpGlobals->rgEquipmentEffect[i].rgwPoisonResistance[wPlayerRole];
+	}
 
-   if (w > 100)
-   {
-      w = 100;
-   }
+	if (w > 100)
+	{
+		w = 100;
+	}
 
-   return w;
+	return w;
 }
 
-WORD
+INT
 PAL_GetPlayerElementalResistance(
-   WORD           wPlayerRole,
-   INT            iAttrib
+	WORD           wPlayerRole,
+	INT            iAttrib
 )
 /*++
   Purpose:
 
-    Get the player's resistance to attributed magics, count in the effect
-    of equipments.
+	Get the player's resistance to attributed magics, count in the effect
+	of equipments.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
-    [IN]  iAttrib - the attribute of magics.
+	[IN]  iAttrib - the attribute of magics.
 
   Return value:
 
-    The total resistance to the attributed magics of the player.
+	The total resistance to the attributed magics of the player.
 
 --*/
 {
-   WORD       w;
-   int        i;
+	INT        w;
+	int        i;
 
-   w = gpGlobals->g.PlayerRoles.rgwElementalResistance[iAttrib][wPlayerRole];
+	w = gpGlobals->g.PlayerRoles.rgwElementalResistance[iAttrib][wPlayerRole];
 
-   for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
-   {
-      w += gpGlobals->rgEquipmentEffect[i].rgwElementalResistance[iAttrib][wPlayerRole];
-   }
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	{
+		w += gpGlobals->rgEquipmentEffect[i].rgwElementalResistance[iAttrib][wPlayerRole];
+	}
 
-   if (w > 100)
-   {
-      w = 100;
-   }
+	if (w > 100)
+	{
+		w = 100;
+	}
 
-   return w;
+	return w;
 }
 
-WORD
+INT
+PAL_New_GetPlayerSorceryResistance(
+	WORD			wPlayerRole
+)
+/*++
+Purpose:Get the player's resistance to Sorcery, count in the effect of equipments.
+Parameters:[IN]  wPlayerRole - the player role ID.
+Return value:The total resistance to Sorcery of the player.
+--*/
+{
+	INT        w;
+	int        i;
+
+	w = gpGlobals->g.PlayerRoles.rgwSorceryResistance[wPlayerRole];
+
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	{
+		w += gpGlobals->rgEquipmentEffect[i].rgwSorceryResistance[wPlayerRole];
+	}
+
+	return min(100, w);
+}
+
+INT
+PAL_New_GetPlayerPhysicalResistance(
+	WORD			wPlayerRole
+)
+{
+	INT        w;
+	int        i;
+
+	w = gpGlobals->g.PlayerRoles.rgwPhysicalResistance[wPlayerRole];
+
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	{
+		w += gpGlobals->rgEquipmentEffect[i].rgwPhysicalResistance[wPlayerRole];
+	}
+
+	return min(100, w);
+}
+
+INT
 PAL_GetPlayerBattleSprite(
-   WORD             wPlayerRole
+	WORD             wPlayerRole
 )
 /*++
   Purpose:
 
-    Get player's battle sprite.
+	Get player's battle sprite.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
   Return value:
 
-    Number of the player's battle sprite.
+	Number of the player's battle sprite.
 
 --*/
 {
-   int       i;
-   WORD      w;
+	int       i;
+	INT       w;
 
-   w = gpGlobals->g.PlayerRoles.rgwSpriteNumInBattle[wPlayerRole];
+	w = gpGlobals->g.PlayerRoles.rgwSpriteNumInBattle[wPlayerRole];
 
-   for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
-   {
-      if (gpGlobals->rgEquipmentEffect[i].rgwSpriteNumInBattle[wPlayerRole] != 0)
-      {
-         w = gpGlobals->rgEquipmentEffect[i].rgwSpriteNumInBattle[wPlayerRole];
-      }
-   }
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	{
+		if (gpGlobals->rgEquipmentEffect[i].rgwSpriteNumInBattle[wPlayerRole] != 0)
+		{
+			w = gpGlobals->rgEquipmentEffect[i].rgwSpriteNumInBattle[wPlayerRole];
+		}
+	}
 
-   return w;
+	return w;
 }
 
-WORD
+INT
 PAL_GetPlayerCooperativeMagic(
-   WORD             wPlayerRole
+	WORD             wPlayerRole
 )
 /*++
   Purpose:
 
-    Get player's cooperative magic.
+	Get player's cooperative magic.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
   Return value:
 
-    Object ID of the player's cooperative magic.
+	Object ID of the player's cooperative magic.
 
 --*/
 {
-   int       i;
-   WORD      w;
+	int       i;
+	INT       w;
 
-   w = gpGlobals->g.PlayerRoles.rgwCooperativeMagic[wPlayerRole];
+	w = gpGlobals->g.PlayerRoles.rgwCooperativeMagic[wPlayerRole];
 
-   for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
-   {
-      if (gpGlobals->rgEquipmentEffect[i].rgwCooperativeMagic[wPlayerRole] != 0)
-      {
-         w = gpGlobals->rgEquipmentEffect[i].rgwCooperativeMagic[wPlayerRole];
-      }
-   }
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	{
+		if (gpGlobals->rgEquipmentEffect[i].rgwCooperativeMagic[wPlayerRole] != 0)
+		{
+			w = gpGlobals->rgEquipmentEffect[i].rgwCooperativeMagic[wPlayerRole];
+		}
+	}
 
-   return w;
+	return w;
 }
 
 BOOL
 PAL_PlayerCanAttackAll(
-   WORD        wPlayerRole
+	WORD        wPlayerRole
 )
 /*++
   Purpose:
 
-    Check if the player can attack all of the enemies in one move.
+	Check if the player can attack all of the enemies in one move.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
   Return value:
 
-    TRUE if player can attack all of the enemies in one move, FALSE if not.
+	TRUE if player can attack all of the enemies in one move, FALSE if not.
 
 --*/
 {
-   int       i;
-   BOOL      f;
+	int       i;
+	BOOL      f;
 
-   f = FALSE;
+	f = FALSE;
 
-   for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
-   {
-      if (gpGlobals->rgEquipmentEffect[i].rgwAttackAll[wPlayerRole] != 0)
-      {
-         f = TRUE;
-         break;
-      }
-   }
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	{
+		if (gpGlobals->rgEquipmentEffect[i].rgwAttackAll[wPlayerRole] != 0)
+		{
+			f = TRUE;
+			break;
+		}
+	}
 
-   return f;
+	return f;
 }
 
 BOOL
 PAL_AddMagic(
-   WORD           wPlayerRole,
-   WORD           wMagic
+	WORD           wPlayerRole,
+	WORD           wMagic
 )
 /*++
   Purpose:
 
-    Add a magic to the player.
+	Add a magic to the player.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
-    [IN]  wMagic - the object ID of the magic.
+	[IN]  wMagic - the object ID of the magic.
 
   Return value:
 
-    TRUE if succeeded, FALSE if failed.
+	TRUE if succeeded, FALSE if failed.
 
 --*/
 {
-   int            i;
+	int            i;
 
-   for (i = 0; i < MAX_PLAYER_MAGICS; i++)
-   {
-      if (gpGlobals->g.PlayerRoles.rgwMagic[i][wPlayerRole] == wMagic)
-      {
-         //
-         // already have this magic
-         //
-         return FALSE;
-      }
-   }
+	for (i = 0; i < MAX_PLAYER_MAGICS; i++)
+	{
+		if (gpGlobals->g.PlayerRoles.rgwMagic[i][wPlayerRole] == wMagic)
+		{
+			//
+			// already have this magic
+			//
+			return FALSE;
+		}
+	}
 
-   for (i = 0; i < MAX_PLAYER_MAGICS; i++)
-   {
-      if (gpGlobals->g.PlayerRoles.rgwMagic[i][wPlayerRole] == 0)
-      {
-         break;
-      }
-   }
+	for (i = 0; i < MAX_PLAYER_MAGICS; i++)
+	{
+		if (gpGlobals->g.PlayerRoles.rgwMagic[i][wPlayerRole] == 0)
+		{
+			break;
+		}
+	}
 
-   if (i >= MAX_PLAYER_MAGICS)
-   {
-      //
-      // Not enough slots
-      //
-      return FALSE;
-   }
+	if (i >= MAX_PLAYER_MAGICS)
+	{
+		//
+		// Not enough slots
+		//
+		return FALSE;
+	}
 
-   gpGlobals->g.PlayerRoles.rgwMagic[i][wPlayerRole] = wMagic;
-   return TRUE;
+	gpGlobals->g.PlayerRoles.rgwMagic[i][wPlayerRole] = wMagic;
+	return TRUE;
 }
 
 VOID
 PAL_RemoveMagic(
-   WORD           wPlayerRole,
-   WORD           wMagic
+	WORD           wPlayerRole,
+	WORD           wMagic
 )
 /*++
   Purpose:
 
-    Remove a magic to the player.
+	Remove a magic to the player.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player role ID.
+	[IN]  wPlayerRole - the player role ID.
 
-    [IN]  wMagic - the object ID of the magic.
+	[IN]  wMagic - the object ID of the magic.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   int            i;
+	int            i;
 
-   for (i = 0; i < MAX_PLAYER_MAGICS; i++)
-   {
-      if (gpGlobals->g.PlayerRoles.rgwMagic[i][wPlayerRole] == wMagic)
-      {
-         gpGlobals->g.PlayerRoles.rgwMagic[i][wPlayerRole] = 0;
-         break;
-      }
-   }
+	for (i = 0; i < MAX_PLAYER_MAGICS; i++)
+	{
+		if (gpGlobals->g.PlayerRoles.rgwMagic[i][wPlayerRole] == wMagic)
+		{
+			gpGlobals->g.PlayerRoles.rgwMagic[i][wPlayerRole] = 0;
+			break;
+		}
+	}
 }
 
 VOID
 PAL_SetPlayerStatus(
-   WORD         wPlayerRole,
-   WORD         wStatusID,
-   WORD         wNumRound
+	WORD         wPlayerRole,
+	WORD         wStatusID,
+	WORD         wNumRound
 )
 /*++
   Purpose:
 
-    Set one of the statuses for the player.
+	Set one of the statuses for the player.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player ID.
+	[IN]  wPlayerRole - the player ID.
 
-    [IN]  wStatusID - the status to be set.
+	[IN]  wStatusID - the status to be set.
 
-    [IN]  wNumRound - the effective rounds of the status.
+	[IN]  wNumRound - the effective rounds of the status.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
 #ifndef PAL_CLASSIC
-   if (wStatusID == kStatusSlow &&
-      gpGlobals->rgPlayerStatus[wPlayerRole][kStatusHaste] > 0)
-   {
-      //
-      // Remove the haste status
-      //
-      PAL_RemovePlayerStatus(wPlayerRole, kStatusHaste);
-      return;
-   }
+	if (wStatusID == kStatusSlow &&
+		gpGlobals->rgPlayerStatus[wPlayerRole][kStatusHaste] > 0)
+	{
+		//
+		// Remove the haste status
+		//
+		PAL_RemovePlayerStatus(wPlayerRole, kStatusHaste);
+		return;
+	}
 
-   if (wStatusID == kStatusHaste &&
-      gpGlobals->rgPlayerStatus[wPlayerRole][kStatusSlow] > 0)
-   {
-      //
-      // Remove the slow status
-      //
-      PAL_RemovePlayerStatus(wPlayerRole, kStatusSlow);
-      return;
-   }
+	if (wStatusID == kStatusHaste &&
+		gpGlobals->rgPlayerStatus[wPlayerRole][kStatusSlow] > 0)
+	{
+		//
+		// Remove the slow status
+		//
+		PAL_RemovePlayerStatus(wPlayerRole, kStatusSlow);
+		return;
+	}
 #endif
 
-   switch (wStatusID)
-   {
-   case kStatusConfused:
-   case kStatusSleep:
-   case kStatusSilence:
+	switch (wStatusID)
+	{
+	case kStatusConfused:
+	case kStatusSleep:
+	case kStatusSilence:
 #ifdef PAL_CLASSIC
-   case kStatusParalyzed:
+	case kStatusParalyzed:
 #else
-   case kStatusSlow:
+	case kStatusSlow:
 #endif
-      //
-      // for "bad" statuses, don't set the status when we already have it
-      //
-      if (gpGlobals->rgPlayerStatus[wPlayerRole][wStatusID] == 0)
-      {
-         gpGlobals->rgPlayerStatus[wPlayerRole][wStatusID] = wNumRound;
-      }
-      break;
+	case kStatusSlow:
+	case kStatusStrDown:
+	case kStatusAtsDown:
+	case kStatusDefDown:
+		//
+		// for "bad" statuses, don't set the status when we already have it
+		//
+		if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] != 0 &&
+			gpGlobals->rgPlayerStatus[wPlayerRole][wStatusID] == 0)
+		{
+			gpGlobals->rgPlayerStatus[wPlayerRole][wStatusID] = wNumRound;
+		}
+		break;
 
-   case kStatusPuppet:
-      //
-      // only allow dead players for "puppet" status
-      //
-      if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] == 0 &&
-         gpGlobals->rgPlayerStatus[wPlayerRole][wStatusID] < wNumRound)
-      {
-         gpGlobals->rgPlayerStatus[wPlayerRole][wStatusID] = wNumRound;
-      }
-      break;
+	case kStatusPuppet:
+		//
+		// only allow dead players for "puppet" status
+		//
+		if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] == 0 &&
+			gpGlobals->rgPlayerStatus[wPlayerRole][wStatusID] < wNumRound)
+		{
+			gpGlobals->rgPlayerStatus[wPlayerRole][wStatusID] = wNumRound;
+		}
+		break;
 
-   case kStatusBravery:
-   case kStatusProtect:
-   case kStatusDualAttack:
-   case kStatusHaste:
-      //
-      // for "good" statuses, reset the status if the status to be set lasts longer
-      //
-      if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] != 0 &&
-         gpGlobals->rgPlayerStatus[wPlayerRole][wStatusID] < wNumRound)
-      {
-         gpGlobals->rgPlayerStatus[wPlayerRole][wStatusID] = wNumRound;
-      }
-      break;
+	case kStatusBravery:
+	case kStatusProtect:
+	case kStatusDualAttack:
+	case kStatusHaste:
+	case kStatusMagic:
+	case kStatusDefUp:
+		//
+		// for "good" statuses, reset the status if the status to be set lasts longer
+		//
+		if ((gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] != 0 &&
+			gpGlobals->rgPlayerStatus[wPlayerRole][wStatusID] < wNumRound) ||
+			gpGlobals->rgPlayerStatus[wPlayerRole][kStatusPuppet] != 0)
+		{
+			gpGlobals->rgPlayerStatus[wPlayerRole][wStatusID] = wNumRound;
+		}
+		break;
 
-   default:
-      assert(FALSE);
-      break;
-   }
+	default:
+		assert(FALSE);
+		break;
+	}
 }
 
 VOID
 PAL_RemovePlayerStatus(
-   WORD         wPlayerRole,
-   WORD         wStatusID
+	WORD         wPlayerRole,
+	WORD         wStatusID
 )
 /*++
   Purpose:
 
-    Remove one of the status for player.
+	Remove one of the status for player.
 
   Parameters:
 
-    [IN]  wPlayerRole - the player ID.
+	[IN]  wPlayerRole - the player ID.
 
-    [IN]  wStatusID - the status to be set.
+	[IN]  wStatusID - the status to be set.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   //
-   // Don't remove effects of equipments
-   //
-   if (gpGlobals->rgPlayerStatus[wPlayerRole][wStatusID] <= 999)
-   {
-      gpGlobals->rgPlayerStatus[wPlayerRole][wStatusID] = 0;
-   }
+	//
+	// Don't remove effects of equipments
+	//
+	if (gpGlobals->rgPlayerStatus[wPlayerRole][wStatusID] <= 999)
+	{
+		gpGlobals->rgPlayerStatus[wPlayerRole][wStatusID] = 0;
+	}
+}
+
+VOID
+PAL_New_RemovePlayerAllStatus(
+	WORD         wPlayerRole
+)
+{
+	int x;
+	for (x = 0; x < kStatusAll; x++)
+	{
+		PAL_RemovePlayerStatus(wPlayerRole, x);
+	}
 }
 
 VOID
 PAL_ClearAllPlayerStatus(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Clear all player status.
+	Clear all player status.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   int      i, j;
+	int      i, j;
 
-   for (i = 0; i < MAX_PLAYER_ROLES; i++)
-   {
-      for (j = 0; j < kStatusAll; j++)
-      {
-         //
-         // Don't remove effects of equipments
-         //
-         if (gpGlobals->rgPlayerStatus[i][j] <= 999)
-         {
-            gpGlobals->rgPlayerStatus[i][j] = 0;
-         }
-      }
-   }
+	for (i = 0; i < MAX_PLAYER_ROLES; i++)
+	{
+		for (j = 0; j < kStatusAll; j++)
+		{
+			//
+			// Don't remove effects of equipments
+			//
+			if (gpGlobals->rgPlayerStatus[i][j] <= 999)
+			{
+				gpGlobals->rgPlayerStatus[i][j] = 0;
+			}
+		}
+	}
 }
 
 VOID
 PAL_PlayerLevelUp(
-   WORD          wPlayerRole,
-   WORD          wNumLevel
+	WORD          wPlayerRole,
+	INT           wNumLevel
 )
 /*++
   Purpose:
 
-    Increase the player's level by wLevels.
+	Increase the player's level by wLevels.
 
   Parameters:
 
-    [IN]  wPlayerRole - player role ID.
+	[IN]  wPlayerRole - player role ID.
 
-    [IN]  wNumLevel - number of levels to be increased.
+	[IN]  wNumLevel - number of levels to be increased.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   WORD          i;
+	INT           i;
 
-   //
-   // Add the level
-   //
-   gpGlobals->g.PlayerRoles.rgwLevel[wPlayerRole] += wNumLevel;
-   if (gpGlobals->g.PlayerRoles.rgwLevel[wPlayerRole] > MAX_LEVELS)
-   {
-      gpGlobals->g.PlayerRoles.rgwLevel[wPlayerRole] = MAX_LEVELS;
-   }
+	//
+	// Add the level
+	//
+	if (wPlayerRole == RoleID_LiXiaoYao)
+	{
+		if (gpGlobals->g.PlayerRoles.rgwLevel[RoleID_LiXiaoYao] += wNumLevel)
+		{
+			if (gpGlobals->g.PlayerRoles.rgwLevel[RoleID_LiXiaoYao] > MAX_LEVELS)
+			{
+				gpGlobals->g.PlayerRoles.rgwLevel[RoleID_LiXiaoYao] = MAX_LEVELS;
+			}
+			for (i = 0; i < wNumLevel; i++)
+			{
+				//
+				// Increase player's stats
+				gpGlobals->g.PlayerRoles.rgwMaxHP[RoleID_LiXiaoYao] += 18;
+				gpGlobals->g.PlayerRoles.rgwMaxMP[RoleID_LiXiaoYao] += 10;
+				gpGlobals->g.PlayerRoles.rgwAttackStrength[RoleID_LiXiaoYao] += 7;
+				gpGlobals->g.PlayerRoles.rgwMagicStrength[RoleID_LiXiaoYao] += 4;
+				gpGlobals->g.PlayerRoles.rgwDefense[RoleID_LiXiaoYao] += 7;
+				gpGlobals->g.PlayerRoles.rgwDexterity[RoleID_LiXiaoYao] += 5;
+				gpGlobals->g.PlayerRoles.rgwFleeRate[RoleID_LiXiaoYao] += 4;
+				gpGlobals->g.PlayerRoles.rgwPower[RoleID_LiXiaoYao] += 2;
+				gpGlobals->g.PlayerRoles.rgwWisdom[RoleID_LiXiaoYao] += 2;
 
-   for (i = 0; i < wNumLevel; i++)
-   {
-      //
-      // Increase player's stats
-      //
-      gpGlobals->g.PlayerRoles.rgwMaxHP[wPlayerRole] += 10 + RandomLong(0, 8);
-      gpGlobals->g.PlayerRoles.rgwMaxMP[wPlayerRole] += 8 + RandomLong(0, 6);
-      gpGlobals->g.PlayerRoles.rgwAttackStrength[wPlayerRole] += 4 + RandomLong(0, 1);
-      gpGlobals->g.PlayerRoles.rgwMagicStrength[wPlayerRole] += 4 + RandomLong(0, 1);
-      gpGlobals->g.PlayerRoles.rgwDefense[wPlayerRole] += 2 + RandomLong(0, 1);
-      gpGlobals->g.PlayerRoles.rgwDexterity[wPlayerRole] += 2 + RandomLong(0, 1);
-      gpGlobals->g.PlayerRoles.rgwFleeRate[wPlayerRole] += 2;
-   }
+			}
+		}
+	}
 
-#define STAT_LIMIT(t) { if ((t) > 999) (t) = 999; }
-   STAT_LIMIT(gpGlobals->g.PlayerRoles.rgwMaxHP[wPlayerRole]);
-   STAT_LIMIT(gpGlobals->g.PlayerRoles.rgwMaxMP[wPlayerRole]);
-   STAT_LIMIT(gpGlobals->g.PlayerRoles.rgwAttackStrength[wPlayerRole]);
-   STAT_LIMIT(gpGlobals->g.PlayerRoles.rgwMagicStrength[wPlayerRole]);
-   STAT_LIMIT(gpGlobals->g.PlayerRoles.rgwDefense[wPlayerRole]);
-   STAT_LIMIT(gpGlobals->g.PlayerRoles.rgwDexterity[wPlayerRole]);
-   STAT_LIMIT(gpGlobals->g.PlayerRoles.rgwFleeRate[wPlayerRole]);
+	if (wPlayerRole == RoleID_ZhaoLingEr)
+	{
+		if (gpGlobals->g.PlayerRoles.rgwLevel[RoleID_ZhaoLingEr] += wNumLevel)
+		{
+			if (gpGlobals->g.PlayerRoles.rgwLevel[RoleID_ZhaoLingEr] > MAX_LEVELS)
+			{
+				gpGlobals->g.PlayerRoles.rgwLevel[RoleID_ZhaoLingEr] = MAX_LEVELS;
+			}
+			for (i = 0; i < wNumLevel; i++)
+			{
+				//
+				// Increase player's stats
+				gpGlobals->g.PlayerRoles.rgwMaxHP[RoleID_ZhaoLingEr] += 14;
+				gpGlobals->g.PlayerRoles.rgwMaxMP[RoleID_ZhaoLingEr] += 15;
+				gpGlobals->g.PlayerRoles.rgwAttackStrength[RoleID_ZhaoLingEr] += 4;
+				gpGlobals->g.PlayerRoles.rgwMagicStrength[RoleID_ZhaoLingEr] += 7;
+				gpGlobals->g.PlayerRoles.rgwDefense[RoleID_ZhaoLingEr] += 5;
+				gpGlobals->g.PlayerRoles.rgwDexterity[RoleID_ZhaoLingEr] += 6;
+				gpGlobals->g.PlayerRoles.rgwFleeRate[RoleID_ZhaoLingEr] += 6;
+				gpGlobals->g.PlayerRoles.rgwPower[RoleID_ZhaoLingEr] += 2;
+				gpGlobals->g.PlayerRoles.rgwWisdom[RoleID_ZhaoLingEr] += 2;
+			}
+		}
+	}
+
+
+	if (wPlayerRole == RoleID_LinYueRu)
+	{
+		if (gpGlobals->g.PlayerRoles.rgwLevel[RoleID_LinYueRu] += wNumLevel)
+		{
+			if (gpGlobals->g.PlayerRoles.rgwLevel[RoleID_LinYueRu] > MAX_LEVELS)
+			{
+				gpGlobals->g.PlayerRoles.rgwLevel[RoleID_LinYueRu] = MAX_LEVELS;
+			}
+			for (i = 0; i < wNumLevel; i++)
+			{
+				//
+				// Increase player's stats
+				gpGlobals->g.PlayerRoles.rgwMaxHP[RoleID_LinYueRu] += 16;
+				gpGlobals->g.PlayerRoles.rgwMaxMP[RoleID_LinYueRu] += 12;
+				gpGlobals->g.PlayerRoles.rgwAttackStrength[RoleID_LinYueRu] += 6;
+				gpGlobals->g.PlayerRoles.rgwMagicStrength[RoleID_LinYueRu] += 6;
+				gpGlobals->g.PlayerRoles.rgwDefense[RoleID_LinYueRu] += 6;
+				gpGlobals->g.PlayerRoles.rgwDexterity[RoleID_LinYueRu] += 8;
+				gpGlobals->g.PlayerRoles.rgwFleeRate[RoleID_LinYueRu] += 6;
+				gpGlobals->g.PlayerRoles.rgwWisdom[RoleID_LinYueRu] += 2;
+				gpGlobals->g.PlayerRoles.rgwPower[RoleID_LinYueRu] += 2;
+			}
+		}
+	}
+
+	if (wPlayerRole == RoleID_ANu)
+	{
+		if (gpGlobals->g.PlayerRoles.rgwLevel[RoleID_ANu] += wNumLevel)
+		{
+			if (gpGlobals->g.PlayerRoles.rgwLevel[RoleID_ANu] > MAX_LEVELS)
+			{
+				gpGlobals->g.PlayerRoles.rgwLevel[RoleID_ANu] = MAX_LEVELS;
+			}
+			for (i = 0; i < wNumLevel; i++)
+			{
+				//
+				// Increase player's stats
+				gpGlobals->g.PlayerRoles.rgwMaxHP[RoleID_ANu] += 14;
+				gpGlobals->g.PlayerRoles.rgwMaxMP[RoleID_ANu] += 12;
+				gpGlobals->g.PlayerRoles.rgwAttackStrength[RoleID_ANu] += 5;
+				gpGlobals->g.PlayerRoles.rgwMagicStrength[RoleID_ANu] += 5;
+				gpGlobals->g.PlayerRoles.rgwDefense[RoleID_ANu] += 5;
+				gpGlobals->g.PlayerRoles.rgwDexterity[RoleID_ANu] += 6;
+				gpGlobals->g.PlayerRoles.rgwFleeRate[RoleID_ANu] += 10;
+				gpGlobals->g.PlayerRoles.rgwPower[RoleID_ANu] += 2;
+				gpGlobals->g.PlayerRoles.rgwWisdom[RoleID_ANu] += 2;
+			}
+		}
+	}
+
+	if (wPlayerRole == RoleID_WuHou)
+	{
+		if (gpGlobals->g.PlayerRoles.rgwLevel[RoleID_WuHou] += wNumLevel)
+		{
+			if (gpGlobals->g.PlayerRoles.rgwLevel[RoleID_WuHou] > MAX_LEVELS)
+			{
+				gpGlobals->g.PlayerRoles.rgwLevel[RoleID_WuHou] = MAX_LEVELS;
+			}
+			for (i = 0; i < wNumLevel; i++)
+			{
+				//
+				// Increase player's stats
+				gpGlobals->g.PlayerRoles.rgwMaxHP[RoleID_WuHou] += 8 + RandomLong(0, 15);
+				gpGlobals->g.PlayerRoles.rgwMaxMP[RoleID_WuHou] += 10 + RandomLong(0, 20);
+				gpGlobals->g.PlayerRoles.rgwAttackStrength[RoleID_WuHou] += 9 + RandomLong(0, 12);
+				gpGlobals->g.PlayerRoles.rgwMagicStrength[RoleID_WuHou] += 7 + RandomLong(0, 19);
+				gpGlobals->g.PlayerRoles.rgwDefense[RoleID_WuHou] += 5 + RandomLong(0, 6);
+				gpGlobals->g.PlayerRoles.rgwDexterity[RoleID_WuHou] += 5 + RandomLong(0, 6);
+				gpGlobals->g.PlayerRoles.rgwFleeRate[RoleID_WuHou] += 10 + RandomLong(0, 6);
+				gpGlobals->g.PlayerRoles.rgwWisdom[RoleID_WuHou] += 6;
+				gpGlobals->g.PlayerRoles.rgwPower[RoleID_WuHou] += 4;
+			}
+		}
+	}
+
+#define STAT_LIMIT(t) { if ((t) > 24000) (t) = 24000; }
+	STAT_LIMIT(gpGlobals->g.PlayerRoles.rgwMaxHP[wPlayerRole]);
+	STAT_LIMIT(gpGlobals->g.PlayerRoles.rgwMaxMP[wPlayerRole]);
+	STAT_LIMIT(gpGlobals->g.PlayerRoles.rgwAttackStrength[wPlayerRole]);
+	STAT_LIMIT(gpGlobals->g.PlayerRoles.rgwMagicStrength[wPlayerRole]);
+	STAT_LIMIT(gpGlobals->g.PlayerRoles.rgwDefense[wPlayerRole]);
+	STAT_LIMIT(gpGlobals->g.PlayerRoles.rgwDexterity[wPlayerRole]);
+	STAT_LIMIT(gpGlobals->g.PlayerRoles.rgwFleeRate[wPlayerRole]);
 #undef STAT_LIMIT
 
-   //
-   // Reset experience points to zero
-   //
-   gpGlobals->Exp.rgPrimaryExp[wPlayerRole].wExp = 0;
-   gpGlobals->Exp.rgPrimaryExp[wPlayerRole].wLevel =
-      gpGlobals->g.PlayerRoles.rgwLevel[wPlayerRole];
+#define STAT_LIMIT(t) { if ((t) > 10000) (t) = 10000; }
+	STAT_LIMIT(gpGlobals->g.PlayerRoles.rgwWisdom[wPlayerRole]);
+	STAT_LIMIT(gpGlobals->g.PlayerRoles.rgwPower[wPlayerRole]);
+#undef STAT_LIMIT
+
+	//
+	// Reset experience points to zero
+	//
+	gpGlobals->Exp.rgPrimaryExp[wPlayerRole].wExp = 0;
+	gpGlobals->Exp.rgPrimaryExp[wPlayerRole].wLevel =
+		gpGlobals->g.PlayerRoles.rgwLevel[wPlayerRole];
+}
+
+WORD
+PAL_New_GetPlayerID(
+	WORD		wPlayerIndex
+)
+{
+	if (wPlayerIndex > MAX_PLAYERS_IN_PARTY)
+	{
+		return 0xFFFF;
+	}
+	else
+	{
+		return gpGlobals->rgParty[wPlayerIndex].wPlayerRole;
+	}
+}
+
+INT
+PAL_New_GetPlayerIndex(
+	WORD		wPlayerRole
+)
+{
+	int		i;
+
+	for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+	{
+		if (wPlayerRole == gpGlobals->rgParty[i].wPlayerRole)
+		{
+			break;
+		}
+	}
+
+	if (i > gpGlobals->wMaxPartyMemberIndex)
+	{
+		return -1;//没有找到
+	}
+	else
+	{
+		return i;
+	}
+}
+
+//fGetLowest为真找属性最低的角色序号，bLow为假找属性最高的角色序号，
+INT
+PAL_New_GetPlayerIndexByPara(
+	PlayerPara	pp,
+	BOOL		fGetLowest)
+{
+	INT* p = (INT*)(&gpGlobals->g.PlayerRoles);
+	INT* p1[MAX_PLAYER_EQUIPMENTS + 1] =
+	{
+		(INT*)(&gpGlobals->rgEquipmentEffect[0]),
+		(INT*)(&gpGlobals->rgEquipmentEffect[1]),
+		(INT*)(&gpGlobals->rgEquipmentEffect[2]),
+		(INT*)(&gpGlobals->rgEquipmentEffect[3]),
+		(INT*)(&gpGlobals->rgEquipmentEffect[4]),
+		(INT*)(&gpGlobals->rgEquipmentEffect[5]),
+		(INT*)(&gpGlobals->rgEquipmentEffect[6]),
+
+	};
+	int i, j, max, maxIndex, min, minIndex, cur;
+	INT w = 0;
+
+	w = gpGlobals->rgParty[0].wPlayerRole;
+	cur = p[pp * MAX_PLAYER_ROLES + w];
+	for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+	{
+		cur += p1[i][pp * MAX_PLAYER_ROLES + w];
+	}
+	min = cur;
+	minIndex = 0;
+	max = cur;
+	maxIndex = 0;
+
+	for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+	{
+		w = gpGlobals->rgParty[i].wPlayerRole;
+		cur = p[pp * MAX_PLAYER_ROLES + w];
+		for (j = 0; j <= MAX_PLAYER_EQUIPMENTS; j++)
+		{
+			cur += p1[j][pp * MAX_PLAYER_ROLES + w];
+		}
+
+		if (max < cur)
+		{
+			max = cur;
+			maxIndex = i;
+		}
+		if (min > cur)
+		{
+			min = cur;
+			minIndex = i;
+		}
+	}
+
+	if (fGetLowest == TRUE)
+	{
+		return minIndex;
+	}
+	else
+	{
+		return maxIndex;
+	}
+}
+
+BOOL
+PAL_New_GetTrueByPercentage(
+	WORD		wPercentage
+)
+/*++
+Purpose:根据百分比返回真值
+Parameters:	[IN]  wPercentage - 百分数
+Return value:有（输入%）的可能返回真值，其余返回假
+--*/
+{
+	if (RandomLong(0, 99) < wPercentage)
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+INT
+PAL_New_GetPoisonIndexForPlayer(
+	WORD			wPlayerRole,
+	WORD			wPoisonID
+)
+/*++
+Purpose:    Check if the player is poisoned by the specified poison.
+Parameters:		[IN]  wPlayerRole - the player role ID.
+[IN]  wPoisonID - the poison to be checked.
+Return value:		如果没有中这种毒，返回-1；
+如果中毒，则返回该毒在该角色的rgPoisonStatus的位置序号
+--*/
+{
+	int i, index;
+
+	index = PAL_New_GetPlayerIndex(wPlayerRole);
+	if (index == -1)
+	{
+		return -1;
+	}
+
+	for (i = 0; i < MAX_POISONS; i++)
+	{
+		if (gpGlobals->rgPoisonStatus[i][index].wPoisonID == wPoisonID)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+
+BOOL
+PAL_New_IsPlayerPoisoned(
+	WORD			wPlayerRole
+)
+/*++
+Purpose:    Check if the player is poisoned.
+Parameters:    [IN]  wPlayerRole - the player role ID.
+Return value:    TRUE if player is poisoned;
+FALSE if not.
+--*/
+{
+	int i, index;
+
+	index = PAL_New_GetPlayerIndex(wPlayerRole);
+	if (index == -1)
+	{
+		return FALSE;
+	}
+
+	for (i = 0; i < MAX_POISONS; i++)
+	{
+		if (gpGlobals->rgPoisonStatus[i][index].wPoisonID != 0)
+		{
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+
+VOID
+PAL_New_SortPoisonsForPlayerByLevel(
+	WORD			wPlayerRole
+)
+{
+	int         i, j, index, PoisonNum;
+	WORD        wPoisonID1, wPoisonID2;
+	WORD        wPoisonLevel1, wPoisonLevel2;
+	POISONSTATUS	tempPoison;
+
+	for (index = 0; index <= gpGlobals->wMaxPartyMemberIndex; index++)
+	{
+		if (gpGlobals->rgParty[index].wPlayerRole == wPlayerRole)break;
+	}
+
+	if (index > gpGlobals->wMaxPartyMemberIndex)return; // don't go further
+
+	for (j = 0, PoisonNum = 0; j < MAX_POISONS; j++)
+	{
+		wPoisonID1 = gpGlobals->rgPoisonStatus[j][index].wPoisonID;
+		if (wPoisonID1 == 0) gpGlobals->rgPoisonStatus[j][index].wPoisonScript = 0;
+		else PoisonNum++;
+	}
+
+	if (PoisonNum < 2)	return;	//中毒数目小于2不用排序
+
+
+	for (i = 0; i < MAX_POISONS - 1; i++)
+	{
+		for (j = 0; j < MAX_POISONS - i - 1; j++)
+		{
+			wPoisonID1 = gpGlobals->rgPoisonStatus[j][index].wPoisonID;
+			wPoisonLevel1 = gpGlobals->g.rgObject[wPoisonID1].poison.wPoisonLevel;
+			wPoisonID2 = gpGlobals->rgPoisonStatus[j + 1][index].wPoisonID;
+			wPoisonLevel2 = gpGlobals->g.rgObject[wPoisonID2].poison.wPoisonLevel;
+
+			if (wPoisonLevel1 < wPoisonLevel2)
+			{
+				tempPoison = gpGlobals->rgPoisonStatus[j][index];
+				gpGlobals->rgPoisonStatus[j][index] = gpGlobals->rgPoisonStatus[j + 1][index];
+				gpGlobals->rgPoisonStatus[j + 1][index] = tempPoison;
+			}
+		}
+	}
+}
+
+DWORD
+PAL_GetLevelUpBaseExp(
+	DWORD		wLevel
+)
+{
+	DWORD wExp = 0;
+
+	if (wLevel <= 899)
+	{
+		wExp = 55 * wLevel * (wLevel - 1) / 2 + 15;
+	}
+	else
+	{
+		wExp = 25000000;
+	}
+	return wExp;
+}
+
+VOID
+PAL_New_SortInventory(
+)
+{
+	int         i, j;
+	WORD        ItemID1, ItemID2;
+	INT		ItemNum;
+	INVENTORY   TempItem;
+	INVENTORY	TempInventory[MAX_INVENTORY];
+
+	memset(TempInventory, 0, sizeof(TempInventory));
+
+	for (i = 0, j = 0; i < MAX_INVENTORY; i++)
+	{
+		TempItem = gpGlobals->rgInventory[i];
+		if (TempItem.wItem != 0 && TempItem.nAmount != 0)
+		{
+			TempInventory[j] = TempItem;
+			j++;
+		}
+	}
+	ItemNum = j;
+
+	for (i = 0; i < ItemNum; i++)
+	{
+		for (j = 0; j < ItemNum - i - 1; j++)
+		{
+			ItemID1 = TempInventory[j].wItem;
+			ItemID2 = TempInventory[j + 1].wItem;
+
+
+			if (ItemID1 > ItemID2)
+			{
+				TempItem = TempInventory[j];
+				TempInventory[j] = TempInventory[j + 1];
+				TempInventory[j + 1] = TempItem;
+			}
+		}
+	}
+
+	for (i = 0; i < MAX_INVENTORY; i++)
+	{
+		gpGlobals->rgInventory[i] = TempInventory[i];
+	}
+
+	return;
+}
+
+VOID PAL_AutoSaveGame()
+{
+	WORD wSavedTimes = 0;
+	gpGlobals->bCurrentSaveSlot = 10;
+
+	WORD curSavedTimes = GetSavedTimes(10);
+	if (curSavedTimes >= wSavedTimes)
+	{
+		wSavedTimes = curSavedTimes;
+	}
+	PAL_SaveGame(gpGlobals->bCurrentSaveSlot, wSavedTimes + 1);
+	AUDIO_PlaySound(127);
+}
+
+BOOL
+PAL_FindEnemyBooty(
+	WORD           wScriptEntry,
+	WORD           wEventObjectID,
+	WORD           wEnemyIndex,
+	PAL_POS        pNumPos,
+	PAL_POS        pTextPos,
+	BOOL           bbJumpScript
+)
+/*++
+  Purpose:
+
+	找出敌人的战利品（其实就是战后脚本得到什么物品）
+
+  Parameters:
+
+	[IN]  wScriptEntry - The script entry to execute.
+
+	[IN]  wEventObjectID - The event object ID which invoked the script.
+
+  Return value:
+
+	物品及其数量
+
+--*/
+{
+	static WORD       wLastEventObject = 0;
+
+	WORD              wNextScriptEntry;
+	BOOL              fEnded;
+	LPSCRIPTENTRY     pScript;
+	LPEVENTOBJECT     pEvtObj = NULL;
+
+	extern BOOL       g_fUpdatedInBattle; // HACKHACK
+
+	// 04跳转并返回指令执行结果
+	BOOL              bJumpResults = FALSE;
+
+	wNextScriptEntry = wScriptEntry;
+	fEnded = FALSE;
+	g_fUpdatedInBattle = FALSE;
+
+	if (wEventObjectID == 0xFFFF)
+	{
+		wEventObjectID = wLastEventObject;
+	}
+
+	wLastEventObject = wEventObjectID;
+
+	if (wEventObjectID != 0)
+	{
+		pEvtObj = &(gpGlobals->g.lprgEventObject[wEventObjectID - 1]);
+	}
+
+	g_fScriptSuccess = TRUE;
+
+	WORD wEnemyBooty = 0;
+	WORD wEnemyBootyNum = 0;
+
+	while (wScriptEntry != 0 && !fEnded)
+	{
+		pScript = &(gpGlobals->g.lprgScriptEntry[wScriptEntry]);
+
+		switch (pScript->wOperation)
+		{
+		case 0x0000:
+			//
+			// Stop running
+			//
+			fEnded = TRUE;
+			break;
+
+		case 0x0001:
+			//
+			// Stop running and replace the entry with the next line
+			//
+			fEnded = TRUE;
+			wNextScriptEntry = wScriptEntry + 1;
+			break;
+
+		case 0x0002:
+			//
+			// Stop running and replace the entry with the specified one
+			//
+			if (pScript->rgwOperand[1] == 0 ||
+				++(pEvtObj->nScriptIdleFrame) < pScript->rgwOperand[1])
+			{
+				fEnded = TRUE;
+				wNextScriptEntry = pScript->rgwOperand[0];
+			}
+			else
+			{
+				//
+				// failed
+				//
+				pEvtObj->nScriptIdleFrame = 0;
+				wScriptEntry++;
+			}
+			break;
+
+		case 0x0003:
+			//
+			// unconditional jump
+			//
+			if (pScript->rgwOperand[1] == 0 ||
+				++(pEvtObj->nScriptIdleFrame) < pScript->rgwOperand[1])
+			{
+				wScriptEntry = pScript->rgwOperand[0];
+			}
+			else
+			{
+				//
+				// failed
+				//
+				pEvtObj->nScriptIdleFrame = 0;
+				wScriptEntry++;
+			}
+			break;
+
+		case 0x0004:
+			//
+			// Call script
+			//
+			bJumpResults = PAL_FindEnemyBooty(pScript->rgwOperand[0], ((pScript->rgwOperand[1] == 0) ? wEventObjectID :
+				pScript->rgwOperand[1]), wEnemyIndex, pNumPos, pTextPos, TRUE);
+			if (bJumpResults)
+				return TRUE;
+			wScriptEntry++;
+			break;
+
+		case 0x001F:
+			fEnded = TRUE;
+			wEnemyBooty = pScript->rgwOperand[0];
+			wEnemyBootyNum = (SHORT)(pScript->rgwOperand[1]);
+			break;
+
+		default:
+			wScriptEntry++;
+			break;
+		}
+	}
+
+	// 若跳转脚本中没有找到战利品则执行
+	if (!bJumpResults)
+		if (wEnemyBooty == 0 && !bbJumpScript)
+		{
+			// 若本函数为非跳转指令的递归调用则执行
+			PAL_DrawText(L"无", pTextPos, MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+		}
+		else
+		{
+			PAL_DrawNumber((wEnemyBootyNum == 0) ? 1 : wEnemyBootyNum, 3, pNumPos, kNumColorCyan, kNumAlignRight);
+			PAL_DrawText(PAL_GetWord(wEnemyBooty), pTextPos, MENUITEM_COLOR_CONFIRMED,
+				TRUE, FALSE, FALSE);
+			return TRUE;
+		}
+
+	return FALSE;
 }

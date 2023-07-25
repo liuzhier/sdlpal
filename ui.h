@@ -1,4 +1,4 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
 // Copyright (c) 2011-2023, SDLPAL development team.
@@ -26,12 +26,13 @@
 
 #define CHUNKNUM_SPRITEUI                  9
 
-#define MENUITEM_COLOR                     0x4F
-#define MENUITEM_COLOR_INACTIVE            0x1C
+#define MENUITEM_COLOR                     0x0F
+#define MENUITEM_COLOR_INACTIVE            0x1B
 #define MENUITEM_COLOR_CONFIRMED           0x2C
-#define MENUITEM_COLOR_SELECTED_INACTIVE   0x1F
+#define MENUITEM_COLOR_SELECTED_INACTIVE   0x1E
 #define MENUITEM_COLOR_SELECTED_FIRST      0xF9
 #define MENUITEM_COLOR_SELECTED_TOTALNUM   6
+#define MENUITEM_COLOR2                     0x3F
 
 #define MENUITEM_COLOR_SELECTED                                    \
    (MENUITEM_COLOR_SELECTED_FIRST +                                \
@@ -40,7 +41,7 @@
 
 #define MENUITEM_COLOR_EQUIPPEDITEM        0xC8
 
-#define DESCTEXT_COLOR                     0x2E
+#define DESCTEXT_COLOR                     0x3C
 
 #define MAINMENU_BACKGROUND_FBPNUM         (gConfig.fIsWIN95 ? 2 :60)
 
@@ -48,10 +49,14 @@
 #define MAINMENU_LABEL_NEWGAME             7
 #define MAINMENU_LABEL_LOADGAME            8
 
-#define LOADMENU_LABEL_SLOT_FIRST          43
+#define LOADMENU_LABEL_SLOT_1              43
+#define LOADMENU_LABEL_SLOT_2              44
+#define LOADMENU_LABEL_SLOT_3              45
+#define LOADMENU_LABEL_SLOT_4              46
+#define LOADMENU_LABEL_SLOT_5              47
 
-#define CONFIRMMENU_LABEL_NO               19
-#define CONFIRMMENU_LABEL_YES              20
+#define CONFIRMMENU_LABEL_YES              19
+#define CONFIRMMENU_LABEL_NO               20
 
 #define CASH_LABEL                         21
 
@@ -68,8 +73,8 @@
 #define SYSMENU_LABEL_MUSIC                13
 #define SYSMENU_LABEL_SOUND                14
 #define SYSMENU_LABEL_QUIT                 15
-#define SYSMENU_LABEL_BATTLEMODE           606
-#define SYSMENU_LABEL_LAUNCHSETTING        612
+#define SYSMENU_LABEL_BATTLEMODE           998
+#define SYSMENU_LABEL_LAUNCHSETTING        999
 
 #define BATTLESPEEDMENU_LABEL_1            (SYSMENU_LABEL_BATTLEMODE + 1)
 #define BATTLESPEEDMENU_LABEL_2            (SYSMENU_LABEL_BATTLEMODE + 2)
@@ -77,10 +82,17 @@
 #define BATTLESPEEDMENU_LABEL_4            (SYSMENU_LABEL_BATTLEMODE + 4)
 #define BATTLESPEEDMENU_LABEL_5            (SYSMENU_LABEL_BATTLEMODE + 5)
 
+//
+// 买五个买十个
+//
+#define CONFIRMMENU_LABEL_BUYFIVE          (SYSMENU_LABEL_LAUNCHSETTING + 14)
+#define CONFIRMMENU_LABEL_BUYTEN           (SYSMENU_LABEL_LAUNCHSETTING + 15)
+
 #define INVMENU_LABEL_USE                  23
 #define INVMENU_LABEL_EQUIP                22
 
 #define STATUS_BACKGROUND_FBPNUM           0
+#define STATUS_MAGICBACKGROUND_FBPNUM      70
 #define STATUS_LABEL_EXP                   2
 #define STATUS_LABEL_LEVEL                 48
 #define STATUS_LABEL_HP                    49
@@ -94,14 +106,24 @@
 #define STATUS_LABEL_RESISTANCE            53
 #define STATUS_LABEL_DEXTERITY             54
 #define STATUS_LABEL_FLEERATE              55
-#define STATUS_COLOR_EQUIPMENT             0xBE
+#define STATUS_LABEL_Power                 (SYSMENU_LABEL_LAUNCHSETTING + 1)
+#define STATUS_LABEL_Wisdom                (SYSMENU_LABEL_LAUNCHSETTING + 2)
+#define LOADMENU_LABEL_SLOT_6              (SYSMENU_LABEL_LAUNCHSETTING + 3)
+#define LOADMENU_LABEL_SLOT_7              (SYSMENU_LABEL_LAUNCHSETTING + 4)
+#define LOADMENU_LABEL_SLOT_8              (SYSMENU_LABEL_LAUNCHSETTING + 5)
+#define LOADMENU_LABEL_SLOT_9              (SYSMENU_LABEL_LAUNCHSETTING + 6)
+#define LOADMENU_LABEL_SLOT_10             (SYSMENU_LABEL_LAUNCHSETTING + 7)
+#define LOADMENU_LABEL_SLOT_11             (SYSMENU_LABEL_LAUNCHSETTING + 10)
 
-#define EQUIP_LABEL_HEAD                   600
-#define EQUIP_LABEL_SHOULDER               601
-#define EQUIP_LABEL_BODY                   602
-#define EQUIP_LABEL_HAND                   603
-#define EQUIP_LABEL_FOOT                   604
-#define EQUIP_LABEL_NECK                   605
+#define STATUS_COLOR_EQUIPMENT             0x2F
+#define STATUS_COLOR_MAGIC                 0xFC
+
+#define EQUIP_LABEL_HEAD                   982
+#define EQUIP_LABEL_SHOULDER               983
+#define EQUIP_LABEL_BODY                   984
+#define EQUIP_LABEL_HAND                   985
+#define EQUIP_LABEL_FOOT                   986
+#define EQUIP_LABEL_NECK                   987
 
 #define BUYMENU_LABEL_CURRENT              35
 #define SELLMENU_LABEL_PRICE               25
@@ -112,167 +134,182 @@
 #define SPRITENUM_CURSOR                   69
 #define SPRITENUM_PLAYERINFOBOX            18
 #define SPRITENUM_PLAYERFACE_FIRST         48
+#define SPRITENUM_PLAYERFACE_poison        71
 
 #define EQUIPMENU_BACKGROUND_FBPNUM        1
 
-#define ITEMUSEMENU_COLOR_STATLABEL        0xBB
+#define ITEMUSEMENU_COLOR_STATLABEL        0x0F
 
 #define BATTLEWIN_GETEXP_LABEL             30
 #define BATTLEWIN_BEATENEMY_LABEL          9
 #define BATTLEWIN_DOLLAR_LABEL             10
 #define BATTLEWIN_LEVELUP_LABEL            32
 #define BATTLEWIN_ADDMAGIC_LABEL           33
-#define BATTLEWIN_LEVELUP_LABEL_COLOR      0xBB
+#define BATTLEWIN_LINGHU_LABEL             (SYSMENU_LABEL_LAUNCHSETTING + 8)
+#define SHOP_LINGHU_LABEL                  (SYSMENU_LABEL_LAUNCHSETTING + 9)
+#define BATTLEWIN_LEVELUP_LABEL_COLOR      0x3B
 #define SPRITENUM_ARROW                    47
 
 #define BATTLE_LABEL_ESCAPEFAIL            31
 
+// 标签：游戏难度
+#define LABEL_DIFFICULTY_ARDER             (SYSMENU_LABEL_LAUNCHSETTING + 17)
+
 typedef struct tagBOX
 {
-   PAL_POS        pos;
-   WORD           wWidth, wHeight;
-   SDL_Surface   *lpSavedArea;
-} BOX, *LPBOX;
+	PAL_POS        pos;
+	WORD           wWidth, wHeight;
+	SDL_Surface* lpSavedArea;
+} BOX, * LPBOX;
 
 typedef struct tagMENUITEM
 {
-   WORD          wValue;
-   WORD          wNumWord;
-   BOOL          fEnabled;
-   PAL_POS       pos;
-} MENUITEM, *LPMENUITEM;
+	WORD          wValue;
+	WORD          wNumWord;
+	BOOL          fEnabled;
+	PAL_POS       pos;
+} MENUITEM, * LPMENUITEM;
 typedef const MENUITEM* LPCMENUITEM;
 
 typedef struct tagOBJECTDESC
 {
-   WORD                        wObjectID;
-   LPWSTR                      lpDesc;
-   struct tagOBJECTDESC       *next;
-} OBJECTDESC, *LPOBJECTDESC;
+	WORD                        wObjectID;
+	LPWSTR                      lpDesc;
+	struct tagOBJECTDESC* next;
+} OBJECTDESC, * LPOBJECTDESC;
 
-typedef VOID (*LPITEMCHANGED_CALLBACK)(WORD);
+typedef VOID(*LPITEMCHANGED_CALLBACK)(WORD);
 
 #define MENUITEM_VALUE_CANCELLED      0xFFFF
 
 typedef enum tagNUMCOLOR
 {
-   kNumColorYellow,
-   kNumColorBlue,
-   kNumColorCyan
+	kNumColorYellow,
+	kNumColorBlue,
+	kNumColorCyan
 } NUMCOLOR;
 
 typedef enum tagNUMALIGN
 {
-   kNumAlignLeft,
-   kNumAlignMid,
-   kNumAlignRight
+	kNumAlignLeft,
+	kNumAlignMid,
+	kNumAlignRight
 } NUMALIGN;
 
 PAL_C_LINKAGE_BEGIN
 
 INT
 PAL_InitUI(
-   VOID
+	VOID
 );
 
 VOID
 PAL_FreeUI(
-   VOID
+	VOID
 );
 
 LPBOX
 PAL_CreateBox(
-   PAL_POS        pos,
-   INT            nRows,
-   INT            nColumns,
-   INT            iStyle,
-   BOOL           fSaveScreen
+	PAL_POS        pos,
+	INT            nRows,
+	INT            nColumns,
+	INT            iStyle,
+	BOOL           fSaveScreen
 );
-    
+
 LPBOX
 PAL_CreateBoxWithShadow(
-   PAL_POS        pos,
-   INT            nRows,
-   INT            nColumns,
-   INT            iStyle,
-   BOOL           fSaveScreen,
-   INT            nShadowOffset
+	PAL_POS        pos,
+	INT            nRows,
+	INT            nColumns,
+	INT            iStyle,
+	BOOL           fSaveScreen,
+	INT            nShadowOffset
 );
 
 LPBOX
 PAL_CreateSingleLineBox(
-   PAL_POS        pos,
-   INT            nLen,
-   BOOL           fSaveScreen
+	PAL_POS        pos,
+	INT            nLen,
+	BOOL           fSaveScreen
 );
-    
+
 LPBOX
 PAL_CreateSingleLineBoxWithShadow(
-   PAL_POS        pos,
-   INT            nLen,
-   BOOL           fSaveScreen,
-   INT            nShadowOffset
+	PAL_POS        pos,
+	INT            nLen,
+	BOOL           fSaveScreen,
+	INT            nShadowOffset
 );
-    
+
 VOID
 PAL_DeleteBox(
-   LPBOX          lpBox
+	LPBOX          lpBox
 );
 
 WORD
 PAL_ReadMenu(
-   LPITEMCHANGED_CALLBACK    lpfnMenuItemChanged,
-   LPCMENUITEM               rgMenuItem,
-   INT                       nMenuItem,
-   WORD                      wDefaultItem,
-   BYTE                      bLabelColor
+	LPITEMCHANGED_CALLBACK    lpfnMenuItemChanged,
+	LPCMENUITEM               rgMenuItem,
+	INT                       nMenuItem,
+	WORD                      wDefaultItem,
+	BYTE                      bLabelColor
+);
+
+WORD
+PAL_New_ReadMenu(
+	LPITEMCHANGED_CALLBACK    lpfnMenuItemChanged,
+	LPCMENUITEM               rgMenuItem,
+	INT                       nMenuItem,
+	WORD                      wDefaultItem,
+	BYTE                      bLabelColor
 );
 
 VOID
 PAL_DrawNumber(
-   UINT            iNum,
-   UINT            nLength,
-   PAL_POS         pos,
-   NUMCOLOR        color,
-   NUMALIGN        align
+	UINT            iNum,
+	UINT            nLength,
+	PAL_POS         pos,
+	NUMCOLOR        color,
+	NUMALIGN        align
 );
-    
+
 INT
 PAL_TextWidth(
-   LPCWSTR        lpszItemText
+	LPCWSTR        lpszItemText
 );
 
 INT
 PAL_MenuTextMaxWidth(
-   LPCMENUITEM    rgMenuItem,
-   INT            nMenuItem
+	LPCMENUITEM    rgMenuItem,
+	INT            nMenuItem
 );
 
 INT
 PAL_WordMaxWidth(
-   INT            nFirstWord,
-   INT            nWordNum
+	INT            nFirstWord,
+	INT            nWordNum
 );
 
 INT
 PAL_WordWidth(
-   INT            nWordIndex
+	INT            nWordIndex
 );
 
 LPOBJECTDESC
 PAL_LoadObjectDesc(
-   LPCSTR          lpszFileName
+	LPCSTR          lpszFileName
 );
 
 VOID
 PAL_FreeObjectDesc(
-   LPOBJECTDESC    lpObjectDesc
+	LPOBJECTDESC    lpObjectDesc
 );
 
 LPCWSTR
 PAL_GetObjectDesc(
-   LPOBJECTDESC   lpObjectDesc,
-   WORD           wObjectID
+	LPOBJECTDESC   lpObjectDesc,
+	WORD           wObjectID
 );
 
 extern LPSPRITE gpSpriteUI;

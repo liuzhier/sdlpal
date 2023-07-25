@@ -1,4 +1,4 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
 // Copyright (c) 2011-2023, SDLPAL development team.
@@ -47,7 +47,7 @@ static const ConfigItem gConfigItems[PALCFG_ALL_MAX] = {
 	{ PALCFG_USETOUCHOVERLAY,   PALCFG_BOOLEAN,  "UseTouchOverlay",   15, MAKE_BOOLEAN(PAL_HAS_TOUCH,                 FALSE,                 TRUE) },
 	{ PALCFG_ENABLEAVIPLAY,     PALCFG_BOOLEAN,  "EnableAviPlay",     13, MAKE_BOOLEAN(TRUE,                          FALSE,                 TRUE) },
 	{ PALCFG_ENABLEGLSL,        PALCFG_BOOLEAN,  "EnableGLSL",        10, MAKE_BOOLEAN(FALSE,                         FALSE,                 TRUE) },
-    { PALCFG_ENABLEHDR,         PALCFG_BOOLEAN,  "EnableHDR",          9, MAKE_BOOLEAN(FALSE,                         FALSE,                 TRUE) },
+	{ PALCFG_ENABLEHDR,         PALCFG_BOOLEAN,  "EnableHDR",          9, MAKE_BOOLEAN(FALSE,                         FALSE,                 TRUE) },
 
 	{ PALCFG_SURROUNDOPLOFFSET, PALCFG_INTEGER,  "SurroundOPLOffset", 17, MAKE_INTEGER(384,                           INT32_MIN,             INT32_MAX) },
 	{ PALCFG_LOGLEVEL,          PALCFG_INTEGER,  "LogLevel",           8, MAKE_INTEGER(PAL_DEFAULT_LOGLEVEL,          LOGLEVEL_MIN,          LOGLEVEL_MAX) },
@@ -61,13 +61,13 @@ static const ConfigItem gConfigItems[PALCFG_ALL_MAX] = {
 	{ PALCFG_SOUNDVOLUME,       PALCFG_UNSIGNED, "SoundVolume",       11, MAKE_UNSIGNED(PAL_MAX_VOLUME,                0,                     PAL_MAX_VOLUME) },        // Default for maximum volume
 	{ PALCFG_WINDOWHEIGHT,      PALCFG_UNSIGNED, "WindowHeight",      12, MAKE_UNSIGNED(PAL_DEFAULT_WINDOW_HEIGHT,     0,                     UINT32_MAX) },
 	{ PALCFG_WINDOWWIDTH,       PALCFG_UNSIGNED, "WindowWidth",       11, MAKE_UNSIGNED(PAL_DEFAULT_WINDOW_WIDTH,      0,                     UINT32_MAX) },
-    { PALCFG_TEXTUREHEIGHT,     PALCFG_UNSIGNED, "TextureHeight",     13, MAKE_UNSIGNED(PAL_DEFAULT_TEXTURE_HEIGHT,    0,                     UINT32_MAX) },
-    { PALCFG_TEXTUREWIDTH,      PALCFG_UNSIGNED, "TextureWidth",      12, MAKE_UNSIGNED(PAL_DEFAULT_TEXTURE_WIDTH,     0,                     UINT32_MAX) },
+	{ PALCFG_TEXTUREHEIGHT,     PALCFG_UNSIGNED, "TextureHeight",     13, MAKE_UNSIGNED(PAL_DEFAULT_TEXTURE_HEIGHT,    0,                     UINT32_MAX) },
+	{ PALCFG_TEXTUREWIDTH,      PALCFG_UNSIGNED, "TextureWidth",      12, MAKE_UNSIGNED(PAL_DEFAULT_TEXTURE_WIDTH,     0,                     UINT32_MAX) },
 
 	{ PALCFG_CD,                PALCFG_STRING,   "CD",                 2, MAKE_STRING("NONE") },
 	{ PALCFG_GAMEPATH,          PALCFG_STRING,   "GamePath",           8, MAKE_STRING(NULL) },
-    { PALCFG_SAVEPATH,          PALCFG_STRING,   "SavePath",           8, MAKE_STRING(NULL) },
-    { PALCFG_SHADERPATH,        PALCFG_STRING,   "ShaderPath",        10, MAKE_STRING(NULL) },
+	{ PALCFG_SAVEPATH,          PALCFG_STRING,   "SavePath",           8, MAKE_STRING(NULL) },
+	{ PALCFG_SHADERPATH,        PALCFG_STRING,   "ShaderPath",        10, MAKE_STRING(NULL) },
 	{ PALCFG_MESSAGEFILE,       PALCFG_STRING,   "MessageFileName",   15, MAKE_STRING(NULL) },
 	{ PALCFG_FONTFILE,          PALCFG_STRING,   "FontFileName",      12, MAKE_STRING(NULL) },
 	{ PALCFG_MUSIC,             PALCFG_STRING,   "Music",              5, MAKE_STRING("RIX") },
@@ -82,19 +82,19 @@ static const ConfigItem gConfigItems[PALCFG_ALL_MAX] = {
 	{ PALCFG_SHADER,            PALCFG_STRING,   "Shader",             6, MAKE_STRING(NULL) },
 };
 
-static const char *music_types[] = { "MIDI", "RIX", "MP3", "OGG", "OPUS", "RAW" };
+static const char* music_types[] = { "MIDI", "RIX", "MP3", "OGG", "OPUS", "RAW" };
 static const char* synth_types[] = { "native", "timidity", "tinysoundfont" };
-static const char *cd_types[] = { "NONE", "MP3", "OGG", "OPUS", "RAW" };
-static const char *opl_cores[] = { "MAME", "DBFLT", "DBINT", "NUKED" };
-static const char *opl_chips[] = { "OPL2", "OPL3" };
+static const char* cd_types[] = { "NONE", "MP3", "OGG", "OPUS", "RAW" };
+static const char* opl_cores[] = { "MAME", "DBFLT", "DBINT", "NUKED" };
+static const char* opl_chips[] = { "OPL2", "OPL3" };
 
-static char * ParseStringValue(const char *sValue, char *original)
+static char* ParseStringValue(const char* sValue, char* original)
 {
 	int n = strlen(sValue);
 	while (n > 0 && isspace(sValue[n - 1])) n--;
 	if (n > 0)
 	{
-		char *newval = (char *)realloc(original, n + 1);
+		char* newval = (char*)realloc(original, n + 1);
 		memcpy(newval, sValue, n);
 		newval[n] = '\0';
 		return newval;
@@ -104,10 +104,10 @@ static char * ParseStringValue(const char *sValue, char *original)
 
 static BOOL
 PAL_ParseConfigLine(
-	const char * line,
-	const ConfigItem ** ppItem,
-	ConfigValue * pValue,
-	int * sLength
+	const char* line,
+	const ConfigItem** ppItem,
+	ConfigValue* pValue,
+	int* sLength
 )
 {
 	//
@@ -120,10 +120,10 @@ PAL_ParseConfigLine(
 	//
 	if (*line && *line != '#')
 	{
-		const char *ptr;
+		const char* ptr;
 		if ((ptr = strchr(line, '=')) != NULL)
 		{
-			const char *end = ptr++;
+			const char* end = ptr++;
 
 			//
 			// Skip tailing spaces
@@ -182,7 +182,7 @@ PAL_ParseConfigLine(
 	return FALSE;
 }
 
-const char *
+const char*
 PAL_ConfigName(
 	PALCFG_ITEM item
 )
@@ -192,7 +192,7 @@ PAL_ConfigName(
 
 PALCFG_ITEM
 PAL_ConfigIndex(
-	const char  *name
+	const char* name
 )
 {
 	for (int index = PALCFG_ALL_MIN; index < PALCFG_ALL_MAX; index++)
@@ -216,7 +216,7 @@ PAL_ConfigType(
 BOOL
 PAL_LimitConfig(
 	PALCFG_ITEM item,
-	ConfigValue * pValue
+	ConfigValue* pValue
 )
 {
 	if (!pValue) return FALSE;
@@ -277,9 +277,9 @@ PAL_FreeConfig(
 	free(gConfig.pszMsgFile);
 	free(gConfig.pszFontFile);
 	free(gConfig.pszGamePath);
-    free(gConfig.pszSavePath);
-    free(gConfig.pszShaderPath);
-    free(gConfig.pszScaleQuality);
+	free(gConfig.pszSavePath);
+	free(gConfig.pszShaderPath);
+	free(gConfig.pszScaleQuality);
 	free(gConfig.pszLogFile);
 
 	memset(&gConfig, 0, sizeof(CONFIGURATION));
@@ -290,7 +290,7 @@ PAL_LoadConfig(
 	BOOL fFromFile
 )
 {
-	FILE     *fp;
+	FILE* fp;
 	ConfigValue  values[PALCFG_ALL_MAX];
 	MUSICTYPE eMusicType = MUSIC_RIX;
 	MIDISYNTHTYPE eMIDISynthType = SYNTH_NATIVE;
@@ -299,16 +299,16 @@ PAL_LoadConfig(
 	OPLCHIP_TYPE eOPLChip = OPLCHIP_OPL2;
 	static const SCREENLAYOUT screen_layout = {
 		// Equipment Screen
-		.EquipImageBox     = PAL_XY(8, 8),
-		.EquipRoleListBox  = PAL_XY(2, 95),
-		.EquipItemName     = PAL_XY(5, 70),
-		.EquipItemAmount   = PAL_XY(51, 57),
-		.EquipLabels       = {
+		.EquipImageBox = PAL_XY(8, 8),
+		.EquipRoleListBox = PAL_XY(2, 95),
+		.EquipItemName = PAL_XY(5, 70),
+		.EquipItemAmount = PAL_XY(51, 57),
+		.EquipLabels = {
 			PAL_XY(92, 11), PAL_XY(92, 33),
 			PAL_XY(92, 55), PAL_XY(92, 77),
 			PAL_XY(92, 99), PAL_XY(92, 121)
 		},
-		.EquipNames        = {
+		.EquipNames = {
 			PAL_XY(130, 11), PAL_XY(130, 33),
 			PAL_XY(130, 55), PAL_XY(130, 77),
 			PAL_XY(130, 99), PAL_XY(130, 121)
@@ -325,28 +325,28 @@ PAL_LoadConfig(
 		},
 
 		// Status Screen
-		.RoleName            = PAL_XY(110, 8),
-		.RoleImage           = PAL_XY(110, 30),
-		.RoleExpLabel        = PAL_XY(6, 6),
-		.RoleLevelLabel      = PAL_XY(6, 32),
-		.RoleHPLabel         = PAL_XY(6, 54),
-		.RoleMPLabel         = PAL_XY(6, 76),
-		.RoleStatusLabels    = {
+		.RoleName = PAL_XY(110, 8),
+		.RoleImage = PAL_XY(110, 30),
+		.RoleExpLabel = PAL_XY(6, 6),
+		.RoleLevelLabel = PAL_XY(6, 32),
+		.RoleHPLabel = PAL_XY(6, 54),
+		.RoleMPLabel = PAL_XY(6, 76),
+		.RoleStatusLabels = {
 			PAL_XY(6, 98),  PAL_XY(6, 118),
 			PAL_XY(6, 138), PAL_XY(6, 158),
 			PAL_XY(6, 178)
 		},
-		.RoleCurrExp         = PAL_XY(58, 6),
-		.RoleNextExp         = PAL_XY(58, 15),
-		.RoleExpSlash        = PAL_XY(0, 0),
-		.RoleLevel           = PAL_XY(54, 35),
-		.RoleCurHP           = PAL_XY(42, 56),
-		.RoleMaxHP           = PAL_XY(63, 61),
-		.RoleHPSlash         = PAL_XY(65, 58),
-		.RoleCurMP           = PAL_XY(42, 78),
-		.RoleMaxMP           = PAL_XY(63, 83),
-		.RoleMPSlash         = PAL_XY(65, 80),
-		.RoleStatusValues    = {
+		.RoleCurrExp = PAL_XY(58, 6),
+		.RoleNextExp = PAL_XY(58, 15),
+		.RoleExpSlash = PAL_XY(0, 0),
+		.RoleLevel = PAL_XY(54, 35),
+		.RoleCurHP = PAL_XY(42, 56),
+		.RoleMaxHP = PAL_XY(63, 61),
+		.RoleHPSlash = PAL_XY(65, 58),
+		.RoleCurMP = PAL_XY(42, 78),
+		.RoleMaxMP = PAL_XY(63, 83),
+		.RoleMPSlash = PAL_XY(65, 80),
+		.RoleStatusValues = {
 			PAL_XY(42, 102), PAL_XY(42, 122),
 			PAL_XY(42, 142), PAL_XY(42, 162),
 			PAL_XY(42, 182)
@@ -356,12 +356,12 @@ PAL_LoadConfig(
 			PAL_XY(251, 101), PAL_XY(201, 133),
 			PAL_XY(141, 141), PAL_XY(81, 125)
 		},
-		.RoleEquipNames      = {
+		.RoleEquipNames = {
 			PAL_XY(195, 38),  PAL_XY(253, 78),
 			PAL_XY(257, 140), PAL_XY(207, 172),
 			PAL_XY(147, 180), PAL_XY(87, 164)
 		},
-		.RolePoisonNames     = {
+		.RolePoisonNames = {
 			PAL_XY(185, 58),  PAL_XY(185, 76),
 			PAL_XY(185, 94),  PAL_XY(185, 112),
 			PAL_XY(185, 130), PAL_XY(185, 148),
@@ -370,17 +370,17 @@ PAL_LoadConfig(
 		},
 
 		// Extra Lines
-		.ExtraItemDescLines  = PAL_XY(0, 0),
+		.ExtraItemDescLines = PAL_XY(0, 0),
 		.ExtraMagicDescLines = PAL_XY(0, 0),
 
 		// Magic Menu Desc
-		.MagicMPDescLines	= PAL_XY(5, 0),
-		.MagicMPSlashPos	= PAL_XY(45, 14),
-		.MagicMPNeededPos	= PAL_XY(15, 14),
-		.MagicMPCurrentPos	= PAL_XY(50, 14),
+		.MagicMPDescLines = PAL_XY(5, 0),
+		.MagicMPSlashPos = PAL_XY(45, 14),
+		.MagicMPNeededPos = PAL_XY(15, 14),
+		.MagicMPCurrentPos = PAL_XY(50, 14),
 
 		// Magic Desc Message Pos
-		.MagicDescMsgPos	= PAL_XY(102, 0),
+		.MagicDescMsgPos = PAL_XY(102, 0),
 	};
 
 	for (PALCFG_ITEM i = PALCFG_ALL_MIN; i < PALCFG_ALL_MAX; i++) values[i] = gConfigItems[i].DefaultValue;
@@ -395,7 +395,7 @@ PAL_LoadConfig(
 		while (fgets(buf, 512, fp) != NULL)
 		{
 			ConfigValue value;
-			const ConfigItem * item;
+			const ConfigItem* item;
 			int slen;
 			if (PAL_ParseConfigLine(buf, &item, &value, &slen))
 			{
@@ -423,36 +423,38 @@ PAL_LoadConfig(
 				case PALCFG_SAVEPATH:
 					gConfig.pszSavePath = ParseStringValue(value.sValue, gConfig.pszSavePath);
 					break;
-                case PALCFG_SHADERPATH:
-                    gConfig.pszShaderPath = ParseStringValue(value.sValue, gConfig.pszShaderPath);
-                    break;
+				case PALCFG_SHADERPATH:
+					gConfig.pszShaderPath = ParseStringValue(value.sValue, gConfig.pszShaderPath);
+					break;
 				case PALCFG_LOGFILE:
 					gConfig.pszLogFile = ParseStringValue(value.sValue, gConfig.pszLogFile);
 					break;
 				case PALCFG_CD:
 				{
-					if (PAL_HAS_MP3 && SDL_strncasecmp(value.sValue, "MP3", slen) == 0)
-						eCDType = CD_MP3;
-					else if (PAL_HAS_OGG && SDL_strncasecmp(value.sValue, "OGG", slen) == 0)
-						eCDType = CD_OGG;
-					else if (PAL_HAS_OPUS && SDL_strncasecmp(value.sValue, "OPUS", slen) == 0)
-						eCDType = CD_OPUS;
-					else if (PAL_HAS_SDLCD && SDL_strncasecmp(value.sValue, "RAW", slen) == 0)
-						eCDType = CD_SDLCD;
+					eCDType = CD_OGG;
+					//if (PAL_HAS_MP3 && SDL_strncasecmp(value.sValue, "MP3", slen) == 0)
+					//	eCDType = CD_MP3;
+					//else if (PAL_HAS_OGG && SDL_strncasecmp(value.sValue, "OGG", slen) == 0)
+					//	eCDType = CD_OGG;
+					//else if (PAL_HAS_OPUS && SDL_strncasecmp(value.sValue, "OPUS", slen) == 0)
+					//	eCDType = CD_OPUS;
+					//else if (PAL_HAS_SDLCD && SDL_strncasecmp(value.sValue, "RAW", slen) == 0)
+					//	eCDType = CD_SDLCD;
 					break;
 				}
 				case PALCFG_MUSIC:
 				{
-					if (SDL_strncasecmp(value.sValue, "MIDI", slen) == 0)
-						eMusicType = MUSIC_MIDI;
-					else if (PAL_HAS_MP3 && SDL_strncasecmp(value.sValue, "MP3", slen) == 0)
-						eMusicType = MUSIC_MP3;
-					else if (PAL_HAS_OGG && SDL_strncasecmp(value.sValue, "OGG", slen) == 0)
-						eMusicType = MUSIC_OGG;
-					else if (PAL_HAS_OPUS && SDL_strncasecmp(value.sValue, "OPUS", slen) == 0)
-						eMusicType = MUSIC_OPUS;
-					else if (SDL_strncasecmp(value.sValue, "RIX", slen) == 0)
-						eMusicType = MUSIC_RIX;
+					eMusicType = MUSIC_OGG;
+					//if (SDL_strncasecmp(value.sValue, "MIDI", slen) == 0)
+					//	eMusicType = MUSIC_MIDI;
+					//else if (PAL_HAS_MP3 && SDL_strncasecmp(value.sValue, "MP3", slen) == 0)
+					//	eMusicType = MUSIC_MP3;
+					//else if (PAL_HAS_OGG && SDL_strncasecmp(value.sValue, "OGG", slen) == 0)
+					//	eMusicType = MUSIC_OGG;
+					//else if (PAL_HAS_OPUS && SDL_strncasecmp(value.sValue, "OPUS", slen) == 0)
+					//	eMusicType = MUSIC_OPUS;
+					//else if (SDL_strncasecmp(value.sValue, "RIX", slen) == 0)
+					//	eMusicType = MUSIC_RIX;
 					break;
 				}
 				case PALCFG_MIDISYNTH:
@@ -489,7 +491,7 @@ PAL_LoadConfig(
 				{
 #if USE_RIX_EXTRA_INIT
 					int n = 1;
-					char *p;
+					char* p;
 					for (p = ptr; *p < *end; p++)
 					{
 						if (*p == ',')
@@ -499,8 +501,8 @@ PAL_LoadConfig(
 
 					if (n > 0)
 					{
-						uint32_t *regs = malloc(sizeof(uint32_t) * (n >> 1));
-						uint8_t *vals = malloc(sizeof(uint8_t) * (n >> 1));
+						uint32_t* regs = malloc(sizeof(uint32_t) * (n >> 1));
+						uint8_t* vals = malloc(sizeof(uint8_t) * (n >> 1));
 						uint32_t d, i, v = 1;
 						if (regs && vals)
 						{
@@ -524,10 +526,10 @@ PAL_LoadConfig(
 								free(vals);
 							}
 						}
-					}
+				}
 #endif
 					break;
-				}
+			}
 				case PALCFG_MIDICLIENT:
 					gConfig.pszMIDIClient = ParseStringValue(value.sValue, gConfig.pszMIDIClient);
 					break;
@@ -543,9 +545,9 @@ PAL_LoadConfig(
 				default:
 					values[item->Item] = value;
 					break;
-				}
-			}
 		}
+	}
+}
 
 		UTIL_CloseFile(fp);
 	}
@@ -555,7 +557,7 @@ PAL_LoadConfig(
 	//
 	if (!gConfig.pszSavePath) gConfig.pszSavePath = gConfig.pszGamePath ? strdup(gConfig.pszGamePath) : strdup(PAL_SAVE_PREFIX);
 	if (!gConfig.pszGamePath) gConfig.pszGamePath = strdup(PAL_PREFIX);
-    if (!gConfig.pszShaderPath) gConfig.pszShaderPath = strdup(gConfig.pszGamePath);
+	if (!gConfig.pszShaderPath) gConfig.pszShaderPath = strdup(gConfig.pszGamePath);
 	gConfig.eMusicType = eMusicType;
 	gConfig.eMIDISynth = eMIDISynthType;
 	gConfig.eCDType = eCDType;
@@ -573,7 +575,7 @@ PAL_LoadConfig(
 	gConfig.fFullScreen = values[PALCFG_FULLSCREEN].bValue;
 	gConfig.fEnableAviPlay = values[PALCFG_ENABLEAVIPLAY].bValue;
 	gConfig.fEnableGLSL = values[PALCFG_ENABLEGLSL].bValue;
-    gConfig.fEnableHDR = values[PALCFG_ENABLEHDR].bValue;
+	gConfig.fEnableHDR = values[PALCFG_ENABLEHDR].bValue;
 	gConfig.iAudioChannels = values[PALCFG_STEREO].bValue ? 2 : 1;
 
 	gConfig.iSurroundOPLOffset = values[PALCFG_SURROUNDOPLOFFSET].iValue;
@@ -587,7 +589,7 @@ PAL_LoadConfig(
 	gConfig.iMusicVolume = values[PALCFG_MUSICVOLUME].uValue;
 	gConfig.iSoundVolume = values[PALCFG_SOUNDVOLUME].uValue;
 
-	gConfig.dwTextureWidth  = values[PALCFG_TEXTUREWIDTH].uValue;
+	gConfig.dwTextureWidth = values[PALCFG_TEXTUREWIDTH].uValue;
 	gConfig.dwTextureHeight = values[PALCFG_TEXTUREHEIGHT].uValue;
 
 	if (UTIL_GetScreenSize(&values[PALCFG_WINDOWWIDTH].uValue, &values[PALCFG_WINDOWHEIGHT].uValue))
@@ -600,16 +602,16 @@ PAL_LoadConfig(
 		gConfig.dwScreenWidth = PAL_DEFAULT_WINDOW_WIDTH;
 		gConfig.dwScreenHeight = PAL_DEFAULT_WINDOW_HEIGHT;
 	}
-    
-    if( gConfig.dwTextureWidth == 0 && gConfig.dwTextureHeight == 0 ) {
-        gConfig.dwTextureWidth = PAL_DEFAULT_TEXTURE_WIDTH;
-        gConfig.dwTextureHeight = PAL_DEFAULT_TEXTURE_HEIGHT;
-    }
-    
-    if(gConfig.fEnableGLSL && !UTIL_IsFileExist(gConfig.pszShader)) {
-        UTIL_LogOutput(LOGLEVEL_ERROR, "Filter backend GLSL enabled but no valid effect file specified. Fallback to SDL default rendering\n");
-        gConfig.fEnableGLSL = FALSE;
-    }
+
+	if (gConfig.dwTextureWidth == 0 && gConfig.dwTextureHeight == 0) {
+		gConfig.dwTextureWidth = PAL_DEFAULT_TEXTURE_WIDTH;
+		gConfig.dwTextureHeight = PAL_DEFAULT_TEXTURE_HEIGHT;
+	}
+
+	if (gConfig.fEnableGLSL && !UTIL_IsFileExist(gConfig.pszShader)) {
+		UTIL_LogOutput(LOGLEVEL_ERROR, "Filter backend GLSL enabled but no valid effect file specified. Fallback to SDL default rendering\n");
+		gConfig.fEnableGLSL = FALSE;
+	}
 
 	if (gConfig.eMIDISynth != SYNTH_NATIVE && !UTIL_IsFileExist(gConfig.pszSoundBank)) {
 		UTIL_LogOutput(LOGLEVEL_ERROR, "SoftSynth enabled but no valid soundbank file specified. Fallback to native-midi");
@@ -624,7 +626,7 @@ PAL_SaveConfig(
 )
 {
 	char buf[512];
-	FILE *fp = UTIL_OpenFileAtPathForMode(PAL_CONFIG_PREFIX, "sdlpal.cfg", "w");
+	FILE* fp = UTIL_OpenFileAtPathForMode(PAL_CONFIG_PREFIX, "sdlpal.cfg", "w");
 
 	if (fp)
 	{
@@ -637,7 +639,7 @@ PAL_SaveConfig(
 		sprintf(buf, "%s=%d\n", PAL_ConfigName(PALCFG_USETOUCHOVERLAY), gConfig.fUseTouchOverlay); fputs(buf, fp);
 		sprintf(buf, "%s=%d\n", PAL_ConfigName(PALCFG_ENABLEAVIPLAY), gConfig.fEnableAviPlay); fputs(buf, fp);
 		sprintf(buf, "%s=%d\n", PAL_ConfigName(PALCFG_ENABLEGLSL), gConfig.fEnableGLSL); fputs(buf, fp);
-        sprintf(buf, "%s=%d\n", PAL_ConfigName(PALCFG_ENABLEHDR), gConfig.fEnableHDR); fputs(buf, fp);
+		sprintf(buf, "%s=%d\n", PAL_ConfigName(PALCFG_ENABLEHDR), gConfig.fEnableHDR); fputs(buf, fp);
 
 		sprintf(buf, "%s=%d\n", PAL_ConfigName(PALCFG_SURROUNDOPLOFFSET), gConfig.iSurroundOPLOffset); fputs(buf, fp);
 		sprintf(buf, "%s=%d\n", PAL_ConfigName(PALCFG_LOGLEVEL), gConfig.iLogLevel); fputs(buf, fp);
@@ -650,9 +652,9 @@ PAL_SaveConfig(
 		sprintf(buf, "%s=%u\n", PAL_ConfigName(PALCFG_MUSICVOLUME), gConfig.iMusicVolume); fputs(buf, fp);
 		sprintf(buf, "%s=%u\n", PAL_ConfigName(PALCFG_SOUNDVOLUME), gConfig.iSoundVolume); fputs(buf, fp);
 		sprintf(buf, "%s=%u\n", PAL_ConfigName(PALCFG_WINDOWHEIGHT), gConfig.dwScreenHeight); fputs(buf, fp);
-        sprintf(buf, "%s=%u\n", PAL_ConfigName(PALCFG_WINDOWWIDTH), gConfig.dwScreenWidth); fputs(buf, fp);
-        sprintf(buf, "%s=%u\n", PAL_ConfigName(PALCFG_TEXTUREHEIGHT), gConfig.dwTextureHeight); fputs(buf, fp);
-        sprintf(buf, "%s=%u\n", PAL_ConfigName(PALCFG_TEXTUREWIDTH), gConfig.dwTextureWidth); fputs(buf, fp);
+		sprintf(buf, "%s=%u\n", PAL_ConfigName(PALCFG_WINDOWWIDTH), gConfig.dwScreenWidth); fputs(buf, fp);
+		sprintf(buf, "%s=%u\n", PAL_ConfigName(PALCFG_TEXTUREHEIGHT), gConfig.dwTextureHeight); fputs(buf, fp);
+		sprintf(buf, "%s=%u\n", PAL_ConfigName(PALCFG_TEXTUREWIDTH), gConfig.dwTextureWidth); fputs(buf, fp);
 
 		sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_CD), cd_types[gConfig.eCDType]); fputs(buf, fp);
 		sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_MUSIC), music_types[gConfig.eMusicType]); fputs(buf, fp);
@@ -662,7 +664,7 @@ PAL_SaveConfig(
 
 		if (gConfig.pszGamePath && *gConfig.pszGamePath && strcmp(gConfig.pszGamePath, PAL_PREFIX) != 0) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_GAMEPATH), gConfig.pszGamePath); fputs(buf, fp); }
 		if (gConfig.pszSavePath && *gConfig.pszSavePath && strcmp(gConfig.pszSavePath, PAL_SAVE_PREFIX) != 0) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_SAVEPATH), gConfig.pszSavePath); fputs(buf, fp); }
-        if (gConfig.pszShaderPath && *gConfig.pszShaderPath && gConfig.pszGamePath && strcmp(gConfig.pszShaderPath, gConfig.pszGamePath) != 0) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_SHADERPATH), gConfig.pszShaderPath); fputs(buf, fp); }
+		if (gConfig.pszShaderPath && *gConfig.pszShaderPath && gConfig.pszGamePath && strcmp(gConfig.pszShaderPath, gConfig.pszGamePath) != 0) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_SHADERPATH), gConfig.pszShaderPath); fputs(buf, fp); }
 		if (gConfig.pszMsgFile && *gConfig.pszMsgFile) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_MESSAGEFILE), gConfig.pszMsgFile); fputs(buf, fp); }
 		if (gConfig.pszFontFile && *gConfig.pszFontFile) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_FONTFILE), gConfig.pszFontFile); fputs(buf, fp); }
 		if (gConfig.pszLogFile && *gConfig.pszLogFile) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_LOGFILE), gConfig.pszLogFile); fputs(buf, fp); }
@@ -717,7 +719,7 @@ PAL_GetConfigItem(
 		case PALCFG_CD:                value.sValue = cd_types[gConfig.eCDType]; break;
 		case PALCFG_GAMEPATH:          value.sValue = gConfig.pszGamePath; break;
 		case PALCFG_SAVEPATH:          value.sValue = gConfig.pszSavePath; break;
-        case PALCFG_SHADERPATH:        value.sValue = gConfig.pszShaderPath; break;
+		case PALCFG_SHADERPATH:        value.sValue = gConfig.pszShaderPath; break;
 		case PALCFG_MESSAGEFILE:       value.sValue = gConfig.pszMsgFile; break;
 		case PALCFG_FONTFILE:          value.sValue = gConfig.pszFontFile; break;
 		case PALCFG_LOGFILE:           value.sValue = gConfig.pszLogFile; break;
@@ -778,10 +780,10 @@ PAL_SetConfigItem(
 		if (gConfig.pszSavePath) free(gConfig.pszSavePath);
 		gConfig.pszSavePath = value.sValue && value.sValue[0] ? strdup(value.sValue) : (gConfig.pszGamePath ? strdup(gConfig.pszGamePath) : strdup(PAL_SAVE_PREFIX));
 		break;
-    case PALCFG_SHADERPATH:
-        if (gConfig.pszShaderPath) free(gConfig.pszShaderPath);
-        gConfig.pszShaderPath = value.sValue && value.sValue[0] ? strdup(value.sValue) : strdup(PAL_PREFIX);
-        break;
+	case PALCFG_SHADERPATH:
+		if (gConfig.pszShaderPath) free(gConfig.pszShaderPath);
+		gConfig.pszShaderPath = value.sValue && value.sValue[0] ? strdup(value.sValue) : strdup(PAL_PREFIX);
+		break;
 	case PALCFG_MESSAGEFILE:
 		if (gConfig.pszMsgFile) free(gConfig.pszMsgFile);
 		gConfig.pszMsgFile = value.sValue && value.sValue[0] ? strdup(value.sValue) : NULL;
@@ -896,7 +898,7 @@ PAL_GetConfigUnsigned(
 	return gConfigItems[item].Type == PALCFG_UNSIGNED ? PAL_GetConfigItem(item, default_value).uValue : 0;
 }
 
-const char *
+const char*
 PAL_GetConfigString(
 	PALCFG_ITEM item,
 	BOOL        default_value
@@ -976,7 +978,7 @@ PAL_SetConfigUnsigned(
 BOOL
 PAL_SetConfigString(
 	PALCFG_ITEM item,
-	const char *value
+	const char* value
 )
 {
 	if (gConfigItems[item].Type == PALCFG_STRING)

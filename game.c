@@ -1,4 +1,4 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
 // Copyright (c) 2011-2023, SDLPAL development team.
@@ -23,65 +23,77 @@
 
 VOID
 PAL_GameMain(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    The game entry routine.
+	The game entry routine.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   DWORD       dwTime;
+	DWORD       dwTime;
 
-   //
-   // Show the opening menu.
-   //
-   gpGlobals->bCurrentSaveSlot = (BYTE)PAL_OpeningMenu();
-   gpGlobals->fInMainGame = TRUE;
+#ifdef SHOW_DATA_IN_BATTLE
+	gpGlobals->fShowDataInBattle = FALSE;
+#endif
 
-   //
-   // Initialize game data and set the flags to load the game resources.
-   //
-   PAL_ReloadInNextTick(gpGlobals->bCurrentSaveSlot);
+	//
+	// Show the opening menu.
+	//
+	gpGlobals->bCurrentSaveSlot = (BYTE)PAL_OpeningMenu();
+	gpGlobals->fInMainGame = TRUE;
 
-   //
-   // Run the main game loop.
-   //
-   dwTime = SDL_GetTicks();
-   while (TRUE)
-   {
-      //
-      // Load the game resources if needed.
-      //
-      PAL_LoadResources();
+	//
+	// Initialize game data and set the flags to load the game resources.
+	//
+	PAL_ReloadInNextTick(gpGlobals->bCurrentSaveSlot);
 
-      //
-      // Clear the input state of previous frame.
-      //
-      PAL_ClearKeyState();
+	//
+	// Run the main game loop.
+	//
+	dwTime = SDL_GetTicks();
+	while (TRUE)
+	{
+		//
+		// Load the game resources if needed.
+		//
+		PAL_LoadResources();
 
-      //
-      // Wait for the time of one frame. Accept input here.
-      //
-      PAL_DelayUntil(dwTime);
+		//
+		// Correction of early step frames entering the scene
+		//
+		if (gpGlobals->fEnteringScene && gpGlobals->fLoadSceneOk)
+		{
+			PAL_UpdateParty();
+		}
 
-      //
-      // Set the time of the next frame.
-      //
-      dwTime = SDL_GetTicks() + FRAME_TIME;
+		//
+		// Clear the input state of previous frame.
+		//
+		PAL_ClearKeyState();
 
-      //
-      // Run the main frame routine.
-      //
-      PAL_StartFrame();
-   }
+		//
+		// Wait for the time of one frame. Accept input here.
+		//
+		PAL_DelayUntil(dwTime);
+
+		//
+		// Set the time of the next frame.
+		//
+		dwTime = SDL_GetTicks() + FRAME_TIME;
+
+		//
+		// Run the main frame routine.
+		//
+		PAL_StartFrame();
+	}
 }

@@ -1,4 +1,4 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
 // Copyright (c) 2011-2023, SDLPAL development team.
@@ -25,102 +25,104 @@
 #include "global.h"
 #include "uibattle.h"
 
-#define       BATTLE_FPS               25
+#define       BATTLE_FPS               36
 #define       BATTLE_FRAME_TIME        (1000 / BATTLE_FPS)
 
 typedef enum tagBATTLERESULT
 {
-   kBattleResultWon        = 3,      // player won the battle
-   kBattleResultLost       = 1,      // player lost the battle
-   kBattleResultFleed      = 0xFFFF, // player fleed from the battle
-   kBattleResultTerminated = 0,      // battle terminated with scripts
-   kBattleResultOnGoing    = 1000,   // the battle is ongoing
-   kBattleResultPreBattle  = 1001,   // running pre-battle scripts
-   kBattleResultPause      = 1002,   // battle pause
+	kBattleResultWon = 3,      // player won the battle
+	kBattleResultLost = 1,      // player lost the battle
+	kBattleResultFleed = 0xFFFF, // player fleed from the battle
+	kBattleResultTerminated = 0,      // battle terminated with scripts
+	kBattleResultOnGoing = 1000,   // the battle is ongoing
+	kBattleResultPreBattle = 1001,   // running pre-battle scripts
+	kBattleResultPause = 1002,   // battle pause
 } BATTLERESULT;
 
 typedef enum tagFIGHTERSTATE
 {
-   kFighterWait,  // waiting time
-   kFighterCom,   // accepting command
-   kFighterAct,   // doing the actual move
+	kFighterWait,  // waiting time
+	kFighterCom,   // accepting command
+	kFighterAct,   // doing the actual move
 } FIGHTERSTATE;
 
 typedef enum tagBATTLEACTIONTYPE
 {
-   kBattleActionPass,          // do nothing
-   kBattleActionDefend,        // defend
-   kBattleActionAttack,        // physical attack
-   kBattleActionMagic,         // use magic
-   kBattleActionCoopMagic,     // use cooperative magic
-   kBattleActionFlee,          // flee from the battle
-   kBattleActionThrowItem,     // throw item onto enemy
-   kBattleActionUseItem,       // use item
-   kBattleActionAttackMate,    // attack teammate (confused only)
+	kBattleActionPass,          // do nothing
+	kBattleActionDefend,        // defend
+	kBattleActionAttack,        // physical attack
+	kBattleActionMagic,         // use magic
+	kBattleActionCoopMagic,     // use cooperative magic
+	kBattleActionFlee,          // flee from the battle
+	kBattleActionThrowItem,     // throw item onto enemy
+	kBattleActionUseItem,       // use item
+	kBattleActionAttackMate,    // attack teammate (confused only)
 } BATTLEACTIONTYPE;
 
 typedef struct tagBATTLEACTION
 {
-   BATTLEACTIONTYPE   ActionType;
-   WORD               wActionID;   // item/magic to use
-   SHORT              sTarget;     // -1 for everyone
-   FLOAT              flRemainingTime;  // remaining waiting time before the action start
+	BATTLEACTIONTYPE   ActionType;
+	WORD               wActionID;   // item/magic to use
+	SHORT              sTarget;     // -1 for everyone
+	FLOAT              flRemainingTime;  // remaining waiting time before the action start
 } BATTLEACTION;
 
 typedef struct tagBATTLEENEMY
 {
-   WORD               wObjectID;              // Object ID of this enemy
-   ENEMY              e;                      // detailed data of this enemy
-   WORD               rgwStatus[kStatusAll];  // status effects
-   FLOAT              flTimeMeter;            // time-charging meter (0 = empty, 100 = full).
-   POISONSTATUS       rgPoisons[MAX_POISONS]; // poisons
-   LPSPRITE           lpSprite;
-   PAL_POS            pos;                    // current position on the screen
-   PAL_POS            posOriginal;            // original position on the screen
-   WORD               wCurrentFrame;          // current frame number
-   FIGHTERSTATE       state;                  // state of this enemy
+	INT                wObjectID;              // Object ID of this enemy
+	ENEMY              e;                      // detailed data of this enemy
+	INT                rgwStatus[kStatusAll];  // status effects
+	FLOAT              flTimeMeter;            // time-charging meter (0 = empty, 100 = full).
+	POISONSTATUS       rgPoisons[MAX_POISONS]; // poisons
+	LPSPRITE           lpSprite;
+	PAL_POS            pos;                    // current position on the screen
+	PAL_POS            posOriginal;            // original position on the screen
+	INT                wCurrentFrame;          // current frame number
+	FIGHTERSTATE       state;                  // state of this enemy
 
 #ifndef PAL_CLASSIC
-   BOOL               fTurnStart;
-   BOOL               fFirstMoveDone;
-   BOOL               fDualMove;
+	BOOL               fTurnStart;
+	BOOL               fFirstMoveDone;
+	BOOL               fDualMove;
 #endif
 
-   WORD               wScriptOnTurnStart;
-   WORD               wScriptOnBattleEnd;
-   WORD               wScriptOnReady;
+	WORD               wScriptOnTurnStart;
+	WORD               wScriptOnBattleEnd;
+	WORD               wScriptOnReady;
 
-   WORD               wPrevHP;              // HP value prior to action
+	UINT               iPrevHP;                // HP value prior to action
 
-   INT                iColorShift;
+	INT                iColorShift;
+	UINT               iMaxHealth;
+	SHORT              sDefendRoundNum;         // 敌方 奇门护甲剩余回合数
 } BATTLEENEMY;
 
 // We only put some data used in battle here; other data can be accessed in the global data.
 typedef struct tagBATTLEPLAYER
 {
-   INT                iColorShift;
-   FLOAT              flTimeMeter;          // time-charging meter (0 = empty, 100 = full).
-   FLOAT              flTimeSpeedModifier;
-   WORD               wHidingTime;          // remaining hiding time
-   LPSPRITE           lpSprite;
-   PAL_POS            pos;                  // current position on the screen
-   PAL_POS            posOriginal;          // original position on the screen
-   WORD               wCurrentFrame;        // current frame number
-   FIGHTERSTATE       state;                // state of this player
-   BATTLEACTION       action;               // action to perform
-   BATTLEACTION       prevAction;           // action of the previous turn
-   BOOL               fDefending;           // TRUE if player is defending
-   WORD               wPrevHP;              // HP value prior to action
-   WORD               wPrevMP;              // MP value prior to action
+	INT                iColorShift;
+	FLOAT              flTimeMeter;          // time-charging meter (0 = empty, 100 = full).
+	FLOAT              flTimeSpeedModifier;
+	WORD               wHidingTime;          // remaining hiding time
+	LPSPRITE           lpSprite;
+	PAL_POS            pos;                  // current position on the screen
+	PAL_POS            posOriginal;          // original position on the screen
+	WORD               wCurrentFrame;        // current frame number
+	FIGHTERSTATE       state;                // state of this player
+	BATTLEACTION       action;               // action to perform
+	BATTLEACTION       prevAction;           // action of the previous turn
+	BOOL               fDefending;           // TRUE if player is defending
+	INT                iPrevHP;              // HP value prior to action
+	INT                iPrevMP;              // MP value prior to action
 #ifndef PAL_CLASSIC
-   SHORT              sTurnOrder;           // turn order
+	SHORT              sTurnOrder;           // turn order
 #endif
 } BATTLEPLAYER;
 
 typedef struct tagSUMMON
 {
-   LPSPRITE           lpSprite;
-   WORD               wCurrentFrame;
+	LPSPRITE           lpSprite;
+	WORD               wCurrentFrame;
 } SUMMON;
 
 #define MAX_BATTLE_ACTIONS    256
@@ -130,71 +132,79 @@ typedef struct tagSUMMON
 
 typedef enum tabBATTLEPHASE
 {
-   kBattlePhaseSelectAction,
-   kBattlePhasePerformAction
+	kBattlePhaseSelectAction,
+	kBattlePhasePerformAction
 } BATTLEPHASE;
 
 typedef struct tagACTIONQUEUE
 {
-   BOOL       fIsEnemy;
-   WORD       wDexterity;
-   WORD       wIndex;
-   BOOL       fIsSecond;
+	BOOL       fIsEnemy;
+	INT        wDexterity;
+	WORD       wIndex;
+	BOOL       fIsSecond;
 } ACTIONQUEUE;
 
-#define MAX_ACTIONQUEUE_ITEMS (MAX_PLAYERS_IN_PARTY + MAX_ENEMIES_IN_TEAM * 2)
+#define MAX_ACTIONQUEUE_ITEMS (MAX_PLAYERS_IN_PARTY + MAX_ENEMIES_IN_TEAM * 3)
 
 #endif
 
 typedef struct tagBATTLE
 {
-   BATTLEPLAYER     rgPlayer[MAX_PLAYERS_IN_PARTY];
-   BATTLEENEMY      rgEnemy[MAX_ENEMIES_IN_TEAM];
+	BATTLEPLAYER     rgPlayer[MAX_PLAYERS_IN_PARTY];
+	BATTLEENEMY      rgEnemy[MAX_ENEMIES_IN_TEAM];
 
-   WORD             wMaxEnemyIndex;
+	WORD             wMaxEnemyIndex;
 
-   SDL_Surface     *lpSceneBuf;
-   SDL_Surface     *lpBackground;
+	SDL_Surface* lpSceneBuf;
+	SDL_Surface* lpBackground;
 
-   SHORT            sBackgroundColorShift;
+	SHORT            sBackgroundColorShift;
 
-   LPSPRITE         lpSummonSprite;       // sprite of summoned god
-   PAL_POS          posSummon;
-   INT              iSummonFrame;         // current frame of the summoned god
+	LPSPRITE         lpSummonSprite;       // sprite of summoned god
+	PAL_POS          posSummon;
+	INT              iSummonFrame;         // current frame of the summoned god
 
-   INT              iExpGained;           // total experience value gained
-   INT              iCashGained;          // total cash gained
+	INT              iExpGained;           // total experience value gained
+	INT              iCashGained;          // total cash gained
+	DWORD            iCollectValue;
 
-   BOOL             fIsBoss;              // TRUE if boss fight
-   BOOL             fEnemyCleared;        // TRUE if enemies are cleared
-   BATTLERESULT     BattleResult;
+	BOOL             fIsBoss;              // TRUE if boss fight
+	BOOL             fEnemyCleared;        // TRUE if enemies are cleared
+	BATTLERESULT     BattleResult;
 
-   FLOAT            flTimeChargingUnit;   // the base waiting time unit
+	FLOAT            flTimeChargingUnit;   // the base waiting time unit
 
-   BATTLEUI         UI;
+	BATTLEUI         UI;
 
-   LPBYTE           lpEffectSprite;
+	LPBYTE           lpEffectSprite;
 
-   BOOL             fEnemyMoving;         // TRUE if enemy is moving
+	BOOL             fEnemyMoving;         // TRUE if enemy is moving
+	BOOL             fPlayerMoving;        // TRUE if player is moving
 
-   INT              iHidingTime;          // Time of hiding
+	INT              iHidingTime;          // Time of hiding
 
-   WORD             wMovingPlayerIndex;   // current moving player index
+	WORD             wMovingPlayerIndex;   // current moving player index
+	WORD             wMovingEnemyIndex;    // new, current moving Enemy index
 
-   int              iBlow;
+	int              iBlow;
 
 #ifdef PAL_CLASSIC
-   BATTLEPHASE      Phase;
-   ACTIONQUEUE      ActionQueue[MAX_ACTIONQUEUE_ITEMS];
-   int              iCurAction;
-   BOOL             fRepeat;              // TRUE if player pressed Repeat
-   BOOL             fForce;               // TRUE if player pressed Force
-   BOOL             fFlee;                // TRUE if player pressed Flee
-   BOOL             fPrevAutoAtk;         // TRUE if auto-attack was used in the previous turn
-   BOOL             fPrevPlayerAutoAtk;   // TRUE if auto-attack was used by previous player in the same turn
+	BATTLEPHASE      Phase;
+	ACTIONQUEUE      ActionQueue[MAX_ACTIONQUEUE_ITEMS];
+	int              iCurAction;
+	BOOL             fRepeat;              // TRUE if player pressed Repeat
+	BOOL             fForce;               // TRUE if player pressed Force
+	BOOL             fFlee;                // TRUE if player pressed Flee
+	BOOL             fPrevAutoAtk;         // TRUE if auto-attack was used in the previous turn
+	BOOL             fPrevPlayerAutoAtk;   // TRUE if auto-attack was used by previous player in the same turn
 
-   WORD             coopContributors[MAX_PLAYERS_IN_PARTY];
-   BOOL             fThisTurnCoop;
+	WORD             coopContributors[MAX_PLAYERS_IN_PARTY];
+	BOOL             fThisTurnCoop;
+
+	// 新增
+	WORD	             wMagicMoving;         // 敌方单位本回合使用的法术
+	WORD             wCurrentAllRrounds;   // 已过回合数
+	INT              iCumulativeDamageValue;      // 我方累计受到的伤害值
 #endif
 } BATTLE;
 
@@ -204,34 +214,43 @@ extern BATTLE g_Battle;
 
 VOID
 PAL_LoadBattleSprites(
-   VOID
+	VOID
 );
 
 VOID
 PAL_BattleMakeScene(
-   VOID
+	VOID
 );
 
 VOID
 PAL_BattleFadeScene(
-   VOID
+	VOID
+);
+
+VOID
+PAL_BattleWon(
+	VOID
 );
 
 VOID
 PAL_BattleEnemyEscape(
-   VOID
+	VOID
 );
 
 VOID
 PAL_BattlePlayerEscape(
-   VOID
+	VOID
 );
 
 BATTLERESULT
 PAL_StartBattle(
-   WORD        wEnemyTeam,
-   BOOL        fIsBoss
+	WORD        wEnemyTeam,
+	BOOL        fIsBoss
 );
+
+#ifdef STRENGTHEN_ENEMY
+BATTLEENEMY  PAL_New_StrengthenEnemy(BATTLEENEMY be);
+#endif
 
 PAL_C_LINKAGE_END
 

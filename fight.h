@@ -1,4 +1,4 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
 // Copyright (c) 2011-2023, SDLPAL development team.
@@ -28,92 +28,154 @@ PAL_C_LINKAGE_BEGIN
 
 INT
 PAL_BattleSelectAutoTargetFrom(
-   INT
+	INT
 );
 
 BOOL
 PAL_IsPlayerDying(
-   WORD
+	WORD
 );
 
 BOOL
 PAL_IsPlayerHealthy(
-   WORD     wPlayerRole
+	WORD     wPlayerRole
 );
 
 INT
 PAL_BattleSelectAutoTarget(
-   VOID
+	VOID
 );
 
 #ifndef PAL_CLASSIC
 
 VOID
 PAL_UpdateTimeChargingUnit(
-   VOID
+	VOID
 );
 
 FLOAT
 PAL_GetTimeChargingSpeed(
-   WORD           wDexterity
+	WORD           wDexterity
 );
 
 #endif
 
 VOID
+PAL_BattlePostActionCheck(
+	BOOL      fCheckPlayers
+);
+
+VOID
 PAL_BattleUpdateFighters(
-   VOID
+	VOID
 );
 
 VOID
 PAL_BattlePlayerCheckReady(
-   VOID
+	VOID
 );
 
 VOID
 PAL_BattleStartFrame(
-   VOID
+	VOID
 );
 
 VOID
 PAL_BattleCommitAction(
-   BOOL         fRepeat
+	BOOL         fRepeat
 );
 
 VOID
 PAL_BattlePlayerPerformAction(
-   WORD         wPlayerIndex
+	WORD         wPlayerIndex
 );
 
 VOID
 PAL_BattleEnemyPerformAction(
-   WORD         wEnemyIndex
+	WORD         wEnemyIndex
 );
 
 VOID
 PAL_BattleShowPlayerPreMagicAnim(
-   WORD         wPlayerIndex,
-   BOOL         fSummon
+	WORD         wPlayerIndex,
+	BOOL         fSummon
 );
 
 VOID
 PAL_BattleDelay(
-   WORD       wDuration,
-   WORD       wObjectID,
-   BOOL       fUpdateGesture
+	WORD       wDuration,
+	WORD       wObjectID,
+	BOOL       fUpdateGesture
 );
 
 VOID
 PAL_BattleStealFromEnemy(
-   WORD           wTarget,
-   WORD           wStealRate
+	WORD           wTarget,
+	WORD           wStealRate
 );
 
 VOID
 PAL_BattleSimulateMagic(
-   SHORT      sTarget,
-   WORD       wMagicObjectID,
-   WORD       wBaseDamage
+	SHORT		sTarget,
+	WORD		    wMagicObjectID,
+	INT		    SwBaseDamage
+);
+
+INT PAL_New_GetAlivePlayerNum(VOID);
+BOOL PAL_New_IfEnemyCanMove(WORD wEnemyIndex);
+BOOL PAL_New_IfPlayerCanMove(WORD wPlayerRole);
+INT PAL_New_GetHealthyPlayerNum(VOID);
+INT PAL_New_GetAliveEnemyNum(VOID);
+
+INT
+PAL_GetPlayerActualDexterity(
+	WORD           wPlayerRole
+);
+
+INT
+PAL_GetPlayerActualAttackStrength(
+	WORD           wPlayerRole
+);
+
+INT
+PAL_GetPlayerActualMagicStrength(
+	WORD           wPlayerRole
+);
+
+INT
+PAL_GetPlayerActualDefense(
+	WORD           wPlayerRole
+);
+
+INT
+PAL_GetPlayerActualFleeRate(
+	WORD           wPlayerRole
+);
+
+INT
+PAL_GetEnemyActualDexterity(
+	WORD			wEnemyIndex
+);
+
+VOID
+PAL_New_BattleDisplayStatChange(
+	SHORT      sTarget
+);
+
+VOID
+PAL_New_BattleSimulateMagic(
+	SHORT      sTarget,
+	WORD       wMagicObjectID,
+	BYTE       wBaseDamage,
+	BYTE       bMagicType
+);
+
+VOID
+PAL_New_BattleShowPlayerOffMagicAnim(
+	WORD         wPlayerIndex,
+	WORD         wObjectID,
+	SHORT        sTarget,
+	BYTE         bMagicType
 );
 
 PAL_C_LINKAGE_END

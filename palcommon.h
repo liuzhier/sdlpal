@@ -1,4 +1,4 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
 // Copyright (c) 2011-2023, SDLPAL development team.
@@ -38,7 +38,7 @@ typedef DWORD           PAL_POS;
 #define PAL_XY_OFFSET(xy, x, y)    (PAL_POS)(((((INT)(y) << 16) & 0xFFFF0000) + ((xy) & 0xFFFF0000)) | (((INT)(x) & 0xFFFF) + ((xy) & 0xFFFF)))
 
 // maximum number of players in party
-#define     MAX_PLAYERS_IN_PARTY         3
+#define     MAX_PLAYERS_IN_PARTY         4
 
 // total number of possible player roles
 #define     MAX_PLAYER_ROLES             6
@@ -47,7 +47,7 @@ typedef DWORD           PAL_POS;
 #define     MAX_PLAYABLE_PLAYER_ROLES    5
 
 // maximum entries of inventory
-#define     MAX_INVENTORY                256
+#define     MAX_INVENTORY                999
 
 // maximum items in a store
 #define     MAX_STORE_ITEM               9
@@ -62,25 +62,25 @@ typedef DWORD           PAL_POS;
 #define     MAX_PLAYER_EQUIPMENTS        6
 
 // maximum number of magics for a player
-#define     MAX_PLAYER_MAGICS            32
+#define     MAX_PLAYER_MAGICS            64
 
 // maximum number of scenes
-#define     MAX_SCENES                   300
+#define     MAX_SCENES                   310
 
 // maximum number of objects
-#define     MAX_OBJECTS                  600
+#define     MAX_OBJECTS                  1000
 
 // maximum number of event objects (should be somewhat more than the original,
 // as there are some modified versions which has more)
-#define     MAX_EVENT_OBJECTS            5500
+#define     MAX_EVENT_OBJECTS            10000
 
 // maximum number of effective poisons to players
 #define     MAX_POISONS                  16
 
 // maximum number of level
-#define     MAX_LEVELS                   99
+#define     MAX_LEVELS                   999
 
-#define     MINIMAL_WORD_COUNT           (MAX_OBJECTS + 13)
+#define     MINIMAL_WORD_COUNT           (MAX_OBJECTS + 30)
 
 #define PAL_CDTRACK_BASE    10000
 
@@ -88,30 +88,30 @@ typedef DWORD           PAL_POS;
 
 typedef enum tagPALDIRECTION
 {
-   kDirSouth = 0,
-   kDirWest,
-   kDirNorth,
-   kDirEast,
-   kDirUnknown
-} PALDIRECTION, *LPPALDIRECTION;
+	kDirSouth = 0,
+	kDirWest,
+	kDirNorth,
+	kDirEast,
+	kDirUnknown
+} PALDIRECTION, * LPPALDIRECTION;
 
 typedef enum tagMUSICTYPE
 {
 	MUSIC_MIDI,
 	MUSIC_RIX,
-    MUSIC_MP3,
-    MUSIC_OGG,
+	MUSIC_MP3,
+	MUSIC_OGG,
 	MUSIC_OPUS
-} MUSICTYPE, *LPMUSICTYPE;
+} MUSICTYPE, * LPMUSICTYPE;
 
 typedef enum tagCDTYPE
 {
-    CD_NONE,
-    CD_MP3,
+	CD_NONE,
+	CD_MP3,
 	CD_OGG,
-    CD_OPUS,
+	CD_OPUS,
 	CD_SDLCD
-} CDTYPE, *LPCDTYPE;
+} CDTYPE, * LPCDTYPE;
 
 typedef enum tagMIDISYNTHTYPE
 {
@@ -128,7 +128,7 @@ typedef enum tagCODEPAGE {
 	//CP_JISX0208 = 3,
 	CP_MAX = CP_GBK + 1,
 	CP_UTF_8 = CP_MAX + 1,
-    CP_UCS = CP_UTF_8 + 1,
+	CP_UCS = CP_UTF_8 + 1,
 } CODEPAGE;
 
 typedef enum tagPALFILE {
@@ -165,116 +165,116 @@ PAL_C_LINKAGE_BEGIN
 
 INT
 PAL_RLEBlitToSurface(
-   LPCBITMAPRLE      lpBitmapRLE,
-   SDL_Surface      *lpDstSurface,
-   PAL_POS           pos
+	LPCBITMAPRLE      lpBitmapRLE,
+	SDL_Surface* lpDstSurface,
+	PAL_POS           pos
 );
 
 INT
 PAL_RLEBlitToSurfaceWithShadow(
-   LPCBITMAPRLE      lpBitmapRLE,
-   SDL_Surface      *lpDstSurface,
-   PAL_POS           pos,
-   BOOL              bShadow
+	LPCBITMAPRLE      lpBitmapRLE,
+	SDL_Surface* lpDstSurface,
+	PAL_POS           pos,
+	BOOL              bShadow
 );
 
 INT
 PAL_RLEBlitWithColorShift(
-   LPCBITMAPRLE      lpBitmapRLE,
-   SDL_Surface      *lpDstSurface,
-   PAL_POS           pos,
-   INT               iColorShift
+	LPCBITMAPRLE      lpBitmapRLE,
+	SDL_Surface* lpDstSurface,
+	PAL_POS           pos,
+	INT               iColorShift
 );
 
 INT
 PAL_RLEBlitMonoColor(
-   LPCBITMAPRLE      lpBitmapRLE,
-   SDL_Surface      *lpDstSurface,
-   PAL_POS           pos,
-   BYTE              bColor,
-   INT               iColorShift
+	LPCBITMAPRLE      lpBitmapRLE,
+	SDL_Surface* lpDstSurface,
+	PAL_POS           pos,
+	BYTE              bColor,
+	INT               iColorShift
 );
 
 INT
 PAL_FBPBlitToSurface(
-   LPBYTE            lpBitmapFBP,
-   SDL_Surface      *lpDstSurface
+	LPBYTE            lpBitmapFBP,
+	SDL_Surface* lpDstSurface
 );
 
 INT
 PAL_RLEGetWidth(
-   LPCBITMAPRLE      lpBitmapRLE
+	LPCBITMAPRLE      lpBitmapRLE
 );
 
 INT
 PAL_RLEGetHeight(
-   LPCBITMAPRLE      lpBitmapRLE
+	LPCBITMAPRLE      lpBitmapRLE
 );
 
 WORD
 PAL_SpriteGetNumFrames(
-   LPCSPRITE       lpSprite
+	LPCSPRITE       lpSprite
 );
 
 LPCBITMAPRLE
 PAL_SpriteGetFrame(
-   LPCSPRITE       lpSprite,
-   INT             iFrameNum
+	LPCSPRITE       lpSprite,
+	INT             iFrameNum
 );
 
 INT
 PAL_MKFGetChunkCount(
-   FILE *fp
+	FILE* fp
 );
 
 INT
 PAL_MKFGetChunkSize(
-   UINT    uiChunkNum,
-   FILE   *fp
+	UINT    uiChunkNum,
+	FILE* fp
 );
 
 INT
 PAL_MKFReadChunk(
-   LPBYTE          lpBuffer,
-   UINT            uiBufferSize,
-   UINT            uiChunkNum,
-   FILE           *fp
+	LPBYTE          lpBuffer,
+	UINT            uiBufferSize,
+	UINT            uiChunkNum,
+	FILE* fp
 );
 
 INT
 PAL_MKFGetDecompressedSize(
-   UINT    uiChunkNum,
-   FILE   *fp
+	UINT    uiChunkNum,
+	FILE* fp
 );
 
 INT
 PAL_MKFDecompressChunk(
-   LPBYTE          lpBuffer,
-   UINT            uiBufferSize,
-   UINT            uiChunkNum,
-   FILE           *fp
+	LPBYTE          lpBuffer,
+	UINT            uiBufferSize,
+	UINT            uiChunkNum,
+	FILE* fp
 );
 
 // From yj1.c:
 extern INT
 (*Decompress)(
-   LPCVOID      Source,
-   LPVOID       Destination,
-   INT          DestSize
-);
+	LPCVOID      Source,
+	LPVOID       Destination,
+	INT          DestSize
+	);
 
 INT
 YJ1_Decompress(
-   LPCVOID      Source,
-   LPVOID       Destination,
-   INT          DestSize
+	LPCVOID      Source,
+	LPVOID       Destination,
+	INT          DestSize
 );
 
 INT
 YJ2_Decompress(
-   LPCVOID      Source,
-   LPVOID       Destination,
-   INT          DestSize
+	LPCVOID      Source,
+	LPVOID       Destination,
+	INT          DestSize
 );
 
 PAL_C_LINKAGE_END

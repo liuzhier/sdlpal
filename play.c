@@ -1,4 +1,4 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
 // Copyright (c) 2011-2023, SDLPAL development team.
@@ -21,595 +21,714 @@
 
 #include "main.h"
 
+extern WORD GetSavedTimes(int iSaveSlot);
+
 VOID
 PAL_GameUpdate(
-   BOOL       fTrigger
+	BOOL       fTrigger
 )
 /*++
   Purpose:
 
-    The main game logic routine. Update the status of everything.
+	The main game logic routine. Update the status of everything.
 
   Parameters:
 
-    [IN]  fTrigger - whether to process trigger events or not.
+	[IN]  fTrigger - whether to process trigger events or not.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   WORD            wEventObjectID, wDir;
-   int             i;
-   LPEVENTOBJECT   p;
-   WORD            wResult;
+	WORD            wEventObjectID, wDir;
+	int             i;
+	LPEVENTOBJECT   p;
+	WORD            wResult;
 
-   //
-   // Check for trigger events
-   //
-   if (fTrigger)
-   {
-      //
-      // Check if we are entering a new scene
-      //
-      if (gpGlobals->fEnteringScene)
-      {
-         //
-         // Run the script for entering the scene
-         //
-         gpGlobals->fEnteringScene = FALSE;
+	//
+	// Check for trigger events
+	//
+	if (fTrigger)
+	{
+		//
+		// Check if we are entering a new scene
+		//
+		if (gpGlobals->fEnteringScene)
+		{
+			//
+			// Run the script for entering the scene
+			//
+			gpGlobals->fEnteringScene = FALSE;
 
-         i = gpGlobals->wNumScene - 1;
-         gpGlobals->g.rgScene[i].wScriptOnEnter = PAL_RunTriggerScript(gpGlobals->g.rgScene[i].wScriptOnEnter, 0xFFFF);
+			// HACK
+			gpGlobals->fLoadSceneOk = FALSE;
 
-         if (gpGlobals->fEnteringScene)
-         {
-            //
-            // Don't go further as we're switching to another scene
-            //
-            return;
-         }
+			//
+			// __DEBUG__暂时隐藏附加地图元素
+			//
+			if (!gpGlobals->fIsTriggerScriptRun)
+			{
+				gpGlobals->fIsTriggerScriptRun = TRUE;
+				//PAL_MakeScene();
+			}
 
-         PAL_ClearKeyState();
-         PAL_MakeScene();
-      }
+			i = gpGlobals->wNumScene - 1;
+			gpGlobals->g.rgScene[i].wScriptOnEnter = PAL_RunTriggerScript(gpGlobals->g.rgScene[i].wScriptOnEnter, 0xFFFF);
 
-      //
-      // Update the vanish time for all event objects
-      //
-      for (wEventObjectID = 0; wEventObjectID < gpGlobals->g.nEventObject; wEventObjectID++)
-      {
-         p = &gpGlobals->g.lprgEventObject[wEventObjectID];
+			//
+			// __DEBUG__显示附加地图元素
+			//
+			if (gpGlobals->fIsTriggerScriptRun)
+			{
+				gpGlobals->fIsTriggerScriptRun = FALSE;
+			}
 
-         if (p->sVanishTime != 0)
-         {
-            p->sVanishTime += ((p->sVanishTime < 0) ? 1 : -1);
-         }
-      }
+			if (gpGlobals->fEnteringScene)
+			{
+				//
+				// Don't go further as we're switching to another scene
+				//
+				return;
+			}
 
-      //
-      // Loop through all event objects in the current scene
-      //
-      for (wEventObjectID = gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex + 1;
-         wEventObjectID <= gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex;
-         wEventObjectID++)
-      {
-         p = &gpGlobals->g.lprgEventObject[wEventObjectID - 1];
+			PAL_ClearKeyState();
+			PAL_MakeScene();
+		}
 
-         if (p->sVanishTime != 0)
-         {
-            continue;
-         }
+		//
+		// Update the vanish time for all event objects
+		//
+		for (wEventObjectID = 0; wEventObjectID < gpGlobals->g.nEventObject; wEventObjectID++)
+		{
+			p = &gpGlobals->g.lprgEventObject[wEventObjectID];
 
-         if (p->sState < 0)
-         {
-            if (p->x < PAL_X(gpGlobals->viewport) ||
-               p->x > PAL_X(gpGlobals->viewport) + 320 ||
-               p->y < PAL_Y(gpGlobals->viewport) ||
-               p->y > PAL_Y(gpGlobals->viewport) + 320)
-            {
-               p->sState = abs(p->sState);
-               p->wCurrentFrameNum = 0;
-            }
-         }
-         else if (p->sState > 0 && p->wTriggerMode >= kTriggerTouchNear)
-         {
-            //
-            // This event object can be triggered without manually exploring
-            //
-            if (abs(PAL_X(gpGlobals->viewport) + PAL_X(gpGlobals->partyoffset) - p->x) +
-               abs(PAL_Y(gpGlobals->viewport) + PAL_Y(gpGlobals->partyoffset) - p->y) * 2 <
-               (p->wTriggerMode - kTriggerTouchNear) * 32 + 16)
-            {
-               //
-               // Player is in the trigger zone.
-               //
+			if (p->sVanishTime != 0)
+			{
+				p->sVanishTime += ((p->sVanishTime < 0) ? 1 : -1);
+			}
+		}
 
-               if (p->nSpriteFrames)
-               {
-                  //
-                  // The sprite has multiple frames. Try to adjust the direction.
-                  //
-                  int                xOffset, yOffset;
+		//
+		// Loop through all event objects in the current scene
+		//
+		for (wEventObjectID = gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex + 1;
+			wEventObjectID <= gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex;
+			wEventObjectID++)
+		{
+			p = &gpGlobals->g.lprgEventObject[wEventObjectID - 1];
 
-                  p->wCurrentFrameNum = 0;
+			if (p->sVanishTime != 0)
+			{
+				continue;
+			}
 
-                  xOffset = PAL_X(gpGlobals->viewport) + PAL_X(gpGlobals->partyoffset) - p->x;
-                  yOffset = PAL_Y(gpGlobals->viewport) + PAL_Y(gpGlobals->partyoffset) - p->y;
+			if (p->sState < 0)
+			{
+				if (p->x < PAL_X(gpGlobals->viewport) ||
+					p->x > PAL_X(gpGlobals->viewport) + 320 ||
+					p->y < PAL_Y(gpGlobals->viewport) ||
+					p->y > PAL_Y(gpGlobals->viewport) + 320)
+				{
+					p->sState = abs(p->sState);
+					p->wCurrentFrameNum = 0;
+				}
+			}
+			else if (p->sState > 0 && p->wTriggerMode >= kTriggerTouchNear)
+			{
+				//
+				// This event object can be triggered without manually exploring
+				//
+				if (abs(PAL_X(gpGlobals->viewport) + PAL_X(gpGlobals->partyoffset) - p->x) +
+					abs(PAL_Y(gpGlobals->viewport) + PAL_Y(gpGlobals->partyoffset) - p->y) * 2 <
+					(p->wTriggerMode - kTriggerTouchNear) * 32 + 16)
+				{
+					//
+					// Player is in the trigger zone.
+					//
 
-                  if (xOffset > 0)
-                  {
-                     p->wDirection = ((yOffset > 0) ? kDirEast : kDirNorth);
-                  }
-                  else
-                  {
-                     p->wDirection = ((yOffset > 0) ? kDirSouth : kDirWest);
-                  }
+					if (p->nSpriteFrames)
+					{
+						//
+						// The sprite has multiple frames. Try to adjust the direction.
+						//
+						int                xOffset, yOffset;
 
-                  //
-                  // Redraw the scene
-                  //
-                  PAL_UpdatePartyGestures(FALSE);
+						p->wCurrentFrameNum = 0;
 
-                  PAL_MakeScene();
-                  VIDEO_UpdateScreen(NULL);
-               }
+						xOffset = PAL_X(gpGlobals->viewport) + PAL_X(gpGlobals->partyoffset) - p->x;
+						yOffset = PAL_Y(gpGlobals->viewport) + PAL_Y(gpGlobals->partyoffset) - p->y;
 
-               //
-               // Execute the script.
-               //
-               p->wTriggerScript = PAL_RunTriggerScript(p->wTriggerScript, wEventObjectID);
+						if (xOffset > 0)
+						{
+							p->wDirection = ((yOffset > 0) ? kDirEast : kDirNorth);
+						}
+						else
+						{
+							p->wDirection = ((yOffset > 0) ? kDirSouth : kDirWest);
+						}
 
-               PAL_ClearKeyState();
+						//
+						// Redraw the scene
+						//
+						PAL_UpdatePartyGestures(FALSE);
 
-               if (gpGlobals->fEnteringScene)
-               {
-                  //
-                  // Don't go further on scene switching
-                  //
-                  return;
-               }
-            }
-         }
-      }
-   }
+						PAL_MakeScene();
+						VIDEO_UpdateScreen(NULL);
+					}
 
-   //
-   // Run autoscript for each event objects
-   //
-   for (wEventObjectID = gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex + 1;
-      wEventObjectID <= gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex;
-      wEventObjectID++)
-   {
-      p = &gpGlobals->g.lprgEventObject[wEventObjectID - 1];
+					//
+					// __DEBUG__暂时隐藏附加地图元素
+					//
+					if (!gpGlobals->fIsTriggerScriptRun)
+					{
+						gpGlobals->fIsTriggerScriptRun = TRUE;
+						//PAL_MakeScene();
+					}
 
-      if (p->sState > 0 && p->sVanishTime == 0)
-      {
-         WORD wScriptEntry = p->wAutoScript;
-         if (wScriptEntry != 0)
-         {
-            p->wAutoScript = PAL_RunAutoScript(wScriptEntry, wEventObjectID);
-            if (gpGlobals->fEnteringScene)
-            {
-               //
-               // Don't go further on scene switching
-               //
-               return;
-            }
-         }
-      }
+					//
+					// Execute the script.
+					//
+					p->wTriggerScript = PAL_RunTriggerScript(p->wTriggerScript, wEventObjectID);
 
-      //
-      // Check if the player is in the way
-      //
-      if (fTrigger && p->sState >= kObjStateBlocker && p->wSpriteNum != 0 &&
-         abs(p->x - PAL_X(gpGlobals->viewport) - PAL_X(gpGlobals->partyoffset)) +
-         abs(p->y - PAL_Y(gpGlobals->viewport) - PAL_Y(gpGlobals->partyoffset)) * 2 <= 12)
-      {
-         //
-         // Player is in the way, try to move a step
-         //
-         wDir = (p->wDirection + 1) % 4;
-         for (i = 0; i < 4; i++)
-         {
-            int              x, y;
-            PAL_POS          pos;
+					//
+					// __DEBUG__显示附加地图元素
+					//
+					if (gpGlobals->fIsTriggerScriptRun)
+					{
+						gpGlobals->fIsTriggerScriptRun = FALSE;
+					}
 
-            x = PAL_X(gpGlobals->viewport) + PAL_X(gpGlobals->partyoffset);
-            y = PAL_Y(gpGlobals->viewport) + PAL_Y(gpGlobals->partyoffset);
+					PAL_ClearKeyState();
 
-            x += ((wDir == kDirWest || wDir == kDirSouth) ? -16 : 16);
-            y += ((wDir == kDirWest || wDir == kDirNorth) ? -8 : 8);
+					if (gpGlobals->fEnteringScene)
+					{
+						//
+						// Don't go further on scene switching
+						//
+						return;
+					}
+				}
+			}
+		}
+	}
 
-            pos = PAL_XY(x, y);
+	//
+	// Run autoscript for each event objects
+	//
+	for (wEventObjectID = gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex + 1;
+		wEventObjectID <= gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex;
+		wEventObjectID++)
+	{
+		p = &gpGlobals->g.lprgEventObject[wEventObjectID - 1];
 
-            if (!PAL_CheckObstacle(pos, TRUE, 0))
-            {
-               //
-               // move here
-               //
-               gpGlobals->viewport = PAL_XY(
-                  PAL_X(pos) - PAL_X(gpGlobals->partyoffset),
-                  PAL_Y(pos) - PAL_Y(gpGlobals->partyoffset));
+		if (p->sState > 0 && p->sVanishTime == 0)
+		{
+			WORD wScriptEntry = p->wAutoScript;
+			if (wScriptEntry != 0)
+			{
+				p->wAutoScript = PAL_RunAutoScript(wScriptEntry, wEventObjectID);
+				if (gpGlobals->fEnteringScene)
+				{
+					//
+					// Don't go further on scene switching
+					//
+					return;
+				}
+			}
+		}
 
-               break;
-            }
+		//
+		// Check if the player is in the way
+		// __DEBUG__只给宝箱让路，不给事件让路
+		//if (p->wSpriteNum == 10 && p->wSpriteNum == 389)
+		if (fTrigger && p->sState >= kObjStateBlocker && p->wSpriteNum != 0 &&
+			abs(p->x - PAL_X(gpGlobals->viewport) - PAL_X(gpGlobals->partyoffset)) +
+			abs(p->y - PAL_Y(gpGlobals->viewport) - PAL_Y(gpGlobals->partyoffset)) * 2 <= 12)
+		{
+			//
+			// Player is in the way, try to move a step
+			//
+			wDir = (p->wDirection + 1) % 4;
+			for (i = 0; i < 4; i++)
+			{
+				int              x, y;
+				PAL_POS          pos;
 
-            wDir = (wDir + 1) % 4;
-         }
-      }
-   }
+				x = PAL_X(gpGlobals->viewport) + PAL_X(gpGlobals->partyoffset);
+				y = PAL_Y(gpGlobals->viewport) + PAL_Y(gpGlobals->partyoffset);
 
-   gpGlobals->dwFrameNum++;
+				x += ((wDir == kDirWest || wDir == kDirSouth) ? -16 : 16);
+				y += ((wDir == kDirWest || wDir == kDirNorth) ? -8 : 8);
+
+				pos = PAL_XY(x, y);
+
+				if (!PAL_CheckObstacle(pos, TRUE, 0))
+				{
+					//
+					// move here
+					//
+					gpGlobals->viewport = PAL_XY(
+						PAL_X(pos) - PAL_X(gpGlobals->partyoffset),
+						PAL_Y(pos) - PAL_Y(gpGlobals->partyoffset));
+
+					break;
+				}
+
+				wDir = (wDir + 1) % 4;
+			}
+		}
+	}
+
+	gpGlobals->dwFrameNum++;
 }
 
 VOID
 PAL_GameUseItem(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Allow player use an item in the game.
+	Allow player use an item in the game.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   WORD         wObject;
+	WORD         wObject;
 
-   while (TRUE)
-   {
-      wObject = PAL_ItemSelectMenu(NULL, kItemFlagUsable);
+	while (TRUE)
+	{
+		wObject = PAL_ItemSelectMenu(NULL, kItemFlagUsable);
 
-      if (wObject == 0)
-      {
-         return;
-      }
+		if (wObject == 0)
+		{
+			return;
+		}
 
-      if (!(gpGlobals->g.rgObject[wObject].item.wFlags & kItemFlagApplyToAll))
-      {
-         //
-         // Select the player to use the item on
-         //
-         WORD     wPlayer = 0;
+		if (!(gpGlobals->g.rgObject[wObject].item.wFlags & kItemFlagApplyToAll))
+		{
+			//
+			// Select the player to use the item on
+			//
+			WORD     wPlayer = 0;
 
-         while (TRUE)
-         {
-            wPlayer = PAL_ItemUseMenu(wObject);
+			while (TRUE)
+			{
+				wPlayer = PAL_ItemUseMenu(wObject);
 
-            if (wPlayer == MENUITEM_VALUE_CANCELLED)
-            {
-               break;
-            }
+				if (wPlayer == MENUITEM_VALUE_CANCELLED)
+				{
+					break;
+				}
 
-            //
-            // Run the script
-            //
-            gpGlobals->g.rgObject[wObject].item.wScriptOnUse =
-               PAL_RunTriggerScript(gpGlobals->g.rgObject[wObject].item.wScriptOnUse, wPlayer);
+				//
+				// __DEBUG__暂时隐藏附加地图元素
+				//
+				if (!gpGlobals->fIsTriggerScriptRun)
+				{
+					gpGlobals->fIsTriggerScriptRun = TRUE;
+					//PAL_MakeScene();
+				}
 
-            //
-            // Remove the item if the item is consuming and the script succeeded
-            //
-            if ((gpGlobals->g.rgObject[wObject].item.wFlags & kItemFlagConsuming) &&
-               g_fScriptSuccess)
-            {
-               PAL_AddItemToInventory(wObject, -1);
-            }
-         }
-      }
-      else
-      {
-         //
-         // Run the script
-         //
-         gpGlobals->g.rgObject[wObject].item.wScriptOnUse =
-            PAL_RunTriggerScript(gpGlobals->g.rgObject[wObject].item.wScriptOnUse, 0xFFFF);
+				//
+				// Run the script
+				//
+				gpGlobals->g.rgObject[wObject].item.wScriptOnUse =
+					PAL_RunTriggerScript(gpGlobals->g.rgObject[wObject].item.wScriptOnUse, wPlayer);
 
-         //
-         // Remove the item if the item is consuming and the script succeeded
-         //
-         if ((gpGlobals->g.rgObject[wObject].item.wFlags & kItemFlagConsuming) &&
-            g_fScriptSuccess)
-         {
-            PAL_AddItemToInventory(wObject, -1);
-         }
+				//
+				// __DEBUG__显示附加地图元素
+				//
+				if (gpGlobals->fIsTriggerScriptRun)
+				{
+					//gpGlobals->fIsTriggerScriptRun = FALSE;
+				}
 
-         return;
-      }
-   }
+				//
+				// Remove the item if the item is consuming and the script succeeded
+				//
+				if ((gpGlobals->g.rgObject[wObject].item.wFlags & kItemFlagConsuming) &&
+					g_fScriptSuccess)
+				{
+					PAL_AddItemToInventory(wObject, -1);
+				}
+			}
+		}
+		else
+		{
+			//
+			// __DEBUG__暂时隐藏附加地图元素
+			//
+			if (!gpGlobals->fIsTriggerScriptRun)
+			{
+				gpGlobals->fIsTriggerScriptRun = TRUE;
+				//PAL_MakeScene();
+			}
+
+			//
+			// Run the script
+			//
+			gpGlobals->g.rgObject[wObject].item.wScriptOnUse =
+				PAL_RunTriggerScript(gpGlobals->g.rgObject[wObject].item.wScriptOnUse, 0xFFFF);
+
+			//
+			// __DEBUG__显示附加地图元素
+			//
+			if (gpGlobals->fIsTriggerScriptRun)
+			{
+				gpGlobals->fIsTriggerScriptRun = FALSE;
+			}
+
+			//
+			// Remove the item if the item is consuming and the script succeeded
+			//
+			if ((gpGlobals->g.rgObject[wObject].item.wFlags & kItemFlagConsuming) &&
+				g_fScriptSuccess)
+			{
+				PAL_AddItemToInventory(wObject, -1);
+			}
+
+			return;
+		}
+	}
 }
 
 VOID
 PAL_GameEquipItem(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Allow player equip an item in the game.
+	Allow player equip an item in the game.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   WORD      wObject;
+	WORD      wObject;
 
-   while (TRUE)
-   {
-      wObject = PAL_ItemSelectMenu(NULL, kItemFlagEquipable);
+	while (TRUE)
+	{
+		wObject = PAL_ItemSelectMenu(NULL, kItemFlagEquipable);
 
-      if (wObject == 0)
-      {
-         return;
-      }
+		if (wObject == 0)
+		{
+			return;
+		}
 
-      PAL_EquipItemMenu(wObject);
-   }
+		PAL_EquipItemMenu(wObject);
+	}
 }
 
 VOID
 PAL_Search(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Process searching trigger events.
+	Process searching trigger events.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   int                x, y, xOffset, yOffset, dx, dy, dh, ex, ey, eh, i, k, l;
-   LPEVENTOBJECT      p;
-   PAL_POS            rgPos[13];
+	int                x, y, xOffset, yOffset, dx, dy, dh, ex, ey, eh, i, k, l;
+	LPEVENTOBJECT      p;
+	PAL_POS            rgPos[13];
 
-   //
-   // Get the party location
-   //
-   x = PAL_X(gpGlobals->viewport) + PAL_X(gpGlobals->partyoffset);
-   y = PAL_Y(gpGlobals->viewport) + PAL_Y(gpGlobals->partyoffset);
+	//
+	// Get the party location
+	//
+	x = PAL_X(gpGlobals->viewport) + PAL_X(gpGlobals->partyoffset);
+	y = PAL_Y(gpGlobals->viewport) + PAL_Y(gpGlobals->partyoffset);
 
-   if (gpGlobals->wPartyDirection == kDirNorth || gpGlobals->wPartyDirection == kDirEast)
-   {
-      xOffset = 16;
-   }
-   else
-   {
-      xOffset = -16;
-   }
+	if (gpGlobals->wPartyDirection == kDirNorth || gpGlobals->wPartyDirection == kDirEast)
+	{
+		xOffset = 16;
+	}
+	else
+	{
+		xOffset = -16;
+	}
 
-   if (gpGlobals->wPartyDirection == kDirEast || gpGlobals->wPartyDirection == kDirSouth)
-   {
-      yOffset = 8;
-   }
-   else
-   {
-      yOffset = -8;
-   }
+	if (gpGlobals->wPartyDirection == kDirEast || gpGlobals->wPartyDirection == kDirSouth)
+	{
+		yOffset = 8;
+	}
+	else
+	{
+		yOffset = -8;
+	}
 
-   rgPos[0] = PAL_XY(x, y);
+	rgPos[0] = PAL_XY(x, y);
 
-   for (i = 0; i < 4; i++)
-   {
-      rgPos[i * 3 + 1] = PAL_XY(x + xOffset, y + yOffset);
-      rgPos[i * 3 + 2] = PAL_XY(x, y + yOffset * 2);
-      rgPos[i * 3 + 3] = PAL_XY(x + xOffset, y);
-      x += xOffset;
-      y += yOffset;
-   }
+	for (i = 0; i < 4; i++)
+	{
+		rgPos[i * 3 + 1] = PAL_XY(x + xOffset, y + yOffset);
+		rgPos[i * 3 + 2] = PAL_XY(x, y + yOffset * 2);
+		rgPos[i * 3 + 3] = PAL_XY(x + xOffset, y);
+		x += xOffset;
+		y += yOffset;
+	}
 
-   for (i = 0; i < 13; i++)
-   {
-      //
-      // Convert to map location
-      //
-      dh = ((PAL_X(rgPos[i]) % 32) ? 1 : 0);
-      dx = PAL_X(rgPos[i]) / 32;
-      dy = PAL_Y(rgPos[i]) / 16;
+	for (i = 0; i < 13; i++)
+	{
+		//
+		// Convert to map location
+		//
+		dh = ((PAL_X(rgPos[i]) % 32) ? 1 : 0);
+		dx = PAL_X(rgPos[i]) / 32;
+		dy = PAL_Y(rgPos[i]) / 16;
 
-      //
-      // Loop through all event objects
-      //
-      for (k = gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex;
-         k < gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex; k++)
-      {
-         p = &(gpGlobals->g.lprgEventObject[k]);
-         ex = p->x / 32;
-         ey = p->y / 16;
-         eh = ((p->x % 32) ? 1 : 0);
+		//
+		// Loop through all event objects
+		//
+		for (k = gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex;
+			k < gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex; k++)
+		{
+			p = &(gpGlobals->g.lprgEventObject[k]);
+			ex = p->x / 32;
+			ey = p->y / 16;
+			eh = ((p->x % 32) ? 1 : 0);
 
-         if (p->sState <= 0 || p->wTriggerMode >= kTriggerTouchNear ||
-            p->wTriggerMode * 6 - 4 < i || dx != ex || dy != ey || dh != eh)
-         {
-            continue;
-         }
+			if (p->sState <= 0 || p->wTriggerMode >= kTriggerTouchNear ||
+				p->wTriggerMode * 6 - 4 < i || dx != ex || dy != ey || dh != eh)
+			{
+				continue;
+			}
 
-         //
-         // Adjust direction/gesture for party members and the event object
-         //
-         if (p->nSpriteFrames * 4 > p->wCurrentFrameNum)
-         {
-            p->wCurrentFrameNum = 0; // use standing gesture
-            p->wDirection = (gpGlobals->wPartyDirection + 2) % 4; // face the party
+			//
+			// Adjust direction/gesture for party members and the event object
+			//
+			if (p->nSpriteFrames * 4 > p->wCurrentFrameNum)
+			{
+				p->wCurrentFrameNum = 0; // use standing gesture
+				p->wDirection = (gpGlobals->wPartyDirection + 2) % 4; // face the party
 
-            for (l = 0; l <= gpGlobals->wMaxPartyMemberIndex; l++)
-            {
-               //
-               // All party members should face the event object
-               //
-               gpGlobals->rgParty[l].wFrame = gpGlobals->wPartyDirection * 3;
-            }
+				for (l = 0; l <= gpGlobals->wMaxPartyMemberIndex; l++)
+				{
+					//
+					// All party members should face the event object
+					//
+					gpGlobals->rgParty[l].wFrame = gpGlobals->wPartyDirection * 3;
+				}
 
-            //
-            // Redraw everything
-            //
-            PAL_MakeScene();
-            VIDEO_UpdateScreen(NULL);
-         }
+				//
+				// __DEBUG__暂时隐藏附加地图元素
+				//
+				if (!gpGlobals->fIsTriggerScriptRun)
+				{
+					gpGlobals->fIsTriggerScriptRun = TRUE;
+				}
 
-         //
-         // Execute the script
-         //
-         p->wTriggerScript = PAL_RunTriggerScript(p->wTriggerScript, k + 1);
+				//
+				// Redraw everything
+				//
+				PAL_MakeScene();
+				VIDEO_UpdateScreen(NULL);
+			}
 
-         //
-         // Clear inputs and delay for a short time
-         //
-         UTIL_Delay(50);
-         PAL_ClearKeyState();
+			//
+			// Execute the script
+			//
+			p->wTriggerScript = PAL_RunTriggerScript(p->wTriggerScript, k + 1);
 
-         return; // don't go further
-      }
-   }
+			//
+			// __DEBUG__显示附加地图元素
+			//
+			if (gpGlobals->fIsTriggerScriptRun)
+			{
+				gpGlobals->fIsTriggerScriptRun = FALSE;
+			}
+
+			//
+			// Clear inputs and delay for a short time
+			//
+			UTIL_Delay(50);
+			PAL_ClearKeyState();
+
+			return; // don't go further
+		}
+	}
 }
 
 VOID
 PAL_StartFrame(
-   VOID
+	VOID
 )
 /*++
   Purpose:
 
-    Starts a video frame. Called once per video frame.
+	Starts a video frame. Called once per video frame.
 
   Parameters:
 
-    None.
+	None.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   //
-   // Run the game logic of one frame
-   //
-   PAL_GameUpdate(TRUE);
-   if (gpGlobals->fEnteringScene)
-   {
-      return;
-   }
+	//
+	// Run the game logic of one frame
+	//
+	PAL_GameUpdate(TRUE);
+	if (gpGlobals->fEnteringScene)
+	{
+		return;
+	}
 
-   //
-   // Update the positions and gestures of party members
-   //
-   PAL_UpdateParty();
+	//
+	// Update the positions and gestures of party members
+	//
+	PAL_UpdateParty();
 
-   //
-   // Update the scene
-   //
-   PAL_MakeScene();
-   VIDEO_UpdateScreen(NULL);
+	//
+	// Update the scene
+	//
+	PAL_MakeScene();
+	VIDEO_UpdateScreen(NULL);
 
-   if (g_InputState.dwKeyPress & kKeyMenu)
-   {
-      //
-      // Show the in-game menu
-      //
-      PAL_InGameMenu();
-   }
-   else if (g_InputState.dwKeyPress & kKeyUseItem)
-   {
-      //
-      // Show the use item menu
-      //
-      PAL_GameUseItem();
-   }
-   else if (g_InputState.dwKeyPress & kKeyThrowItem)
-   {
-      //
-      // Show the equipment menu
-      //
-      PAL_GameEquipItem();
-   }
-   else if (g_InputState.dwKeyPress & kKeyForce)
-   {
-      //
-      // Show the magic menu
-      //
-      PAL_InGameMagicMenu();
-   }
-   else if (g_InputState.dwKeyPress & kKeyStatus)
-   {
-      //
-      // Show the player status
-      //
-      PAL_PlayerStatus();
-   }
-   else if (g_InputState.dwKeyPress & kKeySearch)
-   {
-      //
-      // Process search events
-      //
-      PAL_Search();
-   }
-   else if (g_InputState.dwKeyPress & kKeyFlee)
-   {
-      //
-      // Quit Game
-      //
-      PAL_QuitGame();
-   }
+	if (g_InputState.dwKeyPress & kKeyMenu)
+	{
+		//
+		// Show the in-game menu
+		//
+		PAL_InGameMenu();
+	}
+	else if (g_InputState.dwKeyPress & kKeyUseItem)
+	{
+		//
+		// Show the use item menu
+		//
+		PAL_New_SortInventory();
+		PAL_GameUseItem();
+	}
+	else if (g_InputState.dwKeyPress & kKeyThrowItem)
+	{
+		//
+		// Show the equipment menu
+		//
+		PAL_New_SortInventory();
+		PAL_GameEquipItem();
+	}
+	else if (g_InputState.dwKeyPress & kKeyForce)
+	{
+		//
+		// Show the magic menu
+		//
+		PAL_InGameMagicMenu();
+	}
+	else if (g_InputState.dwKeyPress & kKeyStatus)
+	{
+		//
+		// Show the player status
+		//
+		PAL_PlayerStatus();
+	}
+	else if (g_InputState.dwKeyPress & kKeyMagic)
+	{
+		//
+		// 领悟仙术所需修行
+		//
+		PAL_New_AllMagicList();
+	}
+	else if (g_InputState.dwKeyPress & kKeySearch)
+	{
+		//
+		// Process search events
+		//
+		PAL_Search();
+	}
+	else if (g_InputState.dwKeyPress & kKeyFlee)
+	{
+		//
+		// Quit Game
+		//
+		PAL_QuitGame();
+	}
+	else if (g_InputState.dwKeyPress & kKeyBattleData)
+	{
+		//	int iSlot = PAL_SaveSlotMenu(gpGlobals->bCurrentSaveSlot);
+		WORD wSavedTimes = 0;
+		gpGlobals->bCurrentSaveSlot = 9;
 
-   if (--gpGlobals->wChasespeedChangeCycles == 0)
-   {
-      gpGlobals->wChaseRange = 1;
-   }
+		WORD curSavedTimes = GetSavedTimes(9);
+		if (curSavedTimes >= wSavedTimes)
+		{
+			wSavedTimes = curSavedTimes;
+		}
+		PAL_SaveGame(gpGlobals->bCurrentSaveSlot, wSavedTimes + 1);
+		PAL_ClearKeyState();
+		AUDIO_PlaySound(127);
+		WCHAR s[256] = L"";
+		PAL_swprintf(s, sizeof(s) / sizeof(WCHAR), L"%ls", L"存储完毕");
+		PAL_StartDialog(kDialogCenterWindow, 0, 0, FALSE);
+		PAL_ShowDialogText(s);
+		PAL_ClearDialog(FALSE);
+	}
+
+	if (--gpGlobals->wChasespeedChangeCycles == 0)
+	{
+		gpGlobals->wChaseRange = 1;
+	}
 }
 
 VOID
 PAL_WaitForKey(
-   WORD      wTimeOut
+	WORD      wTimeOut
 )
 /*++
   Purpose:
 
-    Wait for any key.
+	Wait for any key.
 
   Parameters:
 
-    [IN]  wTimeOut - the maximum time of the waiting. 0 = wait forever.
+	[IN]  wTimeOut - the maximum time of the waiting. 0 = wait forever.
 
   Return value:
 
-    None.
+	None.
 
 --*/
 {
-   DWORD     dwTimeOut = SDL_GetTicks() + wTimeOut;
+	DWORD     dwTimeOut = SDL_GetTicks() + wTimeOut;
 
-   PAL_ClearKeyState();
+	PAL_ClearKeyState();
 
-   while (wTimeOut == 0 || !SDL_TICKS_PASSED(SDL_GetTicks(), dwTimeOut))
-   {
-      UTIL_Delay(5);
+	while (wTimeOut == 0 || !SDL_TICKS_PASSED(SDL_GetTicks(), dwTimeOut))
+	{
+		UTIL_Delay(5);
 
-      if (g_InputState.dwKeyPress & (kKeySearch | kKeyMenu))
-      {
-         break;
-      }
-   }
+		if (g_InputState.dwKeyPress & (kKeySearch | kKeyMenu))
+		{
+			break;
+		}
+	}
 }

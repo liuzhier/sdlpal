@@ -1,4 +1,4 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
 // Copyright (c) 2011-2023, SDLPAL development team.
@@ -25,6 +25,62 @@
 #ifndef ENABLE_REVISIED_BATTLE
 # define PAL_CLASSIC        1
 #endif
+
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
+#define SHOW_MP_DECREASING							//当mp减少时也显示数值
+#define STRENGTHEN_ENEMY   //增强敌人，在后期加强前期的敌人，队伍人数在4人，敌人增强
+#define SHOW_DATA_IN_BATTLE  //战斗中显示数据
+#define SHOW_ENEMY_STATUS   //战斗中显示敌人状态
+#define ADD_POISON_FAIL_THEN_JUMP                    
+#define ADD_SOME_POISONS_SUCCESSFULLY_ANYTIME		
+#define ADD_SOME_STATUSES_SUCCESSFULLY_ANYTIME		
+#define GAIN_MORE_HIDDEN_EXP						
+#define POISON_STATUS_EXPAND  
+//
+//实际的武术灵力防御
+//敌人可偷窃我方道具
+//一次性偷窃所有敌人携带的道具
+//增加新指令 百分比恢复体力、真气
+//敌人可以被咒封
+//显示人物升级学会法术
+//快速存档
+typedef enum tagPlayerRoleID
+{
+	RoleID_LiXiaoYao = 0,
+	RoleID_ZhaoLingEr = 1,
+	RoleID_LinYueRu = 2,
+	RoleID_WuHou = 3,
+	RoleID_ANu = 4,
+	RoleID_GaiLuoJiao = 5,
+} PlayerRoleID;
+
+typedef enum tagPlayerPara
+{
+	Para_Level = 0x0006,
+	Para_MaxHP,
+	Para_MaxMP,
+	Para_HP,
+	Para_MP,
+	Para_AttackStrength = 0x0011,
+	Para_MagicStrength,
+	Para_Defense,
+	Para_Dexterity,
+	Para_FleeRate,
+	Para_PoisonResistance = 0x0016,
+	Para_CloudResistance = 0x0017,
+	Para_ThunderResistance,
+	Para_WaterResistance,
+	Para_FireResistance,
+	Para_EarthResistance,
+	Para_SorceryResistance = 0x001c,
+	Para_Wisdom = 0x0042,
+	Para_Power,
+} PlayerPara;
+
+
 
 #include "defines.h"
 
@@ -101,6 +157,12 @@
 # include <windows.h>
 # include <io.h>
 
+//
+// __HACK__修复SDL2.0.22版本的中文输入法吞键问题（其实 Windows 平台不引入这个没事）
+//#include <WinUser.h>
+// __HACK__修复SDL2.0.22版本的中文输入法吞键问题
+//
+
 # if defined(_MSC_VER)
 #  if _MSC_VER < 1900
 #   define vsnprintf _vsnprintf
@@ -113,7 +175,7 @@
 
 # ifndef _LPCBYTE_DEFINED
 #  define _LPCBYTE_DEFINED
-typedef const BYTE *LPCBYTE;
+typedef const BYTE* LPCBYTE;
 # endif
 
 # define PAL_MAX_PATH  MAX_PATH
@@ -138,26 +200,26 @@ typedef wchar_t             WCHAR;
 typedef short               SHORT;
 typedef long                LONG;
 
-typedef unsigned long       ULONG, *PULONG;
-typedef unsigned short      USHORT, *PUSHORT;
-typedef unsigned char       UCHAR, *PUCHAR;
+typedef unsigned long       ULONG, * PULONG;
+typedef unsigned short      USHORT, * PUSHORT;
+typedef unsigned char       UCHAR, * PUCHAR;
 
-typedef unsigned short      WORD, *LPWORD;
-typedef unsigned int        DWORD, *LPDWORD;
-typedef int                 INT, *LPINT;
+typedef unsigned short      WORD, * LPWORD;
+typedef unsigned int        DWORD, * LPDWORD;
+typedef int                 INT, * LPINT;
 # if !defined( __APPLE__ ) && !defined( GEKKO )
-typedef int                 BOOL, *LPBOOL;
+typedef int                 BOOL, * LPBOOL;
 # endif
-typedef unsigned int        UINT, *PUINT, UINT32, *PUINT32;
-typedef unsigned char       BYTE, *LPBYTE;
-typedef const BYTE         *LPCBYTE;
-typedef float               FLOAT, *LPFLOAT;
-typedef void               *LPVOID;
-typedef const void         *LPCVOID;
-typedef CHAR               *LPSTR;
-typedef const CHAR         *LPCSTR;
-typedef WCHAR              *LPWSTR;
-typedef const WCHAR        *LPCWSTR;
+typedef unsigned int        UINT, * PUINT, UINT32, * PUINT32;
+typedef unsigned char       BYTE, * LPBYTE;
+typedef const BYTE* LPCBYTE;
+typedef float               FLOAT, * LPFLOAT;
+typedef void* LPVOID;
+typedef const void* LPCVOID;
+typedef CHAR* LPSTR;
+typedef const CHAR* LPCSTR;
+typedef WCHAR* LPWSTR;
+typedef const WCHAR* LPCWSTR;
 
 #ifdef PATH_MAX
 # define PAL_MAX_PATH  PATH_MAX
@@ -177,7 +239,7 @@ typedef const WCHAR        *LPCWSTR;
 # define PAL_C_LINKAGE_END
 #endif
 
-/* When porting SDLPAL to a new platform, please make a separate directory and put a file 
+/* When porting SDLPAL to a new platform, please make a separate directory and put a file
    named 'pal_config.h' that contains marco definitions & header includes into the directory.
    The example of this file can be found in directories of existing portings.
  */
@@ -203,7 +265,7 @@ typedef const WCHAR        *LPCWSTR;
 # define PAL_DEFAULT_TEXTURE_HEIGHT    PAL_DEFAULT_WINDOW_HEIGHT
 #endif
 
-/* Default for 1024 samples */
+ /* Default for 1024 samples */
 #ifndef PAL_AUDIO_DEFAULT_BUFFER_SIZE
 # define PAL_AUDIO_DEFAULT_BUFFER_SIZE   1024
 #endif
@@ -280,7 +342,7 @@ typedef enum tagLOGLEVEL
 # define PAL_HAS_CONFIG_PAGE   FALSE
 #endif
 
-#define PAL_MAX_GLOBAL_BUFFERS 4
+#define PAL_MAX_GLOBAL_BUFFERS 5
 #define PAL_GLOBAL_BUFFER_SIZE 1024
 
 //

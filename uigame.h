@@ -1,4 +1,4 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
 // Copyright (c) 2011-2023, SDLPAL development team.
@@ -27,74 +27,98 @@
 
 PAL_C_LINKAGE_BEGIN
 
+// 难度个数
+#define MAX_DIFFICULTY_MAX           3
+
 VOID
 PAL_DrawOpeningMenuBackground(
-   VOID
+	VOID
 );
 
 INT
 PAL_OpeningMenu(
-   VOID
+	VOID
 );
 
 INT
 PAL_SaveSlotMenu(
-   WORD        wDefaultSlot
+	WORD        wDefaultSlot,
+	BOOL      fIsSave
 );
 
 WORD
 PAL_TripleMenu(
-   WORD  wThirdWord
+	WORD  wThirdWord
 );
 
 BOOL
 PAL_ConfirmMenu(
-   VOID
+	VOID
 );
 
 BOOL
 PAL_SwitchMenu(
-   BOOL      fEnabled
+	BOOL      fEnabled
+);
+
+WORD
+PAL_New_ConfirmMenu(
+	VOID
 );
 
 VOID
 PAL_InGameMagicMenu(
-   VOID
+	VOID
 );
 
 VOID
 PAL_InGameMenu(
-   VOID
+	VOID
 );
 
 VOID
 PAL_PlayerStatus(
-   VOID
+	VOID
 );
 
 WORD
 PAL_ItemUseMenu(
-   WORD           wItemToUse
+	WORD           wItemToUse
 );
 
 VOID
 PAL_BuyMenu(
-   WORD           wStoreNum
+	WORD           wStoreNum
 );
 
 VOID
 PAL_SellMenu(
-   VOID
+	VOID
 );
 
 VOID
 PAL_EquipItemMenu(
-   WORD           wItem
+	WORD           wItem
 );
 
 VOID
 PAL_QuitGame(
-   VOID
+	VOID
+);
+
+VOID
+PAL_New_AllMagicList(
+	VOID
+);
+
+VOID
+PAL_BuyLingHu(
+	WORD           wStoreNum
+);
+
+WORD
+PAL_New_GameDifficultyMenu(
+	VOID
 );
 
 PAL_C_LINKAGE_END

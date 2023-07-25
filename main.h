@@ -1,4 +1,4 @@
-/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
+﻿/* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
 // Copyright (c) 2011-2023, SDLPAL development team.
@@ -47,6 +47,7 @@
 #include "script.h"
 #include "battle.h"
 #include "fight.h"
+#include "enemy.h"
 #include "play.h"
 #include "game.h"
 #include "midi.h"
@@ -54,7 +55,7 @@
 
 VOID
 PAL_Shutdown(
-   int exit_code
+	int exit_code
 );
 
 extern char gExecutablePath[PAL_MAX_PATH];
