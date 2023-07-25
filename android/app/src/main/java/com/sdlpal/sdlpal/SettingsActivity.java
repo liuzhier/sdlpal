@@ -294,12 +294,15 @@ public class SettingsActivity extends AppCompatActivity {
             if (filePath != null) {
                 if (requestCode == BROWSE_GAMEDIR_CODE) {
                     ((EditText) findViewById(R.id.edFolder)).setText(filePath);
+                    String gamePath = ((EditText) findViewById(R.id.edFolder)).getText().toString() + "/xbrz.glslp";
+                    ((EditText) findViewById(R.id.edShader)).setText(gamePath);
                 } else if (requestCode == BROWSE_MSGFILE_CODE) {
                     ((EditText) findViewById(R.id.edMsgFile)).setText(filePath);
                 } else if (requestCode == BROWSE_FONTFILE_CODE) {
                     ((EditText) findViewById(R.id.edFontFile)).setText(filePath);
                 } else if (requestCode == BROWSE_SHADER_CODE) {
-                    ((EditText) findViewById(R.id.edShader)).setText(filePath);
+                    String gamePath = ((EditText) findViewById(R.id.edFolder)).getText().toString() + "/xbrz.glslp";
+                    ((EditText) findViewById(R.id.edShader)).setText(gamePath);
                 }
             }
         }
@@ -345,6 +348,9 @@ public class SettingsActivity extends AppCompatActivity {
         ((EditText)findViewById(R.id.edFontFile)).setText("");
         ((EditText)findViewById(R.id.edLogFile)).setText("");
 
+        String gamePath = ((EditText)findViewById(R.id.edFolder)).getText().toString() + "/xbrz.glslp";
+        ((EditText) findViewById(R.id.edShader)).setText(gamePath);
+
         ((SwitchCompat)findViewById(R.id.swMsgFile)).setChecked(false);
         ((SwitchCompat)findViewById(R.id.swFontFile)).setChecked(false);
         ((SwitchCompat)findViewById(R.id.swLogFile)).setChecked(false);
@@ -383,9 +389,12 @@ public class SettingsActivity extends AppCompatActivity {
         ((EditText)findViewById(R.id.edMsgFile)).setText(msgFile = getConfigString(MessageFileName, false));
         ((EditText)findViewById(R.id.edFontFile)).setText(fontFile = getConfigString(FontFileName, false));
         ((EditText)findViewById(R.id.edLogFile)).setText(logFile = getConfigString(LogFileName, false));
-        ((EditText)findViewById(R.id.edShader)).setText(shader = getConfigString(Shader, false));
+//        ((EditText)findViewById(R.id.edShader)).setText(shader = getConfigString(Shader, false));
         ((EditText)findViewById(R.id.edTextureWidth)).setText(textureWidth = String.valueOf(getConfigInt(TextureWidth, false)));
         ((EditText)findViewById(R.id.edTextureHeight)).setText(textureHeight = String.valueOf(getConfigInt(TextureHeight, false)));
+
+        String gamePath = ((EditText)findViewById(R.id.edFolder)).getText().toString() + "/xbrz.glslp";
+        ((EditText) findViewById(R.id.edShader)).setText(gamePath);
 
         ((SwitchCompat)findViewById(R.id.swMsgFile)).setChecked(msgFile != null && !msgFile.isEmpty());
         ((SwitchCompat)findViewById(R.id.swFontFile)).setChecked(fontFile != null && !fontFile.isEmpty());
