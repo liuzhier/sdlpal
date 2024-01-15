@@ -51,9 +51,18 @@
 # include <ctype.h>
 # include <sys/time.h>
 
-#define strcasestr(a,b) strstr(toupper((a)),toupper((b)))
+#ifdef __cplusplus
+extern "C" {
+#endif
+char *_stringtolower(char *);
+#ifdef __cplusplus
+}
+#endif
+#define strcasestr(a,b) strstr(_stringtolower((a)),_stringtolower((b)))
 
 #define PAL_HAS_GLSL 1
 #define PAL_HAS_OPUS 0
+
+#define PAL_HAS_PLATFORM_STARTUP 1
 
 #endif
