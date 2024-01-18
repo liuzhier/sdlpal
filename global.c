@@ -52,12 +52,20 @@ PAL_IsWINVersion(
 	BOOL *pfIsWIN95
 )
 {
-	FILE *fps[] = { UTIL_OpenRequiredFile("abc.mkf"), UTIL_OpenRequiredFile("map.mkf"), gpGlobals->f.fpF, gpGlobals->f.fpFBP, gpGlobals->f.fpFIRE, gpGlobals->f.fpMGO };
+   FILE* fps[6];
+   int i, size = 0;
 	uint8_t *data = NULL;
 	int data_size = 0, dos_score = 0, win_score = 0;
 	BOOL result = FALSE;
 
-	for (int i = 0; i < sizeof(fps) / sizeof(FILE *); i++)
+   fps[size++] = UTIL_OpenRequiredFile("abc.mkf");
+   if (!gConfig.fEnablePALMOD || !PALMOD_CLASSIC || !PALMOD_BULK_MAP) fps[size++] = UTIL_OpenRequiredFile("map.mkf");
+   fps[size++] = gpGlobals->f.fpF;
+   fps[size++] = gpGlobals->f.fpFBP;
+   fps[size++] = gpGlobals->f.fpFIRE;
+   fps[size++] = gpGlobals->f.fpMGO;
+
+	for (i = 0; i < size; i++)
 	{
 		//
 		// Find the first non-empty sub-file
@@ -96,13 +104,13 @@ PAL_IsWINVersion(
 	if (data_size % sizeof(OBJECT) == 0 && data_size % sizeof(OBJECT_DOS) != 0 && dos_score > 0) goto PAL_IsWINVersion_Exit;
 	if (data_size % sizeof(OBJECT_DOS) == 0 && data_size % sizeof(OBJECT) != 0 && win_score > 0) goto PAL_IsWINVersion_Exit;
 
-	if (pfIsWIN95) *pfIsWIN95 = (win_score == sizeof(fps) / sizeof(FILE *)) ? TRUE : FALSE;
+	if (pfIsWIN95) *pfIsWIN95 = (win_score == size) ? TRUE : FALSE;
 
 	result = TRUE;
 
 PAL_IsWINVersion_Exit:
 	free(data);
-	fclose(fps[1]);
+   if (!gConfig.fEnablePALMOD || !PALMOD_CLASSIC || !PALMOD_BULK_MAP) fclose(fps[1]);
 	fclose(fps[0]);
 
 	return result;

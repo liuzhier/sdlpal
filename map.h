@@ -24,6 +24,10 @@
 
 #include "common.h"
 
+#if PALMOD_CLASSIC
+#include "util.h"
+#endif
+
 //
 // Map format:
 //
@@ -73,6 +77,13 @@ PAL_LoadMap(
    FILE             *fpMapMKF,
    FILE             *fpGopMKF
 );
+
+#if PALMOD_CLASSIC && PALMOD_BULK_MAP
+LPPALMAP
+PALMOD_LoadMap(
+   INT               iMapNum
+);
+#endif
 
 VOID
 PAL_FreeMap(

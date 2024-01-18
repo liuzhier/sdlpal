@@ -91,6 +91,11 @@ typedef enum tagPALCFG_ITEM
 	PALCFG_SOUNDBANK,
 	PALCFG_SCALEQUALITY,
 	PALCFG_SHADER,
+
+#if PALMOD_CLASSIC
+	PALCFG_ENABLEPALMOD,
+#endif
+
 	/* Strings */
 	PALCFG_STRING_MAX,
 
@@ -182,7 +187,7 @@ typedef struct tagCONFIGURATION
 	/* Configurable options */
 	char            *pszGamePath;
 	char            *pszSavePath;
-    char            *pszShaderPath;
+   char            *pszShaderPath;
 	char            *pszMsgFile;
 	char            *pszFontFile;
 	char            *pszMIDIClient;
@@ -193,8 +198,8 @@ typedef struct tagCONFIGURATION
 	DWORD            dwWordLength;
 	DWORD            dwScreenWidth;
 	DWORD            dwScreenHeight;
-    DWORD            dwTextureWidth;
-    DWORD            dwTextureHeight;
+   DWORD            dwTextureWidth;
+   DWORD            dwTextureHeight;
 	INT              iAudioDevice;
 	INT              iSurroundOPLOffset;
 	INT              iAudioChannels;
@@ -221,7 +226,12 @@ typedef struct tagCONFIGURATION
 	BOOL             fUseTouchOverlay;
 	BOOL             fEnableAviPlay;
 	BOOL             fEnableGLSL;
-    BOOL             fEnableHDR;
+   BOOL             fEnableHDR;
+
+#if PALMOD_CLASSIC
+	BOOL             fEnablePALMOD;
+#endif
+
 #if USE_RIX_EXTRA_INIT
 	uint32_t        *pExtraFMRegs;
 	uint8_t         *pExtraFMVals;

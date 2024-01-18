@@ -297,4 +297,31 @@ typedef enum tagLOGLEVEL
 
 #include "adplug/opltypes.h"
 
+
+//
+// PALMOD
+// 
+#define PALMOD_CLASSIC 1
+
+#if PALMOD_CLASSIC
+//
+// PALMOD:目录
+//
+#define PALMOD_PATH     "PALMOD/"
+//
+// PALMOD:MAP目录
+//
+#define PALMOD_MAP_PATH PALMOD_PATH"MAP/"
+//
+// PALMOD:GOP目录
+//
+#define PALMOD_GOP_PATH PALMOD_PATH"GOP/"
+
+// 
+// PALMOD:直接读取 MapEditor 解包的 map 序列
+//
+#define PALMOD_BULK_MAP 1
+
+#endif // PALMOD_CLASSIC
+
 #endif

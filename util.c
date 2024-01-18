@@ -734,12 +734,8 @@ UTIL_CheckResourceFiles(
 	const char *msgfile
 )
 {
-	const char *common_files[] = {
-		"abc.mkf", "ball.mkf", "data.mkf", "f.mkf",
-		"fbp.mkf", "fire.mkf", "gop.mkf",  "map.mkf",
-		"mgo.mkf", "pat.mkf",  "rgm.mkf",  "rng.mkf",
-		"sss.mkf"
-	};
+	int size = 0;
+	char* common_files[13];
 	const char *msg_files[][2] = {
 		{ msgfile, "m.msg"    },
 		{ msgfile, "word.dat" }
@@ -749,7 +745,26 @@ UTIL_CheckResourceFiles(
 	int msgidx = !(msgfile && *msgfile);
 	PALFILE retval = (PALFILE)0;
 
-	for (int i = 0; i < sizeof(common_files) / sizeof(common_files[0]); i++)
+	common_files[size++] = "abc.mkf";
+	common_files[size++] = "ball.mkf";
+	common_files[size++] = "data.mkf";
+	common_files[size++] = "f.mkf";
+	common_files[size++] = "fbp.mkf";
+	common_files[size++] = "fire.mkf";
+
+	if (!gConfig.fEnablePALMOD || !PALMOD_CLASSIC || !PALMOD_BULK_MAP)
+	{
+		common_files[size++] = "gop.mkf";
+		common_files[size++] = "map.mkf";
+	}
+
+	common_files[size++] = "mgo.mkf";
+	common_files[size++] = "pat.mkf";
+	common_files[size++] = "rgm.mkf";
+	common_files[size++] = "rng.mkf";
+	common_files[size++] = "sss.mkf";
+
+	for (int i = 0; i < size; i++)
 	{
 		if (!UTIL_GetFullPathName(INTERNAL_BUFFER_SIZE_ARGS, path, common_files[i]))
 		{

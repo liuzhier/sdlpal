@@ -230,8 +230,11 @@ PAL_LoadResources(
    {
       FILE              *fpMAP, *fpGOP;
 
-      fpMAP = UTIL_OpenRequiredFile("map.mkf");
-      fpGOP = UTIL_OpenRequiredFile("gop.mkf");
+      if (!gConfig.fEnablePALMOD || !PALMOD_CLASSIC || !PALMOD_BULK_MAP)
+      {
+         fpMAP = UTIL_OpenRequiredFile("map.mkf");
+         fpGOP = UTIL_OpenRequiredFile("gop.mkf");
+      }
 
       if (gpGlobals->fEnteringScene)
       {
@@ -249,13 +252,20 @@ PAL_LoadResources(
       // Load map
       //
       i = gpGlobals->wNumScene - 1;
-      gpResources->lpMap = PAL_LoadMap(gpGlobals->g.rgScene[i].wMapNum,
-         fpMAP, fpGOP);
+
+      if (gConfig.fEnablePALMOD && PALMOD_CLASSIC && PALMOD_BULK_MAP)
+         gpResources->lpMap = PALMOD_LoadMap(gpGlobals->g.rgScene[i].wMapNum);
+      else
+         gpResources->lpMap = PAL_LoadMap(gpGlobals->g.rgScene[i].wMapNum,
+            fpMAP, fpGOP);
 
       if (gpResources->lpMap == NULL)
       {
-         fclose(fpMAP);
-         fclose(fpGOP);
+         if (!gConfig.fEnablePALMOD || !PALMOD_CLASSIC || !PALMOD_BULK_MAP)
+         {
+            fclose(fpMAP);
+            fclose(fpGOP);
+         }
 
          TerminateOnError("PAL_LoadResources(): Fail to load map #%d (scene #%d) !",
             gpGlobals->g.rgScene[i].wMapNum, gpGlobals->wNumScene);
@@ -300,8 +310,11 @@ PAL_LoadResources(
 
       gpGlobals->partyoffset = PAL_XY(160, 112);
 
-      fclose(fpGOP);
-      fclose(fpMAP);
+      if (!gConfig.fEnablePALMOD || !PALMOD_CLASSIC || !PALMOD_BULK_MAP)
+      {
+         fclose(fpGOP);
+         fclose(fpMAP);
+      }
    }
 
    //

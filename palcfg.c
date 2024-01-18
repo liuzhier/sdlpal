@@ -80,6 +80,7 @@ static const ConfigItem gConfigItems[PALCFG_ALL_MAX] = {
 	{ PALCFG_SOUNDBANK,         PALCFG_STRING,   "SoundBank",          9, MAKE_STRING(NULL) },
 	{ PALCFG_SCALEQUALITY,      PALCFG_STRING,   "ScaleQuality",      12, MAKE_STRING("0") },
 	{ PALCFG_SHADER,            PALCFG_STRING,   "Shader",             6, MAKE_STRING(NULL) },
+	{ PALCFG_ENABLEPALMOD,      PALCFG_BOOLEAN,  "EnablePALMOD",      12, MAKE_BOOLEAN(FALSE,                         FALSE,                 TRUE) },
 };
 
 static const char *music_types[] = { "MIDI", "RIX", "MP3", "OGG", "OPUS", "RAW" };
@@ -590,6 +591,8 @@ PAL_LoadConfig(
 	gConfig.dwTextureWidth  = values[PALCFG_TEXTUREWIDTH].uValue;
 	gConfig.dwTextureHeight = values[PALCFG_TEXTUREHEIGHT].uValue;
 
+	gConfig.fEnablePALMOD = (PALMOD_CLASSIC && PALMOD_BULK_MAP) ? values[PALCFG_ENABLEPALMOD].bValue : 0;
+
 	if (UTIL_GetScreenSize(&values[PALCFG_WINDOWWIDTH].uValue, &values[PALCFG_WINDOWHEIGHT].uValue))
 	{
 		gConfig.dwScreenWidth = values[PALCFG_WINDOWWIDTH].uValue;
@@ -671,6 +674,8 @@ PAL_SaveConfig(
 		if (gConfig.pszScaleQuality && *gConfig.pszScaleQuality) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_SCALEQUALITY), gConfig.pszScaleQuality); fputs(buf, fp); }
 		if (gConfig.pszShader && *gConfig.pszShader) { sprintf(buf, "%s=%s\n", PAL_ConfigName(PALCFG_SHADER), gConfig.pszShader); fputs(buf, fp); }
 
+		if (PALMOD_CLASSIC && PALMOD_BULK_MAP) { sprintf(buf, "%s=%d\n", PAL_ConfigName(PALCFG_ENABLEPALMOD), gConfig.fEnablePALMOD); fputs(buf, fp); }
+
 		fclose(fp);
 
 		return TRUE;
@@ -730,6 +735,8 @@ PAL_GetConfigItem(
 		case PALCFG_OPL_CHIP:          value.sValue = opl_chips[gConfig.eOPLChip]; break;
 		case PALCFG_TEXTUREHEIGHT:     value.uValue = gConfig.dwTextureHeight; break;
 		case PALCFG_TEXTUREWIDTH:      value.uValue = gConfig.dwTextureWidth; break;
+
+		case PALCFG_ENABLEPALMOD:      value.bValue = gConfig.fEnablePALMOD; break;
 		default:                       break;
 		}
 	}
@@ -850,6 +857,9 @@ PAL_SetConfigItem(
 			}
 		}
 		break;
+
+	case PALCFG_ENABLEPALMOD:      gConfig.fEnablePALMOD = value.bValue; break;
+
 	default:
 		break;
 	}
