@@ -189,6 +189,10 @@ void SaveSettings(HWND hwndDlg, BOOL fWriteFile)
 		gConfig.iOPLSampleRate = GetDlgItemInt(hwndDlg, IDC_OPLSR, nullptr, FALSE);
 	}
 
+#if PALMOD_CLASSIC
+	gConfig.fEnablePALMOD = FALSE;
+#endif
+
 	if (fWriteFile) PAL_SaveConfig();
 }
 
