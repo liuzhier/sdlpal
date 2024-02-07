@@ -56,6 +56,18 @@ enum PALKEY
    kKeyForce       = (1 << 15),
    kKeyHome        = (1 << 16),
    kKeyEnd         = (1 << 17),
+
+#if PD_Battle_ShowMoreData
+   kKeyBattleData  = (1 << 18),
+#endif // PD_Battle_ShowMoreData
+
+#if PD_Battle_ShowEnemyStatus
+   kKeyEnemyStatus = (1 << 19),
+#endif // PD_Battle_ShowEnemyStatus
+
+#if PD_Battle_ShowPlayerLevelmagic
+   kKeyMagicList   = (1 << 20),
+#endif // PD_Battle_ShowPlayerLevelmagic
 };
 
 PAL_C_LINKAGE_BEGIN

@@ -508,6 +508,18 @@ PAL_StartFrame(
    // Run the game logic of one frame
    //
    PAL_GameUpdate(TRUE);
+
+#if PD_Scene_BlackScreenOneStep
+   //
+   // Update the positions and gestures of party members
+   //
+   PAL_UpdateParty();
+
+   if (gpGlobals->fEnteringScene)
+   {
+      return;
+   }
+#else
    if (gpGlobals->fEnteringScene)
    {
       return;
@@ -517,6 +529,7 @@ PAL_StartFrame(
    // Update the positions and gestures of party members
    //
    PAL_UpdateParty();
+#endif
 
    //
    // Update the scene

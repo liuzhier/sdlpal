@@ -664,10 +664,14 @@ PAL_BattleUIUseItem(
             g_Battle.UI.state = kBattleUISelectTargetPlayer;
          }
       }
+#if PD_Battle_ShowMoreData
+      g_Battle.UI.MenuState = kBattleMenuMain;
+#else
       else
       {
          g_Battle.UI.MenuState = kBattleMenuMain;
       }
+#endif
    }
 }
 
@@ -711,10 +715,14 @@ PAL_BattleUIThrowItem(
             g_Battle.UI.iSelectedIndex = 0;
          }
       }
+#if PD_Battle_ShowMoreData
+      g_Battle.UI.MenuState = kBattleMenuMain;
+#else
       else
       {
          g_Battle.UI.MenuState = kBattleMenuMain;
       }
+#endif
    }
 }
 
@@ -819,6 +827,14 @@ PAL_BattleUIUpdate(
 
    s_iFrame++;
 
+#ifdef PD_Battle_ShowMoreData
+   if (g_Battle.fShowDataInBattle
+      && g_Battle.UI.MenuState == kBattleMenuMain)
+   {
+      PAL_New_BattleUIShowData();
+   }
+#endif // PD_Battle_ShowMoreData
+
    if (g_Battle.UI.fAutoAttack && !gpGlobals->fAutoBattle)
    {
       //
@@ -835,6 +851,18 @@ PAL_BattleUIUpdate(
             MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
       }
    }
+
+#if PD_Enemy_UseMagicShowWordName
+   if (g_Battle.wCurrentEnemyMagicID != 0xFFFF)
+   {
+      //
+      // Draw the enemy magic name if in the enemy magic attack.
+      //
+      LPCWSTR itemText = PAL_GetWord(g_Battle.wCurrentEnemyMagicID);
+      PAL_DrawText(itemText, PAL_XY((320 - PAL_TextWidth(itemText)) / 2, 10),
+         MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+   }
+#endif
 
    if (gpGlobals->fAutoBattle)
    {
@@ -932,6 +960,22 @@ PAL_BattleUIUpdate(
       PAL_PlayerStatus();
       goto end;
    }
+
+#if PD_Battle_ShowEnemyStatus
+   if (g_Battle.UI.MenuState == kBattleMenuEnemyStatus)
+   {
+      PAL_New_EnemyStatus();
+      goto end;
+   }
+#endif // PD_Battle_ShowEnemyStatus
+
+#if PD_Battle_ShowPlayerLevelmagic
+   if (g_Battle.UI.MenuState == kBattleMenuMagicList)
+   {
+      PAL_New_PlayerLevelmagic();
+      goto end;
+   }
+#endif // PD_Battle_ShowPlayerLevelmagic
 
    if (g_Battle.UI.state != kBattleUIWait)
    {
@@ -1220,6 +1264,27 @@ PAL_BattleUIUpdate(
             else if (g_InputState.dwKeyPress & kKeyRepeat)
             {
                PAL_BattleCommitAction(TRUE);
+            }
+            else if (g_InputState.dwKeyPress & kKeyBattleData)
+            {
+               //
+               // 透视数据
+               //
+               g_Battle.fShowDataInBattle = PAL_SwitchMenu(g_Battle.fShowDataInBattle);
+            }
+            else if (g_InputState.dwKeyPress & kKeyEnemyStatus)
+            {
+               //
+               // 敌方状态页
+               //
+               g_Battle.UI.MenuState = kBattleMenuEnemyStatus;
+            }
+            else if (g_InputState.dwKeyPress & kKeyMagicList)
+            {
+               //
+               // 领悟仙术所需修行界面
+               //
+               g_Battle.UI.MenuState = kBattleMenuMagicList;
             }
 #ifdef PAL_CLASSIC
             else if (g_InputState.dwKeyPress & kKeyMenu)
@@ -1806,3 +1871,549 @@ PAL_BattleUIShowNum(
       }
    }
 }
+
+#if PD_Battle_ShowMoreData
+VOID
+PAL_New_BattleUIShowData(
+   VOID
+)
+{
+   int              i, j;
+   WORD             wPlayerRole, w;
+   SHORT            sValue;
+   BYTE             wNum, wNumAlign;
+   SHORT            sHealth;
+   BATTLEENEMY      be;
+
+   int startPos = 320 - 20 * (gpGlobals->wMaxPartyMemberIndex + 1);
+
+   // 显示敌人血量（三分之一血时可化尸换成特殊颜色）、负面buff回合数
+   for (i = 0; i <= g_Battle.wMaxEnemyIndex; i++)
+   {
+      be = g_Battle.rgEnemy[i];
+
+      if (be.wObjectID == 0)
+      {
+         be.sMaxHealth = 0;
+         continue;
+      }
+
+      if (!be.sMaxHealth) be.sMaxHealth = be.e.wHealth;
+
+      // 显示的位数
+      sHealth = be.e.wHealth;
+
+      for (wNum = 3; sHealth > 999; wNum++)
+         sHealth /= 10;
+
+      wNumAlign = (wNum > 3) ? kNumAlignLeft : kNumAlignRight;
+
+      sHealth = be.e.wHealth;
+
+      // 显示敌人血量, 三分之一血时可化尸
+      if (sHealth <= 0)
+         PAL_DrawNumber(0, wNum, PAL_XY(45 * i, 0), kNumColorCyan, kNumAlignRight);
+      else
+         PAL_DrawNumber(sHealth, wNum, PAL_XY(45 * i, 0),
+            (sHealth <= (g_Battle.rgEnemy[i].sMaxHealth * 20) / 100.0) ? kNumColorCyan : kNumColorYellow, wNumAlign);
+
+      // 显示敌方负面buff回合数
+      // 疯魔
+      PAL_DrawNumber(be.rgwStatus[kStatusConfused], wNum, PAL_XY(45 * i, 8), kNumColorYellow, kNumAlignRight);
+      // 定身/昏眠
+      PAL_DrawNumber((be.rgwStatus[kStatusParalyzed] > be.rgwStatus[kStatusSleep]) ? be.rgwStatus[kStatusParalyzed] : be.rgwStatus[kStatusSleep],
+         wNum, PAL_XY(45 * i, 16), kNumColorYellow, kNumAlignRight);
+      // 咒封
+      PAL_DrawNumber(be.rgwStatus[kStatusSilence], wNum, PAL_XY(45 * i, 24), kNumColorYellow, kNumAlignRight);
+   }
+
+   // 显示战场环境对五灵的影响
+   for (i = 0; i < NUM_MAGIC_ELEMENTAL; i++)
+   {
+      sValue = gpGlobals->g.lprgBattleField[gpGlobals->wNumBattleField].rgsMagicEffect[i];
+
+      if (sValue <= 0)
+      {
+         sValue = 0 - sValue;
+         wNum = kNumColorYellow;
+      }
+      else
+      {
+         wNum = kNumColorBlue;
+      }
+
+
+      PAL_DrawNumber(sValue, 2, PAL_XY(0, 52 + i * 10), wNum, kNumAlignRight);
+   }
+
+   // 显示我方有益状态的剩余轮次
+   for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+   {
+      wPlayerRole = gpGlobals->rgParty[i].wPlayerRole;
+      for (j = 0; j < kStatusAll - kStatusPuppet; j++)
+      {
+         w = gpGlobals->rgPlayerStatus[wPlayerRole][kStatusPuppet + j];
+         PAL_DrawNumber(min(99, w), 3, PAL_XY(startPos + 20 * i, 8 * j), kNumColorYellow, kNumAlignRight);
+      }
+   }
+
+   // 显示我方负面状态的剩余轮次
+   for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+   {
+      wPlayerRole = gpGlobals->rgParty[i].wPlayerRole;
+      for (j = 0; j < kStatusPuppet; j++)
+      {
+         w = gpGlobals->rgPlayerStatus[wPlayerRole][j];
+         PAL_DrawNumber(min(99, w), 3, PAL_XY(startPos + 20 * i, 40 + 8 * j), kNumColorYellow, kNumAlignRight);
+      }
+   }
+
+   // 显示已过总回合数
+   w = g_Battle.wCurrentAllRrounds;
+   PAL_DrawNumber(min(999, w), 5, PAL_XY(288, 114), kNumColorYellow, kNumAlignRight);
+
+   // 显示总的灵葫值
+   w = gpGlobals->wCollectValue;
+   PAL_DrawNumber(w, 5, PAL_XY(288, 152), kNumColorCyan, kNumAlignRight);
+}
+#endif
+
+#if PD_Battle_ShowEnemyStatus
+VOID
+PAL_New_EnemyStatus(
+   VOID
+)
+{
+   PAL_LARGE BYTE		bufBackground[320 * 200];
+   DWORD             dwTime;
+   INT					iCurrent, i, x, y, h, iValue, iMagicsResistance;
+   WORD              w, wCurrentFrame, wMaxFrame, wIdleAnimSpeed;
+   BATTLEENEMY			be;
+   LPCBITMAPRLE      lBMR;
+   PAL_POS				pos;
+   WCHAR s[256];
+
+   // 定义灵抗颜色
+   NUMCOLOR magicsResistanceColor[NUM_MAGIC_ELEMENTAL] = {
+      kNumColorCyan,
+      kNumColorBlue,
+      kNumColorYellow
+   };
+
+   // 将图像解出来，数据放入 bufBackground 中
+   PAL_MKFDecompressChunk(bufBackground, 320 * 200, gpGlobals->wNumBattleField, gpGlobals->f.fpFBP);
+
+   iCurrent = 0;
+   wCurrentFrame = 0;
+   wIdleAnimSpeed = 6;
+
+   //while (iCurrent >= 0 && iCurrent < MAX_ENEMIES_IN_TEAM)
+   while (iCurrent >= 0 && iCurrent <= g_Battle.wMaxEnemyIndex)
+   {
+      i = 0, x = 6, y = 6, h = 19;
+
+      be = g_Battle.rgEnemy[iCurrent];
+
+      if (be.wObjectID == 0 || be.e.wHealth == 0)
+      {
+         wCurrentFrame = 0;
+         wIdleAnimSpeed = 6;
+         iCurrent++;
+         continue;
+      }
+
+      // Draw the background image
+      // 绘制背景图
+      PAL_FBPBlitToSurface(bufBackground, gpScreen);
+      PAL_ApplyWave(gpScreen);
+
+      // 怪物图像
+      lBMR = PAL_SpriteGetFrame(be.lpSprite, wCurrentFrame);
+      wMaxFrame = PAL_SpriteGetNumFrames(be.lpSprite);
+      if (wCurrentFrame >= wMaxFrame)
+      {
+         wCurrentFrame = 0;
+         continue;
+      }
+
+      if (--wIdleAnimSpeed == 0)
+      {
+         wCurrentFrame++;
+         wIdleAnimSpeed = 6;
+      }
+
+      if (be.wCurrentFrame >= be.e.wIdleFrames)
+      {
+         wCurrentFrame = 0;
+      }
+
+
+      pos = PAL_XY(200, 100);
+      pos = PAL_XY(PAL_X(pos) - PAL_RLEGetWidth(lBMR) / 2, PAL_Y(pos) - PAL_RLEGetHeight(lBMR) / 2);
+      PAL_RLEBlitToSurface(lBMR, gpScreen, pos);
+
+      // 敌方名称
+      PAL_DrawText(PAL_GetWord(be.wObjectID), PAL_XY(101, 6), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+
+      // 战后可得经验值
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_EXP), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      // 经验值
+      PAL_DrawNumber(be.e.wExp, 5, PAL_XY(x + 64, y + (i - 1) * h + 5), kNumColorYellow, kNumAlignRight);
+
+      // 敌方体力
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_HP), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      // 剩余体力
+      if ((SHORT)be.e.wHealth <= be.sMaxHealth / 20)
+      {
+         // 若体力达到化尸条件则将当前血量以红色显示
+         if ((SHORT)be.e.wHealth <= 0)
+            PAL_DrawNumber(0, 7, PAL_XY(x + 37, y + (i - 1) * h - 1), kNumColorCyan, kNumAlignRight);
+         else
+            PAL_DrawNumber(be.e.wHealth, 7, PAL_XY(x + 37, y + (i - 1) * h - 1), kNumColorCyan, kNumAlignRight);
+      }
+      else
+         PAL_DrawNumber(be.e.wHealth, 7, PAL_XY(x + 37, y + (i - 1) * h - 1), kNumColorYellow, kNumAlignRight);
+
+      // 最大体力
+      PAL_DrawNumber(be.sMaxHealth, 7, PAL_XY(x + 37, y + (i - 1) * h + 10), kNumColorBlue, kNumAlignRight);
+
+      // 敌方巫抗
+      PAL_DrawText(L"\x5DEB\x6297", PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      PAL_DrawNumber(PAL_New_GetEnemySorceryResistance(iCurrent), 3, PAL_XY(x + 37, y + (i - 1) * h + 5), kNumColorYellow,
+         kNumAlignRight);
+
+      // 敌方毒抗
+      PAL_DrawText(L"\x6BD2\x6297", PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      PAL_DrawNumber(PAL_New_GetEnemyPoisonResistance(iCurrent), 3, PAL_XY(x + 37, y + (i - 1) * h + 5), kNumColorYellow,
+         kNumAlignRight);
+
+      // 敌方物抗
+      PAL_DrawText(L"\x7269\x6297", PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      PAL_DrawNumber(PAL_New_GetEnemyPhysicalResistance(iCurrent), 3, PAL_XY(x + 37, y + (i - 1) * h + 5), kNumColorYellow,
+         kNumAlignRight);
+
+      // 敌方灵抗
+      PAL_DrawText(L"\x7075\x6297", PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      for (iMagicsResistance = 0; iMagicsResistance < NUM_MAGIC_ELEMENTAL; iMagicsResistance++)
+      {
+         iValue = PAL_New_GetEnemyElementalResistance(iCurrent, iMagicsResistance);
+         PAL_DrawNumber(min(100, iValue), 3, PAL_XY(37 + x + iMagicsResistance * 25, y + (i - 1) * h + 5), magicsResistanceColor[iMagicsResistance], kNumAlignRight);
+      }
+
+      // 敌方攻击附带
+      PAL_DrawText(L"\x653B\x51FB\x9644\x5E26", PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      iValue = be.e.wAttackEquivItem;
+      if (iValue != 0)
+      {
+         PAL_DrawNumber((iValue >= 100) ? 100 : be.e.wAttackEquivItemRate, 3, PAL_XY(x + 74, y + (i - 1) * h + 5),
+            kNumColorCyan, kNumAlignRight);
+         PAL_DrawText(PAL_GetWord(iValue), PAL_XY(x + 98, y + (i - 1) * h), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+      }
+      else
+      {
+         PAL_swprintf(s, sizeof(s) / sizeof(WCHAR), L"\x65E0");
+         PAL_DrawText(s, PAL_XY(x + 98, y + (i - 1) * h), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+      }
+
+      // 敌方默认仙术
+      PAL_DrawText(L"\x9ED8\x8BA4\x4ED9\x672F", PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      iValue = be.e.wMagic;
+      if (iValue != 0)
+      {
+         PAL_DrawNumber((iValue >= 100) ? 100 : iValue, 3, PAL_XY(x + 74, y + (i - 1) * h + 5), kNumColorCyan, kNumAlignRight);
+         PAL_DrawText(PAL_GetWord(iValue), PAL_XY(x + 98, y + (i - 1) * h), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+      }
+      else
+      {
+         PAL_DrawText(L"\x65E0", PAL_XY(x + 98, y + (i - 1) * h), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+      }
+
+      // 偷窃敌方可得
+      PAL_DrawText(L"\x5077\x7A83\x53EF\x5F97", PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      PAL_DrawNumber(min(9999, be.e.nStealItem), 4, PAL_XY(x + 74 - 6, y + (i - 1) * h + 5), kNumColorCyan, kNumAlignRight);
+      iValue = be.e.wStealItem != 0 ? be.e.wStealItem : CASH_LABEL;
+      PAL_DrawText(PAL_GetWord(iValue), PAL_XY(x + 98, y + (i - 1) * h), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+
+      // 敌方战后掉落
+      PAL_DrawText(L"\x6218\x540E\x6389\x843D", PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      PAL_FindEnemyBooty(be.wScriptOnBattleEnd, 0, iCurrent, PAL_XY(x + 74, y + (i - 1) * h + 5), PAL_XY(x + 98, y + (i - 1) * h), FALSE);
+
+      i = 0;
+      x = 250;
+
+      // 敌方修行(下面获取的并不准确，因为怪物每升一级，武术灵力+5,防御身法+3,吉运+2)
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_LEVEL), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      //PAL_DrawNumber(be.e.wLevel, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorYellow, kNumAlignRight);
+      PAL_DrawNumber(PAL_New_GetEnemyLevel(iCurrent), 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorYellow, kNumAlignRight);
+
+      // 敌方武术
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_ATTACKPOWER), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      iValue = PAL_New_GetEnemyAttackStrength(iCurrent);
+      if (iValue < 0)
+         PAL_DrawNumber(-1 - iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorBlue,
+            kNumAlignRight);
+      else
+         PAL_DrawNumber(iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorYellow,
+            kNumAlignRight);
+
+      // 敌方灵力
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_MAGICPOWER), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      iValue = PAL_New_GetEnemyMagicStrength(iCurrent);
+      if (iValue < 0)
+         PAL_DrawNumber(-1 - iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorBlue,
+            kNumAlignRight);
+      else
+         PAL_DrawNumber(iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorYellow,
+            kNumAlignRight);
+
+      // 敌方防御
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_RESISTANCE), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      iValue = PAL_New_GetEnemyDefense(iCurrent);
+      if (iValue < 0)
+         PAL_DrawNumber(-1 - iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorBlue,
+            kNumAlignRight);
+      else
+         PAL_DrawNumber(iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorYellow,
+            kNumAlignRight);
+
+      // 敌方身法
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_DEXTERITY), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      iValue = PAL_New_GetEnemyDexterity(iCurrent);
+      if (iValue < 0)
+         PAL_DrawNumber(-1 - iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorBlue,
+            kNumAlignRight);
+      else
+         PAL_DrawNumber(iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorYellow,
+            kNumAlignRight);
+
+      // 敌方吉运
+      PAL_DrawText(PAL_GetWord(STATUS_LABEL_FLEERATE), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      iValue = PAL_New_GetEnemyFleeRate(iCurrent);
+      if (iValue < 0)
+         PAL_DrawNumber(-1 - iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorBlue,
+            kNumAlignRight);
+      else
+         PAL_DrawNumber(iValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorYellow,
+            kNumAlignRight);
+
+      // 敌方金钱
+      PAL_DrawText(PAL_GetWord(CASH_LABEL), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      PAL_DrawNumber(be.e.wCash, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorCyan, kNumAlignRight);
+
+      // 敌方灵葫
+      PAL_DrawText(L"\x7075\x846B\x503C", PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      PAL_DrawNumber(be.e.wCollectValue, 5, PAL_XY(x + 39, y + (i - 1) * h + 5), kNumColorCyan, kNumAlignRight);
+
+      // 敌方每回合行动次数
+      if (be.e.wDualMove)
+      {
+         PAL_DrawText(L"\x4E24\x6B21\x884C\x52A8", PAL_XY(x, y + (i)*h), 212, TRUE, FALSE, FALSE);
+      }
+      i++;
+
+      // 敌方目标索引
+      PAL_DrawText(L"\x76EE\x6807\x53F7", PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
+      PAL_DrawNumber(iCurrent + 1, 1, PAL_XY(x + 63, y + (i - 1) * h + 5), kNumColorYellow, kNumAlignRight);
+
+      //
+      // Draw all poisons
+      //将毒的名称写在状态栏里
+      y = 6;
+
+      int wPoisonIntensity = 0;
+
+      for (i = 0; i < MAX_POISONS; i++)
+      {
+         w = g_Battle.rgEnemy[iCurrent].rgPoisons[i].wPoisonID;
+
+         if (w != 0)
+         {
+            wPoisonIntensity = gpGlobals->g.rgObject[w].poison.wPoisonLevel;
+
+            if (wPoisonIntensity != 0 && wPoisonIntensity < 99)
+            {
+               PAL_DrawText(PAL_GetWord(w), PAL_XY(185, y), (BYTE)(gpGlobals->g.rgObject[w].poison.wColor + 10), TRUE, FALSE, FALSE);
+
+               y += 19;
+            }
+         }
+      }
+
+      //
+      // Draw all poisons
+      // 将毒性为 100 的毒的名称写在状态栏里
+
+      y = 25;
+
+      for (i = 0; i < MAX_POISONS; i++)
+      {
+         w = g_Battle.rgEnemy[iCurrent].rgPoisons[i].wPoisonID;
+
+         if (w != 0)
+         {
+            wPoisonIntensity = gpGlobals->g.rgObject[w].poison.wPoisonLevel;
+
+            if (wPoisonIntensity != 0 && wPoisonIntensity == 99)
+            {
+               PAL_DrawText(PAL_GetWord(w), PAL_XY(101, y), (BYTE)(gpGlobals->g.rgObject[w].poison.wColor + 10), TRUE, FALSE, FALSE);
+               //PAL_DrawNumber(min(99, wPoisonIntensity), 2, PAL_XY(157, y + 5), kNumColorCyan, kNumAlignRight);
+
+               y += 19;
+            }
+         }
+      }
+
+      //
+      // Update the screen
+      // 更新屏幕
+      VIDEO_UpdateScreen(NULL);
+
+      UTIL_Delay(1);
+
+      if (g_InputState.dwKeyPress & kKeyMenu)
+      {
+         iCurrent = -1;
+      }
+      else if (g_InputState.dwKeyPress & (kKeyLeft | kKeyUp))
+      {
+         do
+         {
+            iCurrent--;
+            if (iCurrent < 0)
+            {
+               break;
+            }
+            be = g_Battle.rgEnemy[iCurrent];
+         } while (be.wObjectID == 0 && be.e.wHealth == 0);
+         wCurrentFrame = 0;
+         wIdleAnimSpeed = 6;
+      }
+      else if (g_InputState.dwKeyPress & (kKeyRight | kKeyDown | kKeySearch))
+      {
+         do
+         {
+            iCurrent++;
+            if (iCurrent >= MAX_ENEMIES_IN_TEAM)
+            {
+               break;
+            }
+            be = g_Battle.rgEnemy[iCurrent];
+         } while (be.wObjectID == 0 && be.e.wHealth == 0);
+         wCurrentFrame = 0;
+         wIdleAnimSpeed = 6;
+      }
+
+      //
+      // Wait for input
+      // 等待输入
+      PAL_ClearKeyState();
+
+      //
+      // Set the time of the next frame.
+      //
+      dwTime = SDL_GetTicks() + BATTLE_FRAME_TIME;
+
+      //
+      // Wait for the time of one frame. Accept input here.
+      //
+      PAL_DelayUntil(dwTime);
+   }
+
+   //
+   // __DEBUG__关闭该菜单
+   //
+   g_Battle.UI.MenuState = kBattleMenuMain;
+}
+#endif
+
+#if PD_Battle_ShowPlayerLevelmagic
+VOID
+PAL_New_PlayerLevelmagic(
+   VOID
+)
+{
+   PAL_LARGE BYTE       bufBackground[PAL_RLEBUFSIZE];
+   PAL_LARGE BYTE       bufImage[PAL_RLEBUFSIZE];
+   INT					   iCurrent = 0, iPlayerRole = 0, i, iNumXMargin = 10, iNumYMargin = 7, iTextXMargin = 25, iTextYMargin = 0, iXOffset = 100, iYOffset = 20, iRows, iColumns;
+   DWORD                dwTime;
+
+   // 将图像解出来，数据放入 bufBackground 中
+   PAL_MKFDecompressChunk(bufBackground, PAL_RLEBUFSIZE, gpGlobals->wNumBattleField, gpGlobals->f.fpFBP);
+
+   while (iCurrent >= 0 && iCurrent <= gpGlobals->wMaxPartyMemberIndex)
+   {
+      iPlayerRole = gpGlobals->rgParty[iCurrent].wPlayerRole;
+
+      // 重置行数列数
+      iRows = 0, iColumns = 0;
+
+      // 展示背景
+      PAL_FBPBlitToSurface(bufBackground, gpScreen);
+      PAL_ApplyWave(gpScreen);
+
+      // 人物图像
+      if (PAL_MKFReadChunk(bufImage, 16384, gpGlobals->g.PlayerRoles.rgwAvatar[iPlayerRole], gpGlobals->f.fpRGM) > 0)
+      {
+         PAL_RLEBlitToSurface(bufImage, gpScreen, PAL_XY(230, 90));
+      }
+
+      //人物等级法术
+      for (i = 0; i < gpGlobals->g.nLevelUpMagic; i++) {
+         // 只展示等级大于0级的法术
+         if (gpGlobals->g.lprgLevelUpMagic[i].m[min(iPlayerRole, 5)].wLevel > 0)
+         {
+            // 每次都是第三个换行
+            if (i % 3 == 0 && i > 0)
+            {
+               iRows = 0;
+               iColumns++;
+            }
+
+            PAL_DrawNumber(gpGlobals->g.lprgLevelUpMagic[i].m[min(iPlayerRole, 5)].wLevel, 2,
+               PAL_XY(iNumXMargin + iXOffset * iRows, iNumYMargin + iYOffset * iColumns), kNumColorYellow, kNumAlignRight);
+
+            PAL_DrawText(PAL_GetWord(gpGlobals->g.lprgLevelUpMagic[i].m[min(iPlayerRole, 5)].wMagic),
+               PAL_XY(iTextXMargin + iXOffset * iRows++, iTextYMargin + iYOffset * iColumns), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+         }
+      }
+
+      // 更新整个屏幕
+      VIDEO_UpdateScreen(NULL);
+
+      UTIL_Delay(1);
+
+      if (g_InputState.dwKeyPress & kKeyMenu)
+      {
+         iCurrent = -1;
+      }
+      else if (g_InputState.dwKeyPress & (kKeyLeft | kKeyUp))
+      {
+         iCurrent--;
+      }
+      else if (g_InputState.dwKeyPress & (kKeyRight | kKeyDown | kKeySearch))
+      {
+         iCurrent++;
+      }
+
+      //
+      // Wait for input
+      // 等待输入
+      PAL_ClearKeyState();
+
+      //
+      // Set the time of the next frame.
+      //
+      dwTime = SDL_GetTicks() + BATTLE_FRAME_TIME;
+
+      //
+      // Wait for the time of one frame. Accept input here.
+      //
+      PAL_DelayUntil(dwTime);
+   }
+
+   //
+   // __DEBUG__关闭该菜单
+   //
+   g_Battle.UI.MenuState = kBattleMenuMain;
+}
+#endif

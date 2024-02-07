@@ -698,8 +698,10 @@ PAL_InGameMagicMenu(
       rgMenuItem[i].wValue = i;
       rgMenuItem[i].wNumWord =
          gpGlobals->g.PlayerRoles.rgwName[gpGlobals->rgParty[i].wPlayerRole];
+#if !PD_Scene_DeadPlayerRoleCanUseMagic
       rgMenuItem[i].fEnabled =
          (gpGlobals->g.PlayerRoles.rgwHP[gpGlobals->rgParty[i].wPlayerRole] > 0);
+#endif
       rgMenuItem[i].pos = PAL_XY(48, y);
 
       y += 18;

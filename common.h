@@ -22,6 +22,8 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
+#include "paldebug.h"
+
 #ifndef ENABLE_REVISIED_BATTLE
 # define PAL_CLASSIC        1
 #endif

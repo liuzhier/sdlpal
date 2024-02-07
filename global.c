@@ -2398,3 +2398,401 @@ PAL_PlayerLevelUp(
    gpGlobals->Exp.rgPrimaryExp[wPlayerRole].wLevel =
       gpGlobals->g.PlayerRoles.rgwLevel[wPlayerRole];
 }
+
+#if PD_Battle_ShowEnemyStatus
+BOOL
+PAL_FindEnemyBooty(
+   WORD           wScriptEntry,
+   WORD           wEventObjectID,
+   WORD           wEnemyIndex,
+   PAL_POS        pNumPos,
+   PAL_POS        pTextPos,
+   BOOL           bbJumpScript
+)
+/*++
+  Purpose:
+
+   找出敌人的战利品（其实就是战后脚本得到什么物品）
+
+  Parameters:
+
+   [IN]  wScriptEntry - The script entry to execute.
+
+   [IN]  wEventObjectID - The event object ID which invoked the script.
+
+   [IN]  wEnemyIndex - The event index in the team.
+
+   [IN]  pNumPos - The pos of draw num.
+
+   [IN]  pNumPos - The pos of draw text.
+
+   [IN]  bbJumpScript - Determine return value..
+
+  Return value:
+
+   物品及其数量
+
+--*/
+{
+   static WORD       wLastEventObject = 0;
+
+   WORD              wNextScriptEntry;
+   BOOL              fEnded;
+   LPSCRIPTENTRY     pScript;
+   LPEVENTOBJECT     pEvtObj = NULL;
+
+   // 04跳转并返回指令执行结果
+   BOOL              bJumpResults = FALSE;
+
+   wNextScriptEntry = wScriptEntry;
+   fEnded = FALSE;
+
+   if (wEventObjectID == 0xFFFF)
+   {
+      wEventObjectID = wLastEventObject;
+   }
+
+   wLastEventObject = wEventObjectID;
+
+   if (wEventObjectID != 0)
+   {
+      pEvtObj = &(gpGlobals->g.lprgEventObject[wEventObjectID - 1]);
+   }
+
+   WORD wEnemyBooty = 0;
+   WORD wEnemyBootyNum = 0;
+
+   while (wScriptEntry != 0 && !fEnded)
+   {
+      pScript = &(gpGlobals->g.lprgScriptEntry[wScriptEntry]);
+
+      switch (pScript->wOperation)
+      {
+      case 0x0000:
+         //
+         // Stop running
+         //
+         fEnded = TRUE;
+         break;
+
+      case 0x0001:
+         //
+         // Stop running and replace the entry with the next line
+         //
+         fEnded = TRUE;
+         wNextScriptEntry = wScriptEntry + 1;
+         break;
+
+      case 0x0002:
+         //
+         // Stop running and replace the entry with the specified one
+         //
+         if (pScript->rgwOperand[1] == 0 ||
+            ++(pEvtObj->nScriptIdleFrame) < pScript->rgwOperand[1])
+         {
+            fEnded = TRUE;
+            wNextScriptEntry = pScript->rgwOperand[0];
+         }
+         else
+         {
+            //
+            // failed
+            //
+            pEvtObj->nScriptIdleFrame = 0;
+            wScriptEntry++;
+         }
+         break;
+
+      case 0x0003:
+         //
+         // unconditional jump
+         //
+         if (pScript->rgwOperand[1] == 0 ||
+            ++(pEvtObj->nScriptIdleFrame) < pScript->rgwOperand[1])
+         {
+            wScriptEntry = pScript->rgwOperand[0];
+         }
+         else
+         {
+            //
+            // failed
+            //
+            pEvtObj->nScriptIdleFrame = 0;
+            wScriptEntry++;
+         }
+         break;
+
+      case 0x0004:
+         //
+         // Call script
+         //
+         bJumpResults = PAL_FindEnemyBooty(pScript->rgwOperand[0], ((pScript->rgwOperand[1] == 0) ? wEventObjectID :
+            pScript->rgwOperand[1]), wEnemyIndex, pNumPos, pTextPos, TRUE);
+         if (bJumpResults)
+            return;
+         wScriptEntry++;
+         break;
+
+      case 0x001F:
+         fEnded = TRUE;
+         wEnemyBooty = pScript->rgwOperand[0];
+         wEnemyBootyNum = (SHORT)(pScript->rgwOperand[1]);
+         break;
+
+      default:
+         wScriptEntry++;
+         break;
+      }
+   }
+
+   // 若跳转脚本中没有找到战利品则执行
+   if (!bJumpResults)
+      if (wEnemyBooty == 0 && !bbJumpScript)
+      {
+         // 若本函数为非跳转指令的递归调用则执行
+         PAL_DrawText(L"\x65E0", pTextPos, MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+      }
+      else
+      {
+         PAL_DrawNumber((wEnemyBootyNum == 0) ? 1 : wEnemyBootyNum, 3, pNumPos, kNumColorCyan, kNumAlignRight);
+         PAL_DrawText(PAL_GetWord(wEnemyBooty), pTextPos, MENUITEM_COLOR_CONFIRMED,
+            TRUE, FALSE, FALSE);
+
+         return TRUE;
+      }
+
+   return FALSE;
+}
+
+SHORT
+PAL_New_GetEnemyLevel(
+   WORD		wEnemyIndex
+)
+{
+   WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+   if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+   {
+      return 0;
+   }
+
+   SHORT s = g_Battle.rgEnemy[wEnemyIndex].e.wLevel;
+   s += 1;
+
+   if (g_Battle.fIsBoss && s >= 30)
+   {
+      s += 5;
+   }
+
+   // 敌方修行最小为1
+   s = max(s, 1);
+   s = min(s, 0x7FFF);
+
+   // 敌方修行最大999
+   s = min(s, 999);
+   return (INT)s;
+}
+
+SHORT
+PAL_New_GetEnemyAttackStrength(
+   WORD		wEnemyIndex
+)
+{
+   WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+
+   if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+   {
+      return 0;
+   }
+
+   SHORT s = g_Battle.rgEnemy[wEnemyIndex].e.wAttackStrength;
+
+   s += (g_Battle.rgEnemy[wEnemyIndex].e.wLevel + 6) * 6;
+
+   s = max(s, 0);
+   s = min(s, 0xFFFF);
+
+   return s;
+}
+
+SHORT
+PAL_New_GetEnemyMagicStrength(
+   WORD		wEnemyIndex
+)
+{
+   WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+
+   if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+   {
+      return 0;
+   }
+
+   SHORT s = g_Battle.rgEnemy[wEnemyIndex].e.wMagicStrength;
+
+   s += (g_Battle.rgEnemy[wEnemyIndex].e.wLevel + 6) * 6;
+
+   s = max(s, 0);
+   s = min(s, 0xFFFF);
+
+   return s;
+}
+
+SHORT
+PAL_New_GetEnemyDefense(
+   WORD		wEnemyIndex
+)
+{
+   WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+
+   if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+   {
+      return 0;
+   }
+
+   SHORT s = g_Battle.rgEnemy[wEnemyIndex].e.wDefense;
+
+   s += (g_Battle.rgEnemy[wEnemyIndex].e.wLevel + 6) * 4;
+
+   s = max(s, 0);
+   s = min(s, 0xFFFF);
+
+   return s;
+}
+
+SHORT
+PAL_New_GetEnemyDexterity(
+   WORD		wEnemyIndex
+)
+{
+   WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+
+   if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+   {
+      return 0;
+   }
+
+   SHORT s = g_Battle.rgEnemy[wEnemyIndex].e.wDexterity;
+
+   s += (g_Battle.rgEnemy[wEnemyIndex].e.wLevel + 6) * 3;
+
+   s = max(s, 0);
+   s = min(s, 0xFFFF);
+
+   return s;
+}
+
+SHORT
+PAL_New_GetEnemyFleeRate(
+   WORD		wEnemyIndex
+)
+{
+   WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+
+   if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+   {
+      return 0;
+   }
+
+   SHORT s = g_Battle.rgEnemy[wEnemyIndex].e.wFleeRate;
+
+   s += (g_Battle.rgEnemy[wEnemyIndex].e.wLevel + 6) * 2;
+
+   s = max(s, 0);
+   s = min(s, 0xFFFF);
+
+   return s;
+}
+
+SHORT
+PAL_New_GetEnemySorceryResistance(
+   WORD		wEnemyIndex
+)
+{
+   WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+   if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+   {
+      return 0;
+   }
+
+   SHORT w = gpGlobals->g.rgObject[wObjectID].enemy.wResistanceToSorcery * 10;
+
+   return min(w, 100);
+}
+
+SHORT
+PAL_New_GetEnemyPoisonResistance(
+   WORD		wEnemyIndex
+)
+{
+   WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+   if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+   {
+      return 0;
+   }
+
+   SHORT w = g_Battle.rgEnemy[wEnemyIndex].e.wPoisonResistance;
+
+   if (g_Battle.fIsBoss)
+   {
+      if (w == 0)
+      {
+         w += 15;
+      }
+      else
+      {
+         w += 10;
+      }
+   }
+
+   return min(w, 100);
+}
+
+SHORT
+PAL_New_GetEnemyPhysicalResistance(
+   WORD		wEnemyIndex
+)
+{
+   WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+   if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+   {
+      return 0;
+   }
+
+   SHORT w = g_Battle.rgEnemy[wEnemyIndex].e.wPhysicalResistance;
+
+   if (g_Battle.fIsBoss)
+   {
+      if (w == 0)
+      {
+         w += 15;
+      }
+      else
+      {
+         w += 10;
+      }
+   }
+   else
+   {
+      w += 10;
+   }
+
+
+   return min(w, 100);
+}
+
+SHORT
+PAL_New_GetEnemyElementalResistance(
+   WORD		wEnemyIndex,
+   INT		iAttrib
+)
+{
+   WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+   if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+   {
+      return 0;
+   }
+
+   SHORT w = g_Battle.rgEnemy[wEnemyIndex].e.wElemResistance[iAttrib];
+
+   return min(w, 100);
+}
+#endif

@@ -59,6 +59,14 @@ typedef enum tagBATTLEACTIONTYPE
    kBattleActionAttackMate,    // attack teammate (confused only)
 } BATTLEACTIONTYPE;
 
+#if PD_Battle_ShortcutKey_R_AutoTarget
+typedef enum tagBATTLEFINDTARGET
+{
+   kBattleFindTargetForward,
+   kBattleFindTargetBackwards,
+} BATTLEFINDTARGET;
+#endif
+
 typedef struct tagBATTLEACTION
 {
    BATTLEACTIONTYPE   ActionType;
@@ -79,6 +87,10 @@ typedef struct tagBATTLEENEMY
    PAL_POS            posOriginal;            // original position on the screen
    WORD               wCurrentFrame;          // current frame number
    FIGHTERSTATE       state;                  // state of this enemy
+
+#if PD_Battle_ShowMoreData || PD_Battle_ShowEnemyStatus
+   SHORT              sMaxHealth;
+#endif
 
 #ifndef PAL_CLASSIC
    BOOL               fTurnStart;
@@ -198,6 +210,15 @@ typedef struct tagBATTLE
    LPBYTE           lpEffectSprite;
 
    BOOL             fEnemyMoving;         // TRUE if enemy is moving
+
+#if PD_Enemy_UseMagicShowWordName
+   BOOL             wCurrentEnemyMagicID;
+#endif
+
+#if PD_Battle_ShowMoreData
+   BOOL             fShowDataInBattle;
+   WORD             wCurrentAllRrounds;
+#endif
 
    INT              iHidingTime;          // Time of hiding
 

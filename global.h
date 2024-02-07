@@ -753,6 +753,48 @@ PAL_PlayerLevelUp(
    WORD          wNumLevel
 );
 
+#if PD_Battle_ShowEnemyStatus
+BOOL
+PAL_FindEnemyBooty(
+   WORD           wScriptEntry,
+   WORD           wEventObjectID,
+   WORD           wEnemyIndex,
+   PAL_POS        pNumPos,
+   PAL_POS        pTextPos,
+   BOOL           bbJumpScript
+);
+
+SHORT
+PAL_New_GetEnemyAttackStrength(
+   WORD		wEnemyIndex
+);
+
+SHORT
+PAL_New_GetEnemyMagicStrength(
+   WORD		wEnemyIndex
+);
+
+SHORT
+PAL_New_GetEnemyDefense(
+   WORD		wEnemyIndex
+);
+
+SHORT
+PAL_New_GetEnemyDexterity(
+   WORD		wEnemyIndex
+);
+
+SHORT
+PAL_New_GetEnemyFleeRate(
+   WORD		wEnemyIndex
+);
+
+SHORT
+PAL_New_GetEnemySorceryResistance(
+   WORD		wEnemyIndex
+);
+#endif
+
 PAL_C_LINKAGE_END
 
 #endif

@@ -1616,6 +1616,10 @@ PAL_StartBattle(
          g_Battle.rgEnemy[i].wScriptOnReady = gpGlobals->g.rgObject[w].enemy.wScriptOnReady;
          g_Battle.rgEnemy[i].iColorShift = 0;
 
+#if PD_Battle_ShowMoreData || PD_Battle_ShowEnemyStatus
+         g_Battle.rgEnemy[i].sMaxHealth = g_Battle.rgEnemy[i].e.wHealth;
+#endif
+
 #ifndef PAL_CLASSIC
          g_Battle.rgEnemy[i].flTimeMeter = 50;
 
@@ -1760,6 +1764,10 @@ PAL_StartBattle(
    g_Battle.fEnemyMoving = FALSE;
    g_Battle.iHidingTime = 0;
    g_Battle.wMovingPlayerIndex = 0;
+
+#if PD_Battle_ShowMoreData
+   g_Battle.wCurrentAllRrounds = 0;
+#endif
 
    g_Battle.UI.szMsg[0] = '\0';
    g_Battle.UI.szNextMsg[0] = '\0';

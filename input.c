@@ -87,7 +87,19 @@ static const int g_KeyMap[][2] = {
    { SDLK_w,         kKeyThrowItem },
    { SDLK_q,         kKeyFlee },
    { SDLK_f,         kKeyForce },
-   { SDLK_s,         kKeyStatus }
+   { SDLK_s,         kKeyStatus },
+
+#if PD_Battle_ShowMoreData
+   { SDLK_1,         kKeyBattleData },
+#endif // PD_Battle_ShowMoreData
+
+#if PD_Battle_ShowEnemyStatus
+   { SDLK_2,         kKeyEnemyStatus },
+#endif // PD_Battle_ShowEnemyStatus
+
+#if PD_Battle_ShowPlayerLevelmagic
+   { SDLK_3,         kKeyMagicList },
+#endif // PD_Battle_ShowPlayerLevelmagic
 };
 
 static VOID

@@ -454,6 +454,7 @@ PAL_InitFont(
     font_offset_x = calloc(1, fonts);
     font_offset_y = calloc(1, fonts);
 
+#if !PD_GameFont_Win95
    if (!cfg->pszMsgFile)
    {
       PAL_LoadEmbeddedFont();
@@ -505,6 +506,7 @@ PAL_InitFont(
          break;
       }
    }
+#endif
 
    return 0;
 }

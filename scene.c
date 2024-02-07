@@ -490,6 +490,40 @@ PAL_MakeScene(
    //
    PAL_SceneDrawSprites();
 
+#if PD_Scene_ShowPos
+   // show player pos
+   PAL_DrawNumber(gpGlobals->rgTrail[0].x, 5, PAL_XY(320 - 66, 0), kNumColorYellow, kNumAlignRight);
+   PAL_DrawNumber(gpGlobals->rgTrail[0].y, 5, PAL_XY(320 - 30, 0), kNumColorCyan, kNumAlignRight);
+#endif
+
+#if PD_Scene_ShowSceneID
+   // show sceneID
+   PAL_DrawNumber(gpGlobals->wNumScene, 5, PAL_XY(320 - 30, 10), kNumColorBlue, kNumAlignRight);
+#endif
+
+#if PD_Scene_ShowQuMoXiangTime
+   // show QuMoXiang time
+   if (gpGlobals->wChaseRange != 1)
+   {
+      if (gpGlobals->wChaseRange != 0)
+      {
+         PAL_DrawNumber(gpGlobals->wChasespeedChangeCycles, 5, PAL_XY(320 - 30, 20), kNumColorBlue, kNumAlignRight);
+      }
+      else
+      {
+         PAL_DrawNumber(gpGlobals->wChasespeedChangeCycles, 5, PAL_XY(320 - 30, 20), kNumColorYellow, kNumAlignRight);
+      }
+   }
+#endif
+
+#if PD_Scene_ShowLingHuValue
+   // show LingHu value
+   if (gpGlobals->wCollectValue != 0)
+   {
+      PAL_DrawNumber(gpGlobals->wCollectValue, 5, PAL_XY(320 - 30, 200 - 10), kNumColorCyan, kNumAlignRight);
+   }
+#endif
+
    //
    // Check if we need to fade in.
    //

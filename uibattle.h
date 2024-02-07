@@ -43,6 +43,9 @@ typedef enum tagBATTLEMENUSTATE
    kBattleMenuThrowItemSelect,
    kBattleMenuMisc,
    kBattleMenuMiscItemSubMenu,
+   kBattleMenueQuipmentItemSelect,
+   kBattleMenuEnemyStatus,
+   kBattleMenuMagicList,
 } BATTLEMENUSTATE;
 
 typedef enum tagBATTLEUIACTION
@@ -144,6 +147,27 @@ PAL_BattleUIShowNum(
    PAL_POS        pos,
    NUMCOLOR       color
 );
+
+#if PD_Battle_ShowMoreData
+VOID
+PAL_New_BattleUIShowData(
+   VOID
+);
+#endif
+
+#if PD_Battle_ShowEnemyStatus
+VOID
+PAL_New_EnemyStatus(
+   VOID
+);
+#endif
+
+#if PD_Battle_ShowPlayerLevelmagic
+VOID
+PAL_New_PlayerLevelmagic(
+   VOID
+);
+#endif
 
 PAL_C_LINKAGE_END
 
