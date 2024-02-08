@@ -946,6 +946,7 @@ PAL_InitGameData(
    }
 
    gpGlobals->iCurInvMenuItem = 0;
+   gpGlobals->iCurSellMenuItem = 0;
    gpGlobals->fInBattle = FALSE;
 
    memset(gpGlobals->rgPlayerStatus, 0, sizeof(gpGlobals->rgPlayerStatus));
@@ -1161,6 +1162,8 @@ PAL_AddItemToInventory(
          //
          if(gpGlobals->rgInventory[index].nAmount == 0 && index == gpGlobals->iCurInvMenuItem && index+1 < MAX_INVENTORY && gpGlobals->rgInventory[index+1].nAmount <= 0)
             gpGlobals->iCurInvMenuItem --;
+         if (gpGlobals->rgInventory[index].nAmount == 0 && index == gpGlobals->iCurSellMenuItem && index + 1 < MAX_INVENTORY && gpGlobals->rgInventory[index + 1].nAmount <= 0)
+            gpGlobals->iCurSellMenuItem--;
          return TRUE;
       }
 
