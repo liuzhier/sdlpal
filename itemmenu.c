@@ -56,7 +56,7 @@ PAL_ItemSelectMenuUpdate(
    const int          iAmountXOffset = gConfig.dwWordLength * 8 + 1;
    const int          iPageLineOffset = (iLinesPerPage + 1) / 2;
    const int          iPictureYOffset = (gConfig.ScreenLayout.ExtraItemDescLines > 1) ? (gConfig.ScreenLayout.ExtraItemDescLines - 1) * 16 : 0;
-   PAL_POS            cursorPos = PAL_XY(15 + iCursorXOffset, 22);;
+   PAL_POS            cursorPos = PAL_XY(15 + iCursorXOffset, 22);
 
    //
    // Process input
@@ -405,6 +405,8 @@ PAL_ItemSelectMenu(
    WORD             w;
    DWORD            dwTime;
 
+   // Special handling in Win version, no longer requiring cursor position recording
+   if (gConfig.fIsWIN95 && wItemFlags == kItemFlagSellable) *iCurMenuItem = 0;
 
    PAL_ItemSelectMenuInit(wItemFlags);
    iPrevIndex = *iCurMenuItem;

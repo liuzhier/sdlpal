@@ -78,7 +78,11 @@ PAL_Init(
       TerminateOnError("Could not initialize Video: %d.\n", e);
    }
 
+#if PD_GameFont_Win95
+   VIDEO_SetWindowTitle(UTIL_va(UTIL_GlobalBuffer(0), PAL_GLOBAL_BUFFER_SIZE, "Pal Windows 95"));
+#else
    VIDEO_SetWindowTitle("Loading...");
+#endif
 
    e = PAL_InitUI();
    if (e != 0)
@@ -103,6 +107,7 @@ PAL_Init(
    AUDIO_OpenDevice();
    PAL_AVIInit();
 
+#if !PD_GameFont_Win95
    VIDEO_SetWindowTitle(UTIL_va(UTIL_GlobalBuffer(0), PAL_GLOBAL_BUFFER_SIZE,
 	   "Pal %s%s%s%s",
 	   gConfig.fIsWIN95 ? "Win95" : "DOS",
@@ -118,6 +123,7 @@ PAL_Init(
 #endif
        ,(gConfig.fEnableGLSL && gConfig.pszShader ? gConfig.pszShader : "")
    ));
+#endif // PD_GameFont_Win95
 }
 
 VOID

@@ -46,13 +46,26 @@
    #define     PD_Item_QuMoXiang_ShowTimeNoPass   1
 
    // 战斗中的快捷键 R 应该按需向前向后寻目标
-   #define     PD_Battle_ShortcutKey_R_AutoTarget 1
+   #define     PD_Battle_ShortcutKey_R_AutoTarget 0
 
    // 使字体更加接近原版 Pal Windows 95
    #define     PD_GameFont_Win95                  1
 
+   // 读档不要重置各种光标
+   #define     PD_LoadSave_NoResetItemCursor      1
+
+   // 永远不要对道具进行排序
+   //#define     PD_ItemList_NoSort                 1
+
    // 辅助功能：敌方施法时显示法术名称
    #define     PD_Enemy_UseMagicShowWordName      1
+
+   // 解除 CPU 速度限制，此功能可能会导致 CPU 使用率过高
+   // 菜单内无延迟
+   #define     PD_Game_CPUSpeed_NotLower         1
+
+   // 取消掉单列菜单的右键下移功能
+   #define     PD_Menu_KeyLeftOrRight_NextLine   1
 
 #endif // PAL_FIXBUG
 

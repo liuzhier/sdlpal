@@ -358,8 +358,16 @@ PAL_ConfirmMenu(
 
 --*/
 {
+#if PD_Menu_KeyLeftOrRight_NextLine
+   gpGlobals->fConfirmMenu = TRUE;
+#endif
+
    WORD wItems[2] = { CONFIRMMENU_LABEL_NO, CONFIRMMENU_LABEL_YES };
    WORD wReturnValue = PAL_SelectionMenu(2, 0, wItems);
+
+#if PD_Menu_KeyLeftOrRight_NextLine
+   gpGlobals->fConfirmMenu = FALSE;
+#endif
 
    return (wReturnValue == MENUITEM_VALUE_CANCELLED || wReturnValue == 0) ? FALSE : TRUE;
 }
@@ -2044,7 +2052,7 @@ PAL_QuitGame(
    VOID
 )
 {
-#if PAL_HAS_CONFIG_PAGE
+#if PAL_HAS_CONFIG_PAGE && !PD_Menu_KeyLeftOrRight_NextLine
 	WORD wReturnValue = PAL_TripleMenu(SYSMENU_LABEL_LAUNCHSETTING);
 #else
 	WORD wReturnValue = PAL_ConfirmMenu(); // No config menu available

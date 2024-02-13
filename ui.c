@@ -483,7 +483,12 @@ PAL_ReadMenu(
 
       PAL_ProcessEvent();
 
+#if PD_Menu_KeyLeftOrRight_NextLine
+      if (((g_InputState.dwKeyPress & kKeyDown) && !gpGlobals->fConfirmMenu)
+         || ((g_InputState.dwKeyPress & kKeyRight) && gpGlobals->fConfirmMenu))
+#else
       if (g_InputState.dwKeyPress & (kKeyDown | kKeyRight))
+#endif
       {
          //
          // Fix issue #166
@@ -538,7 +543,12 @@ PAL_ReadMenu(
             (*lpfnMenuItemChanged)(rgMenuItem[wCurrentItem].wValue);
          }
       }
+#if PD_Menu_KeyLeftOrRight_NextLine
+      else if (((g_InputState.dwKeyPress & kKeyUp) && !gpGlobals->fConfirmMenu)
+         || ((g_InputState.dwKeyPress & kKeyLeft) && gpGlobals->fConfirmMenu))
+#else
       else if (g_InputState.dwKeyPress & (kKeyUp | kKeyLeft))
+#endif
       {
          //
          // Fix issue #166
@@ -627,10 +637,14 @@ PAL_ReadMenu(
          }
       }
 
+#if PD_Game_CPUSpeed_NotLower
+      SDL_Delay(1);
+#else
       //
       // Use delay function to avoid high CPU usage.
       //
       SDL_Delay(50);
+#endif
    }
 
    return MENUITEM_VALUE_CANCELLED;

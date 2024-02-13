@@ -701,6 +701,7 @@
     <ClInclude Include="..\mini_glloader.h" />
     <ClInclude Include="..\palcfg.h" />
     <ClInclude Include="..\palcommon.h" />
+    <ClInclude Include="..\paldebug.h" />
     <ClInclude Include="..\palette.h" />
     <ClInclude Include="..\play.h" />
     <ClInclude Include="..\res.h" />

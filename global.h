@@ -514,6 +514,11 @@ typedef struct tagGLOBALVARS
    BOOL             fNeedToFadeIn;       // TRUE if need to fade in when drawing scene
    BOOL             fInBattle;           // TRUE if in battle
    BOOL             fAutoBattle;         // TRUE if auto-battle
+
+#if PD_Menu_KeyLeftOrRight_NextLine
+   BOOL             fConfirmMenu;        // TRUE if in confirm menu
+#endif
+
 #ifndef PAL_CLASSIC
    BYTE             bBattleSpeed;        // Battle Speed (1 = Fastest, 5 = Slowest)
 #endif

@@ -46,6 +46,11 @@ PAL_GameMain(
    // Show the opening menu.
    //
    gpGlobals->bCurrentSaveSlot = (BYTE)PAL_OpeningMenu();
+
+#if PD_LoadSave_NoResetItemCursor
+   gpGlobals->iCurInvMenuItem = 0;
+   gpGlobals->iCurSellMenuItem = 0;
+#endif
    gpGlobals->fInMainGame = TRUE;
 
    //
