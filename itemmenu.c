@@ -405,9 +405,6 @@ PAL_ItemSelectMenu(
    WORD             w;
    DWORD            dwTime;
 
-   // Special handling in Win version, no longer requiring cursor position recording
-   if (gConfig.fIsWIN95 && wItemFlags == kItemFlagSellable) *iCurMenuItem = 0;
-
    PAL_ItemSelectMenuInit(wItemFlags);
    iPrevIndex = *iCurMenuItem;
 

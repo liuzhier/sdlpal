@@ -1455,12 +1455,32 @@ PAL_DialogWaitForKey(
    PAL_DialogWaitForKeyWithMaximumSeconds(0);
 }
 
+#if PD_Scene_ShowEventMessages
 int
 TEXT_DisplayText(
+	LPCWSTR        lpszText,
+	int            x,
+	int            y,
+	BOOL           isDialog
+)
+{
+	return TEXT_DisplayTextWithShadow(lpszText, x, y, isDialog, FALSE);
+}
+
+int
+TEXT_DisplayTextWithShadow(
+#else
+int
+TEXT_DisplayText(
+#endif
    LPCWSTR        lpszText,
    int            x,
    int            y,
    BOOL           isDialog
+#if PD_Scene_ShowEventMessages
+,
+   BOOL           isEventMessages
+#endif
 )
 {
    //
@@ -1591,7 +1611,11 @@ TEXT_DisplayText(
             if( isNumber )
                PAL_DrawNumber(text[0]-'0', 1, PAL_XY(x, y+4), kNumColorYellow, kNumAlignLeft);
             else
-               PAL_DrawTextUnescape(text, PAL_XY(x, y), color, !isDialog, !isDialog && !g_TextLib.fUserSkip, FALSE, FALSE);
+#if PD_Scene_ShowEventMessages
+					PAL_DrawTextUnescape(text, PAL_XY(x, y), color, !isDialog || isEventMessages, !isDialog && !g_TextLib.fUserSkip, FALSE, FALSE);
+#else
+					PAL_DrawTextUnescape(text, PAL_XY(x, y), color, !isDialog, !isDialog && !g_TextLib.fUserSkip, FALSE, FALSE);
+#endif
             x += PAL_CharWidth(text[0]);
             
             if (!isDialog && !g_TextLib.fUserSkip)

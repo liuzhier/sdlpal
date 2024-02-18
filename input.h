@@ -68,6 +68,10 @@ enum PALKEY
 #if PD_Battle_ShowPlayerLevelmagic
    kKeyMagicList   = (1 << 20),
 #endif // PD_Battle_ShowPlayerLevelmagic
+
+#if PD_Scene_ShowEventMessages
+   kKeyEventMessage = (1 << 21),
+#endif // PD_Battle_ShowPlayerLevelmagic
 };
 
 PAL_C_LINKAGE_BEGIN

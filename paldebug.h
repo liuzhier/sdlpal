@@ -46,7 +46,7 @@
    #define     PD_Item_QuMoXiang_ShowTimeNoPass   1
 
    // 战斗中的快捷键 R 应该按需向前向后寻目标
-   #define     PD_Battle_ShortcutKey_R_AutoTarget 0
+   #define     PD_Battle_ShortcutKey_R_AutoTarget 1
 
    // 使字体更加接近原版 Pal Windows 95
    #define     PD_GameFont_Win95                  1
@@ -62,10 +62,13 @@
 
    // 解除 CPU 速度限制，此功能可能会导致 CPU 使用率过高
    // 菜单内无延迟
-   #define     PD_Game_CPUSpeed_NotLower         1
+   #define     PD_Game_CPUSpeed_NotLower          1
 
    // 取消掉单列菜单的右键下移功能
-   #define     PD_Menu_KeyLeftOrRight_NextLine   1
+   #define     PD_Menu_KeyLeftOrRight_NextLine    1
+
+   // 修复走路逻辑
+   #define     PD_Player_Walk_Key                 1
 
 #endif // PAL_FIXBUG
 
@@ -75,6 +78,9 @@
 #define     PAL_DEBUG                             1
 
 #if PAL_DEBUG
+
+   // 自动对话
+   #define     PD_Auto_Talk                       1
 
    // 场景显示额外信息开关
    #define     PD_Scene_ShowMoreMessages          1
@@ -87,6 +93,8 @@
          #define     PD_Scene_ShowQuMoXiangTime   1
          // 显示灵葫值
          #define     PD_Scene_ShowLingHuValue     1
+         // 显示所有事件的名称和编号
+         #define     PD_Scene_ShowEventMessages   1
       #endif // PD_Scene_ShowMoreMessages
 
    // 战斗显示额外信息开关

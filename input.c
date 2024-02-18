@@ -100,6 +100,10 @@ static const int g_KeyMap[][2] = {
 #if PD_Battle_ShowPlayerLevelmagic
    { SDLK_3,         kKeyMagicList },
 #endif // PD_Battle_ShowPlayerLevelmagic
+
+#if PD_Scene_ShowEventMessages
+   { SDLK_1,         kKeyEventMessage },
+#endif // PD_Battle_ShowPlayerLevelmagic
 };
 
 static VOID

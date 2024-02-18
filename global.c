@@ -2799,3 +2799,20 @@ PAL_New_GetEnemyElementalResistance(
    return min(w, 100);
 }
 #endif
+
+#if PD_Scene_ShowEventMessages
+WORD
+PAL_New_GetPlayerID(
+   WORD		wPlayerIndex
+)
+{
+   if (wPlayerIndex > MAX_PLAYERS_IN_PARTY)
+   {
+      return 0xFFFF;
+   }
+   else
+   {
+      return gpGlobals->rgParty[wPlayerIndex].wPlayerRole;
+   }
+}
+#endif

@@ -628,7 +628,9 @@ PAL_ReadMenu(
          //
          // User pressed Enter
          //
+#if !PD_Scene_DeadPlayerRoleCanUseMagic
          if (rgMenuItem[wCurrentItem].fEnabled)
+#endif
          {
             PAL_DrawText(PAL_GetWord(rgMenuItem[wCurrentItem].wNumWord),
                rgMenuItem[wCurrentItem].pos, MENUITEM_COLOR_CONFIRMED, FALSE, TRUE, FALSE);

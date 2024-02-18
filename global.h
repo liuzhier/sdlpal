@@ -519,6 +519,11 @@ typedef struct tagGLOBALVARS
    BOOL             fConfirmMenu;        // TRUE if in confirm menu
 #endif
 
+#if PD_Scene_ShowEventMessages
+   BOOL            fIsTriggerScriptRun;     // __DEBUG__触发脚本正在执行
+   BOOL            fShowEventMessages;      // 显示开关
+#endif
+
 #ifndef PAL_CLASSIC
    BYTE             bBattleSpeed;        // Battle Speed (1 = Fastest, 5 = Slowest)
 #endif
@@ -770,6 +775,11 @@ PAL_FindEnemyBooty(
 );
 
 SHORT
+PAL_New_GetEnemyLevel(
+   WORD		wEnemyIndex
+);
+
+SHORT
 PAL_New_GetEnemyAttackStrength(
    WORD		wEnemyIndex
 );
@@ -797,6 +807,29 @@ PAL_New_GetEnemyFleeRate(
 SHORT
 PAL_New_GetEnemySorceryResistance(
    WORD		wEnemyIndex
+);
+
+SHORT
+PAL_New_GetEnemyPoisonResistance(
+   WORD		wEnemyIndex
+);
+
+SHORT
+PAL_New_GetEnemyPhysicalResistance(
+   WORD		wEnemyIndex
+);
+
+SHORT
+PAL_New_GetEnemyElementalResistance(
+   WORD		wEnemyIndex,
+   INT		iAttrib
+);
+#endif
+
+#if PD_Scene_ShowEventMessages
+WORD
+PAL_New_GetPlayerID(
+   WORD		wPlayerIndex
 );
 #endif
 

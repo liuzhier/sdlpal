@@ -391,8 +391,17 @@ PAL_SwitchMenu(
 
 --*/
 {
+#if PD_Menu_KeyLeftOrRight_NextLine
+   gpGlobals->fConfirmMenu = TRUE;
+#endif
+
    WORD wItems[2] = { SWITCHMENU_LABEL_DISABLE, SWITCHMENU_LABEL_ENABLE };
    WORD wReturnValue = PAL_SelectionMenu(2, fEnabled ? 1 : 0, wItems);
+
+#if PD_Menu_KeyLeftOrRight_NextLine
+   gpGlobals->fConfirmMenu = FALSE;
+#endif
+
    return (wReturnValue == MENUITEM_VALUE_CANCELLED) ? fEnabled : ((wReturnValue == 0) ? FALSE : TRUE);
 }
 
@@ -706,10 +715,8 @@ PAL_InGameMagicMenu(
       rgMenuItem[i].wValue = i;
       rgMenuItem[i].wNumWord =
          gpGlobals->g.PlayerRoles.rgwName[gpGlobals->rgParty[i].wPlayerRole];
-#if !PD_Scene_DeadPlayerRoleCanUseMagic
       rgMenuItem[i].fEnabled =
          (gpGlobals->g.PlayerRoles.rgwHP[gpGlobals->rgParty[i].wPlayerRole] > 0);
-#endif
       rgMenuItem[i].pos = PAL_XY(48, y);
 
       y += 18;
@@ -719,6 +726,10 @@ PAL_InGameMagicMenu(
    // Draw the box
    //
    PAL_CreateBox(PAL_XY(35, 62), gpGlobals->wMaxPartyMemberIndex, PAL_MenuTextMaxWidth(rgMenuItem, sizeof(rgMenuItem)/sizeof(MENUITEM)) - 1, 0, FALSE);
+
+#if PD_Scene_DeadPlayerRoleCanUseMagic
+   
+#endif
 
    w = PAL_ReadMenu(NULL, rgMenuItem, gpGlobals->wMaxPartyMemberIndex + 1, w, MENUITEM_COLOR);
 
@@ -1763,6 +1774,9 @@ PAL_SellMenu(
 --*/
 {
    WORD      w;
+
+   // Special handling in Win version, no longer requiring cursor position recording
+   if (gConfig.fIsWIN95) gpGlobals->iCurSellMenuItem = 0;
 
    while (TRUE)
    {

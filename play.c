@@ -63,6 +63,16 @@ PAL_GameUpdate(
          i = gpGlobals->wNumScene - 1;
          gpGlobals->g.rgScene[i].wScriptOnEnter = PAL_RunTriggerScript(gpGlobals->g.rgScene[i].wScriptOnEnter, 0xFFFF);
 
+#if PD_Scene_ShowEventMessages
+         //
+         // __DEBUG__显示附加地图元素
+         //
+         if (gpGlobals->fIsTriggerScriptRun)
+         {
+            gpGlobals->fIsTriggerScriptRun = FALSE;
+         }
+#endif // PD_Scene_ShowEventMessages
+
          if (gpGlobals->fEnteringScene)
          {
             //
@@ -156,10 +166,30 @@ PAL_GameUpdate(
                   VIDEO_UpdateScreen(NULL);
                }
 
+#if PD_Scene_ShowEventMessages
+               //
+               // __DEBUG__显示附加地图元素
+               //
+               if (gpGlobals->fIsTriggerScriptRun)
+               {
+                  gpGlobals->fIsTriggerScriptRun = TRUE;
+               }
+#endif // PD_Scene_ShowEventMessages
+
                //
                // Execute the script.
                //
                p->wTriggerScript = PAL_RunTriggerScript(p->wTriggerScript, wEventObjectID);
+
+#if PD_Scene_ShowEventMessages
+               //
+               // __DEBUG__显示附加地图元素
+               //
+               if (gpGlobals->fIsTriggerScriptRun)
+               {
+                  gpGlobals->fIsTriggerScriptRun = FALSE;
+               }
+#endif // PD_Scene_ShowEventMessages
 
                PAL_ClearKeyState();
 
@@ -290,11 +320,31 @@ PAL_GameUseItem(
                break;
             }
 
+#if PD_Scene_ShowEventMessages
+            //
+            // __DEBUG__显示附加地图元素
+            //
+            if (gpGlobals->fIsTriggerScriptRun)
+            {
+               gpGlobals->fIsTriggerScriptRun = TRUE;
+            }
+#endif // PD_Scene_ShowEventMessages
+
             //
             // Run the script
             //
             gpGlobals->g.rgObject[wObject].item.wScriptOnUse =
                PAL_RunTriggerScript(gpGlobals->g.rgObject[wObject].item.wScriptOnUse, wPlayer);
+
+#if PD_Scene_ShowEventMessages
+            //
+            // __DEBUG__显示附加地图元素
+            //
+            if (gpGlobals->fIsTriggerScriptRun)
+            {
+               //gpGlobals->fIsTriggerScriptRun = FALSE;
+            }
+#endif // PD_Scene_ShowEventMessages
 
             //
             // Remove the item if the item is consuming and the script succeeded
@@ -308,11 +358,31 @@ PAL_GameUseItem(
       }
       else
       {
+#if PD_Scene_ShowEventMessages
+         //
+         // __DEBUG__显示附加地图元素
+         //
+         if (gpGlobals->fIsTriggerScriptRun)
+         {
+            gpGlobals->fIsTriggerScriptRun = TRUE;
+         }
+#endif // PD_Scene_ShowEventMessages
+
          //
          // Run the script
          //
          gpGlobals->g.rgObject[wObject].item.wScriptOnUse =
             PAL_RunTriggerScript(gpGlobals->g.rgObject[wObject].item.wScriptOnUse, 0xFFFF);
+
+#if PD_Scene_ShowEventMessages
+         //
+         // __DEBUG__显示附加地图元素
+         //
+         if (gpGlobals->fIsTriggerScriptRun)
+         {
+            gpGlobals->fIsTriggerScriptRun = FALSE;
+         }
+#endif // PD_Scene_ShowEventMessages
 
          //
          // Remove the item if the item is consuming and the script succeeded
@@ -462,6 +532,16 @@ PAL_Search(
                gpGlobals->rgParty[l].wFrame = gpGlobals->wPartyDirection * 3;
             }
 
+#if PD_Scene_ShowEventMessages
+            //
+            // __DEBUG__显示附加地图元素
+            //
+            if (gpGlobals->fIsTriggerScriptRun)
+            {
+               gpGlobals->fIsTriggerScriptRun = TRUE;
+            }
+#endif // PD_Scene_ShowEventMessages
+
             //
             // Redraw everything
             //
@@ -473,6 +553,16 @@ PAL_Search(
          // Execute the script
          //
          p->wTriggerScript = PAL_RunTriggerScript(p->wTriggerScript, k + 1);
+
+#if PD_Scene_ShowEventMessages
+         //
+         // __DEBUG__显示附加地图元素
+         //
+         if (gpGlobals->fIsTriggerScriptRun)
+         {
+            gpGlobals->fIsTriggerScriptRun = FALSE;
+         }
+#endif // PD_Scene_ShowEventMessages
 
          //
          // Clear inputs and delay for a short time
@@ -586,6 +676,12 @@ PAL_StartFrame(
       //
       PAL_QuitGame();
    }
+#if PD_Scene_ShowEventMessages
+   else if (g_InputState.dwKeyPress & kKeyEventMessage)
+   {
+      gpGlobals->fShowEventMessages = !gpGlobals->fShowEventMessages;
+   }
+#endif
 
    if (--gpGlobals->wChasespeedChangeCycles == 0)
    {

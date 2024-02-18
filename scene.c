@@ -31,10 +31,19 @@ typedef struct tagSPRITE_TO_DRAW
    LPCBITMAPRLE     lpSpriteFrame; // pointer to the frame bitmap
    PAL_POS          pos;           // position on the scene
    int              iLayer;        // logical layer
+
+#if PD_Scene_ShowEventMessages
+   BYTE             bSpriteType;      // 是事件还是地图拼图
+   WORD             wSpriteNum;
+#endif
 } SPRITE_TO_DRAW;
 
 static SPRITE_TO_DRAW    g_rgSpriteToDraw[MAX_SPRITE_TO_DRAW];
 static int               g_nSpriteToDraw;
+
+#if PD_Scene_ShowEventMessages
+static INT iItemIndex = 0, iItemNum = 0;
+#endif
 
 static VOID
 PAL_AddSpriteToDraw(
@@ -42,6 +51,11 @@ PAL_AddSpriteToDraw(
    int              x,
    int              y,
    int              iLayer
+#if PD_Scene_ShowEventMessages
+,
+   BOOL             bSpriteType,
+   WORD             wSpriteNum
+#endif
 )
 /*++
    Purpose:
@@ -69,6 +83,11 @@ PAL_AddSpriteToDraw(
    g_rgSpriteToDraw[g_nSpriteToDraw].lpSpriteFrame = lpSpriteFrame;
    g_rgSpriteToDraw[g_nSpriteToDraw].pos = PAL_XY(x, y);
    g_rgSpriteToDraw[g_nSpriteToDraw].iLayer = iLayer;
+
+#if PD_Scene_ShowEventMessages
+   g_rgSpriteToDraw[g_nSpriteToDraw].bSpriteType = bSpriteType;
+   g_rgSpriteToDraw[g_nSpriteToDraw].wSpriteNum = wSpriteNum;
+#endif
 
    g_nSpriteToDraw++;
 }
@@ -169,7 +188,11 @@ PAL_CalcCoverTiles(
                   PAL_AddSpriteToDraw(lpTile,
                      dx * 32 + dh * 16 - 16 - PAL_X(gpGlobals->viewport),
                      dy * 16 + dh * 8 + 7 + l + iTileHeight * 8 - PAL_Y(gpGlobals->viewport),
+#if PD_Scene_ShowEventMessages
+                     iTileHeight * 8 + l, 0, 0);
+#else
                      iTileHeight * 8 + l);
+#endif
                }
             }
          }
@@ -223,7 +246,11 @@ PAL_SceneDrawSprites(
       PAL_AddSpriteToDraw(lpBitmap,
          gpGlobals->rgParty[i].x - PAL_RLEGetWidth(lpBitmap) / 2,
          gpGlobals->rgParty[i].y + gpGlobals->wLayer + 10,
+#if PD_Scene_ShowEventMessages
+         gpGlobals->wLayer + 6, 1, PAL_New_GetPlayerID(i));
+#else
          gpGlobals->wLayer + 6);
+#endif
 
       //
       // Calculate covering tiles on the map
@@ -313,7 +340,11 @@ PAL_SceneDrawSprites(
       //
       // Add it into the array
       //
+#if PD_Scene_ShowEventMessages
+      PAL_AddSpriteToDraw(lpFrame, x, y, lpEvtObj->sLayer * 8 + 2, 2, i);
+#else
       PAL_AddSpriteToDraw(lpFrame, x, y, lpEvtObj->sLayer * 8 + 2);
+#endif
 
       //
       // Calculate covering map tiles
@@ -524,6 +555,13 @@ PAL_MakeScene(
    }
 #endif
 
+#if PD_Scene_ShowEventMessages
+   //
+   // __DEBUG__绘制更多地图元素
+   //
+   PAL_New_ShowMoreMapMessages();
+#endif
+
    //
    // Check if we need to fade in.
    //
@@ -534,6 +572,246 @@ PAL_MakeScene(
       gpGlobals->fNeedToFadeIn = FALSE;
    }
 }
+
+#if PD_Scene_ShowEventMessages
+VOID
+PAL_New_ShowMoreMapMessages(
+   VOID
+)
+{
+   WORD posXText, posYText;
+
+   //
+   // __DEBUG__绘制更多地图元素
+   //
+   if (!gpGlobals->fIsTriggerScriptRun && gpGlobals->fShowEventMessages)
+   {
+      EVENTOBJECT    lpEvtObj;
+      WCHAR s[256] = L"", s1[256] = L"";
+      WORD wObjectLen = sizeof(SpriteID) / sizeof(SpriteID[0]) - 1;
+      SPRITE_TO_DRAW* p;
+
+      for (INT i = 0; i < g_nSpriteToDraw; i++)
+      {
+         p = &g_rgSpriteToDraw[i];
+
+         if (p->bSpriteType == 0)
+            continue;
+         else if (p->bSpriteType == 1)
+         {
+            iItemIndex = gpGlobals->g.PlayerRoles.rgwName[p->wSpriteNum];
+            PAL_swprintf(s, sizeof(s) / sizeof(WCHAR), L"\'%ls\'", PAL_GetWord(iItemIndex));
+
+            PAL_swprintf(s1, sizeof(s) / sizeof(WCHAR), L"%1s", PAL_GetWord(iItemIndex));
+         }
+         else if (p->bSpriteType == 2)
+         {
+            lpEvtObj = (gpGlobals->g.lprgEventObject[p->wSpriteNum]);
+
+            PAL_swprintf(s, sizeof(s) / sizeof(WCHAR), L"%1d", p->wSpriteNum);
+
+            posXText = PAL_X(p->pos) + PAL_RLEGetWidth(p->lpSpriteFrame) / 2 - PAL_TextWidth(s) / 2;
+            posYText = PAL_Y(p->pos);
+            TEXT_DisplayTextWithShadow(s, posXText, posYText, TRUE, TRUE);
+
+            if (PAL_New_GetTreasureBoxItemID(lpEvtObj.wTriggerScript, FALSE))
+            {
+               PAL_swprintf(s, sizeof(s) / sizeof(WCHAR), L"=%ls=*%d", PAL_GetWord(iItemIndex), iItemNum);
+
+               PAL_swprintf(s1, sizeof(s) / sizeof(WCHAR), L"%1s", PAL_GetWord(iItemIndex));
+            }
+            else
+            {
+               iItemIndex = gpGlobals->g.PlayerRoles.rgwName[p->wSpriteNum];
+               lpEvtObj.wSpriteNum = (lpEvtObj.wSpriteNum > wObjectLen) ? wObjectLen : lpEvtObj.wSpriteNum;
+               PAL_swprintf(s, sizeof(s) / sizeof(WCHAR), L"-%ls-", SpriteID[lpEvtObj.wSpriteNum][1]);
+
+               PAL_swprintf(s1, sizeof(s) / sizeof(WCHAR), L"%1s", SpriteID[lpEvtObj.wSpriteNum][1]);
+            }
+         }
+
+         //if (p->bSpriteType != 2)
+         //	continue;
+
+         lpEvtObj = (gpGlobals->g.lprgEventObject[p->wSpriteNum]);
+
+         if (PAL_New_GetTreasureBoxItemID(lpEvtObj.wTriggerScript, FALSE))
+         {
+            PAL_swprintf(s, sizeof(s) / sizeof(WCHAR), L"-%ls-\'*\'%d", PAL_GetWord(iItemIndex), iItemNum);
+
+            PAL_swprintf(s1, sizeof(s) / sizeof(WCHAR), L"%1s", PAL_GetWord(iItemIndex));
+
+            //TEXT_DisplayText(s, PAL_X(p->pos) + PAL_RLEGetWidth(p->lpSpriteFrame) / 2 - PAL_TextWidth(s1) / 2 - 4, PAL_Y(p->pos) - PAL_RLEGetHeight(p->lpSpriteFrame) - 16 - p->iLayer, TRUE);
+         }
+
+         posXText = PAL_X(p->pos) + PAL_RLEGetWidth(p->lpSpriteFrame) / 2 - PAL_TextWidth(s1) / 2 - 4;
+         posYText = PAL_Y(p->pos) - PAL_RLEGetHeight(p->lpSpriteFrame) - 16 - p->iLayer;
+         TEXT_DisplayTextWithShadow(s, posXText, posYText, TRUE, TRUE);
+
+         iItemIndex = 0;
+         iItemNum = 0;
+      }
+   }
+}
+
+BOOL
+PAL_New_GetTreasureBoxItemID(
+   WORD             wScriptEntry,
+   BOOL             fJumpScript
+)
+/*++
+   目的：
+
+      直接获取宝箱里的道具ID。
+
+   参数：
+
+      [IN]    lpEvtObj     <LPEVENTOBJECT>          待查找的事件。
+
+   返回值：
+
+      wObectID     <WORD>          宝箱里的道具ID.
+
+--*/
+{
+   WORD              wNextScriptEntry;
+   BOOL              fEnded;
+   LPSCRIPTENTRY     pScript;
+
+   // 04跳转并返回指令执行结果
+   BOOL              fJumpResults = FALSE;
+
+   wNextScriptEntry = wScriptEntry;
+   fEnded = FALSE;
+
+   while (wScriptEntry != 0 && !fEnded)
+   {
+      pScript = &(gpGlobals->g.lprgScriptEntry[wScriptEntry]);
+
+      switch (pScript->wOperation)
+      {
+      case 0x0000:
+         //
+         // Stop running
+         //
+         fEnded = TRUE;
+         break;
+
+      case 0x0001:
+         //
+         // Stop running and replace the entry with the next line
+         //
+         fEnded = TRUE;
+         wNextScriptEntry = wScriptEntry + 1;
+         break;
+
+      case 0x0002:
+         //
+         // Stop running and replace the entry with the specified one
+         //
+         if (pScript->rgwOperand[1] == 0)
+         {
+            fEnded = TRUE;
+            wNextScriptEntry = pScript->rgwOperand[0];
+         }
+         else
+         {
+            //
+            // failed
+            //
+            wScriptEntry++;
+         }
+         break;
+
+      case 0x0003:
+         //
+         // unconditional jump
+         //
+         if (pScript->rgwOperand[1] == 0)
+         {
+            wScriptEntry = pScript->rgwOperand[0];
+         }
+         else
+         {
+            //
+            // failed
+            //
+            wScriptEntry++;
+         }
+         break;
+
+      case 0x0004:
+         //
+         // Call script
+         //
+         fJumpResults = PAL_New_GetTreasureBoxItemID(pScript->rgwOperand[0], TRUE);
+
+         if (fJumpResults)
+         {
+            goto end;
+         }
+
+         wScriptEntry++;
+         break;
+
+      case 0x0007:
+         //
+         // Call script
+         //
+         fEnded = TRUE;
+
+         goto end;
+
+      case 0x001E:
+         //
+         // 金钱
+         //
+         fEnded = TRUE;
+
+         if ((SHORT)pScript->rgwOperand[0] < 0)
+            break;
+
+         fJumpResults = TRUE;
+         iItemNum = (SHORT)pScript->rgwOperand[0];
+         iItemIndex = CASH_LABEL;
+         goto end;
+
+      case 0x001F:
+         fEnded = TRUE;
+
+         fJumpResults = TRUE;
+         iItemIndex = pScript->rgwOperand[0];
+         iItemNum = (pScript->rgwOperand[1] > 0) ? pScript->rgwOperand[1] : 1;
+         goto end;
+
+      case 0x00BA:
+         //
+         // 获得经验值
+         //
+         fEnded = TRUE;
+
+         fJumpResults = TRUE;
+         iItemIndex = STATUS_LABEL_EXP;
+         iItemNum = pScript->rgwOperand[0] * 2;
+         goto end;
+
+      default:
+         wScriptEntry++;
+         break;
+      }
+   }
+
+end:
+   // 若跳转脚本中没有找到战利品则执行
+   if (iItemIndex == 0 && !fJumpScript)
+   {
+      // 若本函数为非跳转指令的递归调用则执行
+      fJumpResults = FALSE;
+   }
+
+   return fJumpResults;
+}
+#endif
 
 BOOL
 PAL_CheckObstacle(
