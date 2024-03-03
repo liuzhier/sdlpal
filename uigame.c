@@ -1535,6 +1535,7 @@ PAL_BuyMenu_OnItemChange(
 {
    const SDL_Rect      rect = {20, 8, 300, 175};
    int                 i, n, x, y;
+   int                 j, k;
    PAL_LARGE BYTE      bufImage[2048];
 
    //
@@ -1576,6 +1577,14 @@ PAL_BuyMenu_OnItemChange(
       {
          n = gpGlobals->rgInventory[i].nAmount;
          break;
+      }
+   }
+
+   for (j = 0; j < MAX_PLAYER_EQUIPMENTS; j++)
+   {
+      for (k = 0; k < MAX_PLAYER_EQUIPMENTS; k++)
+      {
+         if (gpGlobals->g.PlayerRoles.rgwEquipment[j][k] == wCurrentItem) n++;
       }
    }
 
@@ -1676,7 +1685,11 @@ PAL_BuyMenu(
 
    while (TRUE)
    {
+#if PD_Menu_NoSaveItemCursor
+      w = PAL_ReadMenuWithSaveItem(PAL_BuyMenu_OnItemChange, rgMenuItem, i, w, MENUITEM_COLOR, TRUE);
+#else
       w = PAL_ReadMenu(PAL_BuyMenu_OnItemChange, rgMenuItem, i, w, MENUITEM_COLOR);
+#endif
 
       if (w == MENUITEM_VALUE_CANCELLED)
       {

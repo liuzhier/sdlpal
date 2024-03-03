@@ -54,6 +54,12 @@
    // 读档不要重置各种光标
    #define     PD_LoadSave_NoResetItemCursor      1
 
+   // 菜单不要记忆光标在上次的位置 
+   #define     PD_Menu_NoSaveItemCursor           1
+
+   // 取消菜单按键延迟（待测试）
+   #define     PD_Menu_CancelDelay                1
+
    // 永远不要对道具进行排序
    //#define     PD_ItemList_NoSort                 1
 
@@ -64,7 +70,7 @@
    // 菜单内无延迟
    #define     PD_Game_CPUSpeed_NotLower          1
 
-   // 取消掉单列菜单的右键下移功能
+   // 取消掉菜单的左右键到菜单行边界后上下移功能
    #define     PD_Menu_KeyLeftOrRight_NextLine    1
 
    // 修复走路逻辑

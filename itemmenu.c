@@ -67,15 +67,36 @@ PAL_ItemSelectMenuUpdate(
    }
    else if (g_InputState.dwKeyPress & kKeyDown)
    {
+#if PD_Menu_KeyLeftOrRight_NextLine
+      if ((*iCurMenuItem + 1 + iItemsPerLine) > g_iNumInventory)
+         goto tagEnd;
+      else
+         item_delta = iItemsPerLine;
+#else
       item_delta = iItemsPerLine;
+#endif
    }
    else if (g_InputState.dwKeyPress & kKeyLeft)
    {
+#if PD_Menu_KeyLeftOrRight_NextLine
+      if (!((*iCurMenuItem + 1 + iItemsPerLine - 1) % (iItemsPerLine)))
+         goto tagEnd;
+      else
+         item_delta = -1;
+#else
       item_delta = -1;
+#endif
    }
    else if (g_InputState.dwKeyPress & kKeyRight)
    {
+#if PD_Menu_KeyLeftOrRight_NextLine
+      if (!((*iCurMenuItem + 1 + iItemsPerLine) % iItemsPerLine))
+         goto tagEnd;
+      else
+         item_delta = 1;
+#else
       item_delta = 1;
+#endif
    }
    else if (g_InputState.dwKeyPress & kKeyPgUp)
    {
@@ -105,12 +126,22 @@ PAL_ItemSelectMenuUpdate(
    //
    // Make sure the current menu item index is in bound
    //
+#if PD_Menu_KeyLeftOrRight_NextLine
+   if (  !((*iCurMenuItem) + item_delta < 0)
+      && !((*iCurMenuItem) + item_delta >= g_iNumInventory))
+      (*iCurMenuItem) += item_delta;
+   else if ((*iCurMenuItem) + item_delta >= g_iNumInventory) (*iCurMenuItem) = g_iNumInventory - 1;
+
+   tagEnd:
+
+#else
    if ((*iCurMenuItem) + item_delta < 0)
       (*iCurMenuItem) = 0;
    else if ((*iCurMenuItem) + item_delta >= g_iNumInventory)
       (*iCurMenuItem) = g_iNumInventory-1;
    else
       (*iCurMenuItem) += item_delta;
+#endif
 
    //
    // Redraw the box
@@ -431,6 +462,7 @@ PAL_ItemSelectMenu(
       PAL_ClearKeyState();
 
       PAL_ProcessEvent();
+#if !PD_Menu_CancelDelay
       while (!SDL_TICKS_PASSED(SDL_GetTicks(), dwTime))
       {
          PAL_ProcessEvent();
@@ -442,6 +474,7 @@ PAL_ItemSelectMenu(
       }
 
       dwTime = SDL_GetTicks() + FRAME_TIME;
+#endif
 
       if (w != 0xFFFF)
       {

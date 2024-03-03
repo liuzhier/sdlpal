@@ -106,6 +106,37 @@ static const int g_KeyMap[][2] = {
 #endif // PD_Battle_ShowPlayerLevelmagic
 };
 
+#ifdef PD_Player_Walk_Key
+UINT
+PAL_GetCurrPressKey(
+   VOID
+)
+/*++
+  Purpose:
+
+    Get the currently pressed key.
+
+  Parameters:
+
+    None.
+
+  Return value:
+
+    None.
+
+--*/
+{
+   INT i, iCurrPress = 0;
+
+   for (INT i = 1; i < sizeof(g_InputState.dwKeyOrder) / sizeof(g_InputState.dwKeyOrder[0]); i++)
+      if (g_InputState.dwKeyOrder[iCurrPress] < g_InputState.dwKeyOrder[i]) iCurrPress = i;
+
+   if (!g_InputState.dwKeyOrder[iCurrPress]) iCurrPress = kDirUnknown;
+
+   return iCurrPress;
+}
+#endif // PD_Player_Walk_Key
+
 static VOID
 PAL_KeyDown(
    INT         key,
@@ -126,6 +157,35 @@ PAL_KeyDown(
 
 --*/
 {
+#ifdef PD_Player_Walk_Key
+   INT iCurrKey = -1;
+
+   if (key & kKeyDown)
+   {
+      iCurrKey = 0;
+   }
+   else if (key & kKeyLeft)
+   {
+      iCurrKey = 1;
+   }
+   else if (key & kKeyUp)
+   {
+      iCurrKey = 2;
+   }
+   else if (key & kKeyRight)
+   {
+      iCurrKey = 3;
+   }
+
+   if (iCurrKey != -1)
+   {
+      g_InputState.dwKeyMaxCount++;
+      g_InputState.dwKeyOrder[iCurrKey] = g_InputState.dwKeyMaxCount;
+      g_InputState.dir = PAL_GetCurrPressKey();
+   }
+
+   g_InputState.dwKeyPress |= key;
+#else
    switch (key)
    {
    case kKeyUp:
@@ -168,6 +228,7 @@ PAL_KeyDown(
       g_InputState.dwKeyPress |= key;
       break;
    }
+#endif // PD_Player_Walk_Key
 }
 
 static VOID
@@ -189,6 +250,34 @@ PAL_KeyUp(
 
 --*/
 {
+#ifdef PD_Player_Walk_Key
+   INT iCurrKey = -1;
+
+   if (key & kKeyDown)
+   {
+      iCurrKey = 0;
+   }
+   else if (key & kKeyLeft)
+   {
+      iCurrKey = 1;
+   }
+   else if (key & kKeyUp)
+   {
+      iCurrKey = 2;
+   }
+   else if (key & kKeyRight)
+   {
+      iCurrKey = 3;
+   }
+
+   if (iCurrKey != -1)
+   {
+      g_InputState.dwKeyOrder[iCurrKey] = 0;
+      iCurrKey = PAL_GetCurrPressKey();
+      g_InputState.dwKeyMaxCount = (iCurrKey == kDirUnknown) ? 0 : g_InputState.dwKeyOrder[iCurrKey];
+      g_InputState.dir = iCurrKey;
+   }
+#else
    switch (key)
    {
    case kKeyUp:
@@ -226,6 +315,7 @@ PAL_KeyUp(
    default:
       break;
    }
+#endif // PD_Player_Walk_Key
 }
 
 static VOID

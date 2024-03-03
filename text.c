@@ -1405,7 +1405,11 @@ PAL_DialogWaitForKeyWithMaximumSeconds(
 
    PAL_ClearKeyState();
 
+#ifdef PD_Auto_Talk
+   while (FALSE)
+#else
    while (TRUE)
+#endif
    {
       UTIL_Delay(100);
 
@@ -1455,7 +1459,6 @@ PAL_DialogWaitForKey(
    PAL_DialogWaitForKeyWithMaximumSeconds(0);
 }
 
-#if PD_Scene_ShowEventMessages
 int
 TEXT_DisplayText(
 	LPCWSTR        lpszText,
@@ -1463,26 +1466,28 @@ TEXT_DisplayText(
 	int            y,
 	BOOL           isDialog
 )
+#if PD_Scene_ShowEventMessages
 {
 	return TEXT_DisplayTextWithShadow(lpszText, x, y, isDialog, FALSE);
 }
 
 int
 TEXT_DisplayTextWithShadow(
-#else
-int
-TEXT_DisplayText(
-#endif
    LPCWSTR        lpszText,
    int            x,
    int            y,
-   BOOL           isDialog
-#if PD_Scene_ShowEventMessages
-,
+   BOOL           isDialog,
    BOOL           isEventMessages
-#endif
 )
+#endif
 {
+#ifdef PD_Auto_Talk
+   //
+   // direct skip the dialog
+   //
+   g_TextLib.fUserSkip = TRUE;
+#endif
+
    //
    // normal texts
    //
@@ -1621,7 +1626,9 @@ TEXT_DisplayText(
             if (!isDialog && !g_TextLib.fUserSkip)
             {
                PAL_ClearKeyState();
+#ifndef PD_Auto_Talk
                UTIL_Delay(g_TextLib.iDelayTime * 8);
+#endif
                
                if (g_InputState.dwKeyPress & (kKeySearch | kKeyMenu))
                {

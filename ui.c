@@ -405,6 +405,21 @@ PAL_ReadMenu(
    WORD                      wDefaultItem,
    BYTE                      bLabelColor
 )
+#if PD_Menu_NoSaveItemCursor
+{
+   return PAL_ReadMenuWithSaveItem(lpfnMenuItemChanged, rgMenuItem, nMenuItem, wDefaultItem, bLabelColor, FALSE);
+}
+
+WORD
+PAL_ReadMenuWithSaveItem(
+   LPITEMCHANGED_CALLBACK    lpfnMenuItemChanged,
+   LPCMENUITEM               rgMenuItem,
+   INT                       nMenuItem,
+   WORD                      wDefaultItem,
+   BYTE                      bLabelColor,
+   BOOL                      fSaveItem
+)
+#endif
 /*++
   Purpose:
 
@@ -430,7 +445,11 @@ PAL_ReadMenu(
 --*/
 {
    int               i;
+#if PD_Menu_NoSaveItemCursor
+   WORD              wCurrentItem    = (wDefaultItem < nMenuItem && fSaveItem) ? wDefaultItem : 0;
+#else
    WORD              wCurrentItem    = (wDefaultItem < nMenuItem) ? wDefaultItem : 0;
+#endif
 
    //
    // Fix issue #166

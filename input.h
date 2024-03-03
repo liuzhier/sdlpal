@@ -33,6 +33,13 @@ typedef struct tagPALINPUTSTATE
    int                    axisX,axisY;
    BOOL                   joystickNeedUpdate;
 #endif
+
+#ifdef PD_Player_Walk_Key
+   DWORD                  dwKeyOrder[4];
+   DWORD                  dwKeyMaxCount;
+#endif // PD_Player_Walk_Key
+
+
 } PALINPUTSTATE;
 
 enum PALKEY

@@ -156,7 +156,6 @@ PAL_StartDialogWithOffset(
 );
 
 
-#if PD_Scene_ShowEventMessages
 int
 TEXT_DisplayText(
    LPCWSTR        lpszText,
@@ -165,21 +164,16 @@ TEXT_DisplayText(
    BOOL           isDialog
 );
 
+#if PD_Scene_ShowEventMessages
 int
 TEXT_DisplayTextWithShadow(
-#else
-int
-TEXT_DisplayText(
-#endif
    LPCWSTR        lpszText,
    int            x,
    int            y,
-   BOOL           isDialog
-#if PD_Scene_ShowEventMessages
-   ,
+   BOOL           isDialog,
    BOOL           isEventMessages
-#endif
 );
+#endif
 
 VOID
 PAL_ShowDialogText(

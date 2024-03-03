@@ -230,6 +230,18 @@ PAL_ReadMenu(
    BYTE                      bLabelColor
 );
 
+#if PD_Menu_NoSaveItemCursor
+WORD
+PAL_ReadMenuWithSaveItem(
+   LPITEMCHANGED_CALLBACK    lpfnMenuItemChanged,
+   LPCMENUITEM               rgMenuItem,
+   INT                       nMenuItem,
+   WORD                      wDefaultItem,
+   BYTE                      bLabelColor,
+   BOOL                      fSaveItem
+);
+#endif
+
 VOID
 PAL_DrawNumber(
    UINT            iNum,
