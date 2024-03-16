@@ -271,6 +271,11 @@ PAL_GameUpdate(
       }
    }
 
+   if (--gpGlobals->wChasespeedChangeCycles == 0)
+   {
+      gpGlobals->wChaseRange = 1;
+   }
+
    gpGlobals->dwFrameNum++;
 }
 
@@ -682,11 +687,6 @@ PAL_StartFrame(
       gpGlobals->fShowEventMessages = !gpGlobals->fShowEventMessages;
    }
 #endif
-
-   if (--gpGlobals->wChasespeedChangeCycles == 0)
-   {
-      gpGlobals->wChaseRange = 1;
-   }
 }
 
 VOID
