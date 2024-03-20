@@ -3295,6 +3295,13 @@ PAL_RunTriggerScript(
          //
          // Start battle
          //
+#if PD_Pass_Battle
+         if (gpGlobals->fShowEventMessages)
+         {
+            wScriptEntry++;
+            break;
+         }
+#endif
          i = PAL_StartBattle(pScript->rgwOperand[0], !pScript->rgwOperand[2]);
 
          if (i == kBattleResultLost && pScript->rgwOperand[1] != 0)

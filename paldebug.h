@@ -91,6 +91,9 @@
    // 自动对话
    #define     PD_Auto_Talk                       1
 
+   // 跳过战斗
+   #define     PD_Pass_Battle                     1
+
    // 场景显示额外信息开关
    #define     PD_Scene_ShowMoreMessages          1
       #if     PD_Scene_ShowMoreMessages
