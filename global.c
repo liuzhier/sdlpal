@@ -934,6 +934,13 @@ PAL_InitGameData(
 
    gpGlobals->bCurrentSaveSlot = (BYTE)iSaveSlot;
 
+#if PD_Player_Status_Index_error
+   //
+   // Using incorrect logic to save the status information of a role.
+   //
+   PAL_New_SaveErrorStatus();
+#endif
+
    //
    // try loading from the saved game file.
    //
@@ -951,7 +958,14 @@ PAL_InitGameData(
 #endif
    gpGlobals->fInBattle = FALSE;
 
+#if PD_Player_Status_Index_error
+   //
+   // Using incorrect logic to read the status information of a role.
+   //
+   PAL_New_LoadErrorStatus();
+#else
    memset(gpGlobals->rgPlayerStatus, 0, sizeof(gpGlobals->rgPlayerStatus));
+#endif
 
    PAL_UpdateEquipments();
 }
@@ -2812,6 +2826,62 @@ PAL_New_GetPlayerID(
    else
    {
       return gpGlobals->rgParty[wPlayerIndex].wPlayerRole;
+   }
+}
+#endif
+
+#if PD_Player_Status_Index_error
+VOID
+PAL_New_SaveErrorStatus(
+   VOID
+)
+{
+   INT  i, j;
+   WORD wPlayerRole;
+   BOOL fCompleted[MAX_PLAYER_ROLES] = { FALSE, FALSE, FALSE, FALSE, FALSE, FALSE };
+
+   //
+   // Back up the status of all roles.
+   //
+   for (i = 0; i < MAX_PLAYABLE_PLAYER_ROLES; i++)
+   {
+      wPlayerRole = gpGlobals->rgParty[i].wPlayerRole;
+
+      if (wPlayerRole >= MAX_PLAYER_ROLES || fCompleted[wPlayerRole]) continue;
+
+      for (j = 0; j < kStatusAll; j++)
+      {
+         gpGlobals->rgPlayerStatusError[i][j] = gpGlobals->rgPlayerStatus[wPlayerRole][j];
+      }
+
+      fCompleted[wPlayerRole] = TRUE;
+   }
+}
+
+VOID
+PAL_New_LoadErrorStatus(
+   VOID
+)
+{
+   INT  i, j;
+   WORD wPlayerRole;
+   BOOL fCompleted[MAX_PLAYER_ROLES] = { FALSE, FALSE, FALSE, FALSE, FALSE, FALSE };
+
+   //
+   // Restore the state of all roles.
+   //
+   for (i = 0; i < MAX_PLAYABLE_PLAYER_ROLES; i++)
+   {
+      wPlayerRole = gpGlobals->rgParty[i].wPlayerRole;
+
+      if (wPlayerRole >= MAX_PLAYER_ROLES || fCompleted[wPlayerRole]) continue;
+
+      for (j = 0; j < kStatusAll; j++)
+      {
+         gpGlobals->rgPlayerStatus[wPlayerRole][j] = gpGlobals->rgPlayerStatusError[i][j];
+      }
+
+      fCompleted[wPlayerRole] = TRUE;
    }
 }
 #endif

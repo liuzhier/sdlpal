@@ -532,6 +532,10 @@ typedef struct tagGLOBALVARS
    PLAYERROLES      rgEquipmentEffect[MAX_PLAYER_EQUIPMENTS + 1]; // equipment effects
    WORD             rgPlayerStatus[MAX_PLAYER_ROLES][kStatusAll]; // player status
 
+#if PD_Player_Status_Index_error
+   WORD             rgPlayerStatusError[MAX_PLAYER_ROLES][kStatusAll]; // player status error
+#endif
+
    PAL_POS          viewport;            // viewport coordination
    PAL_POS          partyoffset;
    WORD             wLayer;
@@ -830,6 +834,18 @@ PAL_New_GetEnemyElementalResistance(
 WORD
 PAL_New_GetPlayerID(
    WORD		wPlayerIndex
+);
+#endif
+
+#if PD_Player_Status_Index_error
+VOID
+PAL_New_SaveErrorStatus(
+   VOID
+);
+
+VOID
+PAL_New_LoadErrorStatus(
+   VOID
 );
 #endif
 

@@ -33,6 +33,11 @@
    // 允许战外阵亡的队员使用仙术
    #define     PD_Scene_DeadPlayerRoleCanUseMagic 1
 
+   // 允许队员状态错误读取
+   #define     PD_Player_Status_Index_error       1
+
+   // 自动战斗时重复的角色不再显示血量损耗
+
 #endif // PAL_BUG
 
 
@@ -93,6 +98,9 @@
 
    // 跳过战斗
    #define     PD_Pass_Battle                     1
+
+   // 穿墙
+   #define     PD_Can_Penetrate_Walls             1
 
    // 场景显示额外信息开关
    #define     PD_Scene_ShowMoreMessages          1

@@ -2143,6 +2143,12 @@ PAL_InterpretInstruction(
       //
       // Set the player party
       //
+#if PD_Player_Status_Index_error
+   //
+   // Using incorrect logic to save the status information of a role.
+   //
+      PAL_New_SaveErrorStatus();
+#endif
       gpGlobals->wMaxPartyMemberIndex = 0;
       for (i = 0; i < 3; i++)
       {
@@ -2172,6 +2178,13 @@ PAL_InterpretInstruction(
 
       memset(gpGlobals->rgPoisonStatus, 0, sizeof(gpGlobals->rgPoisonStatus));
       PAL_UpdateEquipments();
+
+#if PD_Player_Status_Index_error
+      //
+      // Using incorrect logic to read the status information of a role.
+      //
+      PAL_New_LoadErrorStatus();
+#endif
       break;
 
    case 0x0076:

@@ -856,6 +856,13 @@ PAL_CheckObstacleWithRange(
 
 --*/
 {
+#if PD_Can_Penetrate_Walls
+   if (!fCheckRange)
+   {
+      return FALSE;
+   }
+#endif
+
    int x, y, h, xr, yr;
    int blockX = PAL_X(gpGlobals->partyoffset)/32, blockY = PAL_Y(gpGlobals->partyoffset)/16;
 
