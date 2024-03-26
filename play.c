@@ -318,7 +318,11 @@ PAL_GameUseItem(
 
          while (TRUE)
          {
+#if PD_Menu_NoSaveItemCursor
+            wPlayer = PAL_ItemUseMenu(wObject, !wPlayer);
+#else
             wPlayer = PAL_ItemUseMenu(wObject);
+#endif // PD_Menu_NoSaveItemCursor
 
             if (wPlayer == MENUITEM_VALUE_CANCELLED)
             {

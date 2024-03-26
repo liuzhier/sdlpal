@@ -75,6 +75,10 @@ PAL_PlayerStatus(
 WORD
 PAL_ItemUseMenu(
    WORD           wItemToUse
+#if PD_Menu_NoSaveItemCursor
+   ,
+   BOOL           fIsInit
+#endif
 );
 
 VOID

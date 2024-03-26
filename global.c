@@ -2545,7 +2545,7 @@ PAL_FindEnemyBooty(
          bJumpResults = PAL_FindEnemyBooty(pScript->rgwOperand[0], ((pScript->rgwOperand[1] == 0) ? wEventObjectID :
             pScript->rgwOperand[1]), wEnemyIndex, pNumPos, pTextPos, TRUE);
          if (bJumpResults)
-            return;
+            return FALSE;
          wScriptEntry++;
          break;
 

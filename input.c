@@ -128,7 +128,7 @@ PAL_GetCurrPressKey(
 {
    INT i, iCurrPress = 0;
 
-   for (INT i = 1; i < sizeof(g_InputState.dwKeyOrder) / sizeof(g_InputState.dwKeyOrder[0]); i++)
+   for (i = 1; i < sizeof(g_InputState.dwKeyOrder) / sizeof(g_InputState.dwKeyOrder[0]); i++)
       if (g_InputState.dwKeyOrder[iCurrPress] < g_InputState.dwKeyOrder[i]) iCurrPress = i;
 
    if (!g_InputState.dwKeyOrder[iCurrPress]) iCurrPress = kDirUnknown;

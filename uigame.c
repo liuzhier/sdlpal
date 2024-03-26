@@ -1301,6 +1301,10 @@ PAL_PlayerStatus(
 WORD
 PAL_ItemUseMenu(
    WORD           wItemToUse
+#if PD_Menu_NoSaveItemCursor
+   ,
+   BOOL           fIsInit
+#endif
 )
 /*++
   Purpose:
@@ -1327,6 +1331,10 @@ PAL_ItemUseMenu(
 
    bSelectedColor = MENUITEM_COLOR_SELECTED_FIRST;
    dwColorChangeTime = 0;
+
+#if PD_Menu_NoSaveItemCursor
+   if (fIsInit) sSelectedPlayer = 0;
+#endif
 
    while (TRUE)
    {
