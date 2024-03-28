@@ -363,6 +363,13 @@ PAL_GameUseItem(
             {
                PAL_AddItemToInventory(wObject, -1);
             }
+
+#if PD_Menu_Use_Item_Run_Out_Quit
+            //
+            // After using a set of props, simply exit the backpack menu
+            //
+            if (!PAL_GetItemAmount(wObject)) return;
+#endif // PD_Menu_Use_Item_Run_Out_Quit
          }
       }
       else

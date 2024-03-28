@@ -37,6 +37,10 @@
    #define     PD_Player_Status_Index_error       1
 
    // 自动战斗时重复的角色不再显示血量损耗
+   #define     PD_Role_Repeat_Not_Display_HP_Loss 1
+
+   // 使用完一组道具后直接退出菜单
+   #define     PD_Menu_Use_Item_Run_Out_Quit      1
 
 #endif // PAL_BUG
 
@@ -100,7 +104,7 @@
    #define     PD_Pass_Battle                     1
 
    // 穿墙
-   #define     PD_Can_Penetrate_Walls             1
+   #define     PD_Can_Penetrate_Walls             0
 
    // 场景显示额外信息开关
    #define     PD_Scene_ShowMoreMessages          1
