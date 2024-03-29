@@ -863,6 +863,10 @@ PAL_InterpretInstruction(
          //
          for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
          {
+#if PD_Role_Repeat_Not_Display_HP_Loss
+            g_Battle.wChangePlayerIndex = i;
+#endif // PD_Role_Repeat_Not_Display_HP_Loss
+
             w = gpGlobals->rgParty[i].wPlayerRole;
             if (PAL_IncreaseHPMP(w, (SHORT)(pScript->rgwOperand[1]), 0))
                g_fScriptSuccess = TRUE;
@@ -891,6 +895,10 @@ PAL_InterpretInstruction(
          //
          for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
          {
+#if PD_Role_Repeat_Not_Display_HP_Loss
+            g_Battle.wChangePlayerIndex = i;
+#endif // PD_Role_Repeat_Not_Display_HP_Loss
+
             w = gpGlobals->rgParty[i].wPlayerRole;
             PAL_IncreaseHPMP(w, 0, (SHORT)(pScript->rgwOperand[1]));
          }
@@ -918,6 +926,10 @@ PAL_InterpretInstruction(
          //
          for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
          {
+#if PD_Role_Repeat_Not_Display_HP_Loss
+            g_Battle.wChangePlayerIndex = i;
+#endif // PD_Role_Repeat_Not_Display_HP_Loss
+
             w = gpGlobals->rgParty[i].wPlayerRole;
             PAL_IncreaseHPMP(w,
                (SHORT)(pScript->rgwOperand[1]), (SHORT)(pScript->rgwOperand[1]));
@@ -1555,12 +1567,19 @@ PAL_InterpretInstruction(
       w = gpGlobals->rgParty[g_Battle.wMovingPlayerIndex].wPlayerRole;
 
       g_Battle.rgEnemy[wEventObjectID].e.wHealth -= pScript->rgwOperand[0];
+
+#if PD_Role_Repeat_Not_Display_HP_Loss
+      g_Battle.wChangePlayerIndex = g_Battle.wMovingPlayerIndex;
+
+      PAL_IncreaseHPMP(g_Battle.wMovingPlayerIndex, pScript->rgwOperand[0], 0);
+#else
       gpGlobals->g.PlayerRoles.rgwHP[w] += pScript->rgwOperand[0];
 
       if (gpGlobals->g.PlayerRoles.rgwHP[w] > gpGlobals->g.PlayerRoles.rgwMaxHP[w])
       {
          gpGlobals->g.PlayerRoles.rgwHP[w] = gpGlobals->g.PlayerRoles.rgwMaxHP[w];
       }
+#endif // PD_Role_Repeat_Not_Display_HP_Loss
       break;
 
    case 0x003A:

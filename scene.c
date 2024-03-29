@@ -526,10 +526,13 @@ PAL_MakeScene(
    PAL_DrawNumber(gpGlobals->rgTrail[0].x, 5, PAL_XY(320 - 66, 0), kNumColorYellow, kNumAlignRight);
    PAL_DrawNumber(gpGlobals->rgTrail[0].y, 5, PAL_XY(320 - 30, 0), kNumColorCyan, kNumAlignRight);
 #endif
-   PAL_DrawNumber(g_InputState.dwKeyOrder[0], 5, PAL_XY(320 - 132, 100), kNumColorCyan, kNumAlignRight);
-   PAL_DrawNumber(g_InputState.dwKeyOrder[1], 5, PAL_XY(320 - 99, 100), kNumColorCyan, kNumAlignRight);
-   PAL_DrawNumber(g_InputState.dwKeyOrder[2], 5, PAL_XY(320 - 66, 100), kNumColorCyan, kNumAlignRight);
+
+#if PD_Scene_ShowDirValue
+   PAL_DrawNumber(g_InputState.dwKeyOrder[0], 5, PAL_XY(320 - 30 * 4, 100), kNumColorCyan, kNumAlignRight);
+   PAL_DrawNumber(g_InputState.dwKeyOrder[1], 5, PAL_XY(320 - 30 * 3, 100), kNumColorCyan, kNumAlignRight);
+   PAL_DrawNumber(g_InputState.dwKeyOrder[2], 5, PAL_XY(320 - 30 * 2, 100), kNumColorCyan, kNumAlignRight);
    PAL_DrawNumber(g_InputState.dwKeyOrder[3], 5, PAL_XY(320 - 30, 100), kNumColorCyan, kNumAlignRight);
+#endif
 
 #if PD_Scene_ShowSceneID
    // show sceneID

@@ -1342,6 +1342,14 @@ PAL_IncreaseHPMP(
          fSuccess = TRUE;
    }
 
+#if PD_Role_Repeat_Not_Display_HP_Loss
+   if (fSuccess)
+   {
+      PAL_ChangeHPMP(g_Battle.wChangePlayerIndex, gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] - wOrigHP,
+         gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole] - wOrigMP, kBattleChangeHPMPCommit);
+   }
+#endif // PD_Role_Repeat_Not_Display_HP_Loss
+
    return fSuccess;
 }
 

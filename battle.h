@@ -67,6 +67,14 @@ typedef enum tagBATTLEFINDTARGET
 } BATTLEFINDTARGET;
 #endif
 
+#if PD_Role_Repeat_Not_Display_HP_Loss
+typedef enum tagBATTLECHANGEHPMP
+{
+   kBattleChangeHPMPChange = (1 << 0),
+   kBattleChangeHPMPCommit = (1 << 1),
+} BATTLECHANGEHPMP;
+#endif
+
 typedef struct tagBATTLEACTION
 {
    BATTLEACTIONTYPE   ActionType;
@@ -125,6 +133,12 @@ typedef struct tagBATTLEPLAYER
    BOOL               fSecondAttack;           // FALSE for the first full attack, TRUE for the second full attack
    WORD               wPrevHP;              // HP value prior to action
    WORD               wPrevMP;              // MP value prior to action
+
+#if PD_Role_Repeat_Not_Display_HP_Loss
+   SHORT              sHPChange;            // changes in HP in this round
+   SHORT              sMPChange;            // changes in MP in this round
+#endif
+
 #ifndef PAL_CLASSIC
    SHORT              sTurnOrder;           // turn order
 #endif
@@ -218,6 +232,10 @@ typedef struct tagBATTLE
 #if PD_Battle_ShowMoreData
    BOOL             fShowDataInBattle;
    WORD             wCurrentAllRrounds;
+#endif
+
+#if PD_Role_Repeat_Not_Display_HP_Loss
+   WORD             wChangePlayerIndex;   // HP or MP changes player index
 #endif
 
    INT              iHidingTime;          // Time of hiding

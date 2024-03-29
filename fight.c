@@ -667,6 +667,9 @@ PAL_BattleDisplayStatChange(
 {
    int      i, x, y;
    SHORT    sDamage;
+#if PD_Role_Repeat_Not_Display_HP_Loss
+   SHORT    *sChange;
+#endif
    WORD     wPlayerRole;
    BOOL     f = FALSE;
 
@@ -711,8 +714,14 @@ PAL_BattleDisplayStatChange(
 
       if (g_Battle.rgPlayer[i].wPrevHP != gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole])
       {
+#if PD_Role_Repeat_Not_Display_HP_Loss
+         sChange = &g_Battle.rgPlayer[i].sHPChange;
+         sDamage = *sChange;
+         *sChange = 0;
+#else
          sDamage =
             gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] - g_Battle.rgPlayer[i].wPrevHP;
+#endif // PD_Role_Repeat_Not_Display_HP_Loss
 
          x = PAL_X(g_Battle.rgPlayer[i].pos) - 9;
          y = PAL_Y(g_Battle.rgPlayer[i].pos) - 75;
@@ -736,8 +745,14 @@ PAL_BattleDisplayStatChange(
 
       if (g_Battle.rgPlayer[i].wPrevMP != gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole])
       {
+#if PD_Role_Repeat_Not_Display_HP_Loss
+         sChange = &g_Battle.rgPlayer[i].sMPChange;
+         sDamage = *sChange;
+         *sChange = 0;
+#else
          sDamage =
             gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole] - g_Battle.rgPlayer[i].wPrevMP;
+#endif // PD_Role_Repeat_Not_Display_HP_Loss
 
          x = PAL_X(g_Battle.rgPlayer[i].pos) - 9;
          y = PAL_Y(g_Battle.rgPlayer[i].pos) - 67;
@@ -1671,6 +1686,10 @@ PAL_BattleStartFrame(
             {
                if (gpGlobals->rgPoisonStatus[j][i].wPoisonID != 0)
                {
+#if PD_Role_Repeat_Not_Display_HP_Loss
+                  g_Battle.wChangePlayerIndex = i;
+#endif // PD_Role_Repeat_Not_Display_HP_Loss
+
                   gpGlobals->rgPoisonStatus[j][i].wPoisonScript =
                      PAL_RunTriggerScript(gpGlobals->rgPoisonStatus[j][i].wPoisonScript, wPlayerRole);
                }
@@ -3914,7 +3933,11 @@ PAL_BattlePlayerPerformAction(
             sDamage = gpGlobals->g.PlayerRoles.rgwHP[gpGlobals->rgParty[sTarget].wPlayerRole];
          }
 
+#if PD_Role_Repeat_Not_Display_HP_Loss
+         PAL_ChangeHPMP(sTarget, -sDamage, 0, kBattleChangeHPMPChange | kBattleChangeHPMPCommit);
+#else
          gpGlobals->g.PlayerRoles.rgwHP[gpGlobals->rgParty[sTarget].wPlayerRole] -= sDamage;
+#endif // PD_Role_Repeat_Not_Display_HP_Loss
 
          g_Battle.rgPlayer[sTarget].pos =
             PAL_XY(PAL_X(g_Battle.rgPlayer[sTarget].pos) - 12,
@@ -4040,8 +4063,12 @@ PAL_BattlePlayerPerformAction(
             continue;
 #endif
 
+#if PD_Role_Repeat_Not_Display_HP_Loss
+         PAL_ChangeHPMP(i, -gpGlobals->g.lprgMagic[wMagicNum].wCostMP, 0, kBattleChangeHPMPChange);
+#else
          gpGlobals->g.PlayerRoles.rgwHP[gpGlobals->rgParty[i].wPlayerRole] -=
             gpGlobals->g.lprgMagic[wMagicNum].wCostMP;
+#endif // PD_Role_Repeat_Not_Display_HP_Loss
 
          if ((SHORT)(gpGlobals->g.PlayerRoles.rgwHP[gpGlobals->rgParty[i].wPlayerRole]) <= 0)
          {
@@ -4284,10 +4311,19 @@ PAL_BattlePlayerPerformAction(
          //
          WORD w = 0;
 
+#if PD_Role_Repeat_Not_Display_HP_Loss
+         g_Battle.wChangePlayerIndex = g_Battle.rgPlayer[wPlayerIndex].action.sTarget;
+
+         if ((SHORT)g_Battle.wChangePlayerIndex != -1)
+         {
+            w = gpGlobals->rgParty[g_Battle.wChangePlayerIndex].wPlayerRole;
+         }
+#else
          if (g_Battle.rgPlayer[wPlayerIndex].action.sTarget != -1)
          {
             w = gpGlobals->rgParty[g_Battle.rgPlayer[wPlayerIndex].action.sTarget].wPlayerRole;
          }
+#endif // PD_Role_Repeat_Not_Display_HP_Loss
          else if (gpGlobals->g.lprgMagic[wMagicNum].wType == kMagicTypeTrance)
          {
             w = wPlayerRole;
@@ -4465,6 +4501,10 @@ PAL_BattlePlayerPerformAction(
       wObject = g_Battle.rgPlayer[wPlayerIndex].action.wActionID;
 
       PAL_BattleShowPlayerUseItemAnim(wPlayerIndex, wObject, sTarget);
+
+#if PD_Role_Repeat_Not_Display_HP_Loss
+      g_Battle.wChangePlayerIndex = wPlayerIndex;
+#endif // PD_Role_Repeat_Not_Display_HP_Loss
 
       //
       // Run the script
@@ -4894,7 +4934,11 @@ PAL_BattleEnemyPerformAction(
                }
 
 #ifndef INVINCIBLE
+#if PD_Role_Repeat_Not_Display_HP_Loss
+               PAL_ChangeHPMP(i, -sDamage, 0, kBattleChangeHPMPChange | kBattleChangeHPMPCommit);
+#else
                gpGlobals->g.PlayerRoles.rgwHP[w] -= sDamage;
+#endif // PD_Role_Repeat_Not_Display_HP_Loss
 #endif
 
                if (gpGlobals->g.PlayerRoles.rgwHP[w] == 0)
@@ -4929,7 +4973,11 @@ PAL_BattleEnemyPerformAction(
             }
 
 #ifndef INVINCIBLE
+#if PD_Role_Repeat_Not_Display_HP_Loss
+            PAL_ChangeHPMP(sTarget, -sDamage, 0, kBattleChangeHPMPChange | kBattleChangeHPMPCommit);
+#else
             gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] -= sDamage;
+#endif // PD_Role_Repeat_Not_Display_HP_Loss
 #endif
 
             if (gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] == 0)
@@ -4939,7 +4987,9 @@ PAL_BattleEnemyPerformAction(
          }
       }
 
+#if !PD_Role_Repeat_Not_Display_HP_Loss
       if (!gpGlobals->fAutoBattle)
+#endif
       {
          PAL_BattleDisplayStatChange();
       }
@@ -5162,7 +5212,11 @@ PAL_BattleEnemyPerformAction(
          }
 
 #ifndef INVINCIBLE
+#if PD_Role_Repeat_Not_Display_HP_Loss
+         PAL_ChangeHPMP(sTarget, -sDamage, 0, kBattleChangeHPMPChange | kBattleChangeHPMPCommit);
+#else
          gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole] -= sDamage;
+#endif // PD_Role_Repeat_Not_Display_HP_Loss
 #endif
 
          PAL_BattleDisplayStatChange();
@@ -5492,3 +5546,65 @@ PAL_BattleSimulateMagic(
       }
    }
 }
+
+#if PD_Role_Repeat_Not_Display_HP_Loss
+VOID
+PAL_ChangeHPMP(
+   WORD          wPlayerIndex,
+   SHORT         sHPChange,
+   SHORT         sMPChange,
+   BYTE          kBattleChangeHPMP
+)
+/*++
+  Purpose:
+
+    Increase or decrease the player's health and/or MP during battles.
+
+  Parameters:
+
+    [IN]  wPlayerIndex - the index of the player.
+
+    [IN]  sHPChange - number of HP to be increased (positive value) or decrased
+                (negative value).
+
+    [IN]  sMPChange - number of MP to be increased (positive value) or decrased
+                (negative value).
+
+    [IN]  fDisplayChange - kBattleChangeHPMPChange is only changing HP and MP,
+                kBattleChangeHPMPCommit is only commiting change.
+
+  Return value:
+
+    None.
+
+--*/
+{
+   if (kBattleChangeHPMP & kBattleChangeHPMPChange)
+   {
+      WORD           wPlayerRole, *wPlayerHP, *wPlayerMP;
+
+      wPlayerRole = gpGlobals->rgParty[wPlayerIndex].wPlayerRole;
+
+      wPlayerHP = &gpGlobals->g.PlayerRoles.rgwHP[wPlayerRole];
+      wPlayerMP = &gpGlobals->g.PlayerRoles.rgwMP[wPlayerRole];
+
+      //if (sHPChange > *wPlayerHP) sHPChange = *wPlayerHP;
+      //if (sMPChange > *wPlayerMP) sMPChange = *wPlayerMP;
+
+      //
+      // changing HP and MP
+      //
+      *wPlayerHP += sHPChange;
+      *wPlayerMP += sMPChange;
+   }
+
+   if (kBattleChangeHPMP & kBattleChangeHPMPCommit && gpGlobals->fInBattle)
+   {
+      //
+      // commit changes in HP and MP
+      //
+      g_Battle.rgPlayer[wPlayerIndex].sHPChange += sHPChange;
+      g_Battle.rgPlayer[wPlayerIndex].sMPChange += sMPChange;
+   }
+}
+#endif

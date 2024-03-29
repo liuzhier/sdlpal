@@ -121,6 +121,16 @@ PAL_BattleSimulateMagic(
    WORD       wBaseDamage
 );
 
+#if PD_Role_Repeat_Not_Display_HP_Loss
+VOID
+PAL_ChangeHPMP(
+   WORD          wPlayerIndex,
+   SHORT         sHPChange,
+   SHORT         sMPChange,
+   BYTE          kBattleChangeHPMP
+);
+#endif
+
 PAL_C_LINKAGE_END
 
 #endif

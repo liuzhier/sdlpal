@@ -113,6 +113,8 @@
          #define     PD_Scene_ShowPos             1
          // 显示场景号
          #define     PD_Scene_ShowSceneID         1
+         // 显示方向参考值
+         #define     PD_Scene_ShowDirValue        0
          // 显示驱魔香或者十里香数值
          #define     PD_Scene_ShowQuMoXiangTime   1
          // 显示灵葫值
