@@ -69,6 +69,9 @@
    // 取消菜单按键延迟（待测试）
    #define     PD_Menu_CancelDelay                1
 
+   // 取消菜单下重绘场景
+   #define     PD_Menu_CancelMakeScene            1
+
    // 永远不要对道具进行排序
    //#define     PD_ItemList_NoSort                 1
 

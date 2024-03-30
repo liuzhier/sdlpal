@@ -107,14 +107,14 @@ static const int g_KeyMap[][2] = {
 };
 
 #ifdef PD_Player_Walk_Key
-UINT
-PAL_GetCurrPressKey(
+static INT
+PAL_GetCurrDirection(
    VOID
 )
 /*++
   Purpose:
 
-    Get the currently pressed key.
+    Get the current walking direction.
 
   Parameters:
 
@@ -126,14 +126,14 @@ PAL_GetCurrPressKey(
 
 --*/
 {
-   INT i, iCurrPress = 0;
+   INT i, iCurrDir = kDirSouth;
 
    for (i = 1; i < sizeof(g_InputState.dwKeyOrder) / sizeof(g_InputState.dwKeyOrder[0]); i++)
-      if (g_InputState.dwKeyOrder[iCurrPress] < g_InputState.dwKeyOrder[i]) iCurrPress = i;
+      if (g_InputState.dwKeyOrder[iCurrDir] < g_InputState.dwKeyOrder[i]) iCurrDir = i;
 
-   if (!g_InputState.dwKeyOrder[iCurrPress]) iCurrPress = kDirUnknown;
+   if (!g_InputState.dwKeyOrder[iCurrDir]) iCurrDir = kDirUnknown;
 
-   return iCurrPress;
+   return iCurrDir;
 }
 #endif // PD_Player_Walk_Key
 
@@ -158,30 +158,33 @@ PAL_KeyDown(
 --*/
 {
 #ifdef PD_Player_Walk_Key
-   INT iCurrKey = -1;
+   INT iCurrDir = kDirUnknown;
 
-   if (key & kKeyDown)
+   if (!fRepeat)
    {
-      iCurrKey = 0;
-   }
-   else if (key & kKeyLeft)
-   {
-      iCurrKey = 1;
-   }
-   else if (key & kKeyUp)
-   {
-      iCurrKey = 2;
-   }
-   else if (key & kKeyRight)
-   {
-      iCurrKey = 3;
-   }
+      if (key & kKeyDown)
+      {
+         iCurrDir = kDirSouth;
+      }
+      else if (key & kKeyLeft)
+      {
+         iCurrDir = kDirWest;
+      }
+      else if (key & kKeyUp)
+      {
+         iCurrDir = kDirNorth;
+      }
+      else if (key & kKeyRight)
+      {
+         iCurrDir = kDirEast;
+      }
 
-   if (iCurrKey != -1)
-   {
-      g_InputState.dwKeyMaxCount++;
-      g_InputState.dwKeyOrder[iCurrKey] = g_InputState.dwKeyMaxCount;
-      g_InputState.dir = PAL_GetCurrPressKey();
+      if (iCurrDir != kDirUnknown)
+      {
+         g_InputState.dwKeyMaxCount++;
+         g_InputState.dwKeyOrder[iCurrDir] = g_InputState.dwKeyMaxCount;
+         g_InputState.dir = PAL_GetCurrDirection();
+      }
    }
 
    g_InputState.dwKeyPress |= key;
@@ -251,31 +254,31 @@ PAL_KeyUp(
 --*/
 {
 #ifdef PD_Player_Walk_Key
-   INT iCurrKey = -1;
+   INT iCurrDir = kDirUnknown;
 
    if (key & kKeyDown)
    {
-      iCurrKey = 0;
+      iCurrDir = kDirSouth;
    }
    else if (key & kKeyLeft)
    {
-      iCurrKey = 1;
+      iCurrDir = kDirWest;
    }
    else if (key & kKeyUp)
    {
-      iCurrKey = 2;
+      iCurrDir = kDirNorth;
    }
    else if (key & kKeyRight)
    {
-      iCurrKey = 3;
+      iCurrDir = kDirEast;
    }
 
-   if (iCurrKey != -1)
+   if (iCurrDir != kDirUnknown)
    {
-      g_InputState.dwKeyOrder[iCurrKey] = 0;
-      iCurrKey = PAL_GetCurrPressKey();
-      g_InputState.dwKeyMaxCount = (iCurrKey == kDirUnknown) ? 0 : g_InputState.dwKeyOrder[iCurrKey];
-      g_InputState.dir = iCurrKey;
+      g_InputState.dwKeyOrder[iCurrDir] = 0;
+      iCurrDir = PAL_GetCurrDirection();
+      g_InputState.dwKeyMaxCount = (iCurrDir == kDirUnknown) ? 0 : g_InputState.dwKeyOrder[iCurrDir];
+      g_InputState.dir = iCurrDir;
    }
 #else
    switch (key)

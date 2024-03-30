@@ -300,6 +300,10 @@ PAL_GameUseItem(
 {
    WORD         wObject;
 
+#if PD_Menu_CancelMakeScene
+   VIDEO_BackupScreen(gpScreen);
+#endif
+
    while (TRUE)
    {
       wObject = PAL_ItemSelectMenu(NULL, kItemFlagUsable);
