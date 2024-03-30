@@ -524,6 +524,10 @@ typedef struct tagGLOBALVARS
    BOOL            fShowEventMessages;      // 显示开关
 #endif
 
+#if PD_Can_Penetrate_Walls
+   BOOL            fCanPenetrateWalls;      // 穿墙开关
+#endif
+
 #ifndef PAL_CLASSIC
    BYTE             bBattleSpeed;        // Battle Speed (1 = Fastest, 5 = Slowest)
 #endif

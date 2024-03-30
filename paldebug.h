@@ -107,7 +107,7 @@
    #define     PD_Pass_Battle                     1
 
    // 穿墙
-   #define     PD_Can_Penetrate_Walls             0
+   #define     PD_Can_Penetrate_Walls             1
 
    // 场景显示额外信息开关
    #define     PD_Scene_ShowMoreMessages          1

@@ -701,7 +701,13 @@ PAL_StartFrame(
    {
       gpGlobals->fShowEventMessages = !gpGlobals->fShowEventMessages;
    }
-#endif
+#endif // PD_Scene_ShowEventMessages
+#if PD_Can_Penetrate_Walls
+   else if (g_InputState.dwKeyPress & kKeyPenetrateWalls)
+   {
+      gpGlobals->fCanPenetrateWalls = !gpGlobals->fCanPenetrateWalls;
+   }
+#endif // PD_Can_Penetrate_Walls
 }
 
 VOID

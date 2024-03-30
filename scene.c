@@ -562,6 +562,13 @@ PAL_MakeScene(
    }
 #endif
 
+#if PD_Can_Penetrate_Walls
+   if (gpGlobals->fCanPenetrateWalls)
+   {
+      PAL_DrawText(L"穿墙", PAL_XY(0, 0), 0x2D, TRUE, FALSE, FALSE);
+   }
+#endif // PD_Can_Penetrate_Walls
+
 #if PD_Scene_ShowEventMessages
    //
    // __DEBUG__绘制更多地图元素
@@ -860,7 +867,7 @@ PAL_CheckObstacleWithRange(
 --*/
 {
 #if PD_Can_Penetrate_Walls
-   if (!fCheckRange)
+   if (gpGlobals->fCanPenetrateWalls && fCheckRange)
    {
       return FALSE;
    }

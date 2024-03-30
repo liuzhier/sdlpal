@@ -104,6 +104,10 @@ static const int g_KeyMap[][2] = {
 #if PD_Scene_ShowEventMessages
    { SDLK_1,         kKeyEventMessage },
 #endif // PD_Battle_ShowPlayerLevelmagic
+
+#if PD_Can_Penetrate_Walls
+   { SDLK_2,         kKeyPenetrateWalls },
+#endif // PD_Battle_ShowPlayerLevelmagic
 };
 
 #ifdef PD_Player_Walk_Key
