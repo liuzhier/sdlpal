@@ -45,7 +45,11 @@ PAL_ItemSelectMenuUpdate(
 --*/
 {
    int                i, j, k, line, item_delta;
+
+#if PD_Menu_KeyLeftOrRight_NextLine
    int               *iCurMenuItem = (fIsInvMenu) ? &gpGlobals->iCurInvMenuItem : &gpGlobals->iCurSellMenuItem;
+#endif
+
    WORD               wObject, wScript;
    BYTE               bColor;
    static BYTE        bufImage[2048];
@@ -108,11 +112,19 @@ PAL_ItemSelectMenuUpdate(
    }
    else if (g_InputState.dwKeyPress & kKeyHome)
    {
+#if PD_Menu_KeyLeftOrRight_NextLine
       item_delta = -(*iCurMenuItem);
+#else
+      item_delta = -gpGlobals->iCurInvMenuItem;
+#endif
    }
    else if (g_InputState.dwKeyPress & kKeyEnd)
    {
+#if PD_Menu_KeyLeftOrRight_NextLine
       item_delta = g_iNumInventory - (*iCurMenuItem) - 1;
+#else
+      item_delta = g_iNumInventory - gpGlobals->iCurInvMenuItem - 1;
+#endif
    }
    else if (g_InputState.dwKeyPress & kKeyMenu)
    {
@@ -151,7 +163,11 @@ PAL_ItemSelectMenuUpdate(
    //
    // Draw the texts in the current page
    //
+#if PD_Menu_KeyLeftOrRight_NextLine
    i = (*iCurMenuItem) / iItemsPerLine * iItemsPerLine - iItemsPerLine * iPageLineOffset;
+#else
+   i = gpGlobals->iCurInvMenuItem / iItemsPerLine * iItemsPerLine - iItemsPerLine * iPageLineOffset;
+#endif // PD_Menu_KeyLeftOrRight_NextLine
    if (i < 0)
    {
       i = 0;
@@ -175,7 +191,11 @@ PAL_ItemSelectMenuUpdate(
             break;
          }
 
+#if PD_Menu_KeyLeftOrRight_NextLine
          if (i == (*iCurMenuItem))
+#else
+         if (i == gpGlobals->iCurInvMenuItem)
+#endif // PD_Menu_KeyLeftOrRight_NextLine
          {
             if (!(gpGlobals->g.rgObject[wObject].item.wFlags & g_wItemFlags) ||
                (SHORT)gpGlobals->rgInventory[i].nAmount <= (SHORT)gpGlobals->rgInventory[i].nAmountInUse)
@@ -218,7 +238,11 @@ PAL_ItemSelectMenuUpdate(
          //
          PAL_DrawText(PAL_GetWord(wObject), PAL_XY(15 + k * iItemTextWidth, 12 + j * 18), bColor, TRUE, FALSE, FALSE);
 
+#if PD_Menu_KeyLeftOrRight_NextLine
          if (i == (*iCurMenuItem))
+#else
+         if (i == gpGlobals->iCurInvMenuItem)
+#endif
          {
             cursorPos = PAL_XY(15 + iCursorXOffset + k * iItemTextWidth, 22 + j * 18);
 
@@ -255,7 +279,11 @@ PAL_ItemSelectMenuUpdate(
    //
    PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_CURSOR), gpScreen, cursorPos);
 
+#if PD_Menu_KeyLeftOrRight_NextLine
    wObject = gpGlobals->rgInventory[*iCurMenuItem].wItem;
+#else
+   wObject = gpGlobals->rgInventory[gpGlobals->iCurInvMenuItem].wItem;
+#endif
 
    //
    // Draw the description of the selected item
@@ -316,6 +344,7 @@ PAL_ItemSelectMenuUpdate(
       }
    }
 
+#if PD_Menu_KeyLeftOrRight_NextLine
    if (g_InputState.dwKeyPress & kKeySearch)
    {
       if ((gpGlobals->g.rgObject[wObject].item.wFlags & g_wItemFlags) &&
@@ -326,6 +355,16 @@ PAL_ItemSelectMenuUpdate(
          {
             j = ((*iCurMenuItem) < iItemsPerLine * iPageLineOffset) ? ((*iCurMenuItem) / iItemsPerLine) : iPageLineOffset;
             k = (*iCurMenuItem) % iItemsPerLine;
+#else
+      if ((gpGlobals->g.rgObject[wObject].item.wFlags & g_wItemFlags) &&
+         (SHORT)gpGlobals->rgInventory[gpGlobals->iCurInvMenuItem].nAmount >
+         (SHORT)gpGlobals->rgInventory[gpGlobals->iCurInvMenuItem].nAmountInUse)
+      {
+         if (gpGlobals->rgInventory[gpGlobals->iCurInvMenuItem].nAmount > 0)
+         {
+            j = (gpGlobals->iCurInvMenuItem < iItemsPerLine * iPageLineOffset) ? (gpGlobals->iCurInvMenuItem / iItemsPerLine) : iPageLineOffset;
+            k = gpGlobals->iCurInvMenuItem % iItemsPerLine;
+#endif // PD_Menu_KeyLeftOrRight_NextLine
 
             PAL_DrawText(PAL_GetWord(wObject), PAL_XY(15 + k * iItemTextWidth, 12 + j * 18), MENUITEM_COLOR_CONFIRMED, FALSE, FALSE, FALSE);
 
@@ -432,19 +471,32 @@ PAL_ItemSelectMenu(
 --*/
 {
    int              iPrevIndex;
+
+#if PD_Menu_KeyLeftOrRight_NextLine
    int             *iCurMenuItem = (wItemFlags != kItemFlagSellable) ? &gpGlobals->iCurInvMenuItem : &gpGlobals->iCurSellMenuItem;
+#endif
+
    WORD             w;
    DWORD            dwTime;
 
    PAL_ItemSelectMenuInit(wItemFlags);
+
+#if PD_Menu_KeyLeftOrRight_NextLine
    iPrevIndex = *iCurMenuItem;
+#else
+   iPrevIndex = gpGlobals->iCurInvMenuItem;
+#endif // PD_Menu_KeyLeftOrRight_NextLine
 
    PAL_ClearKeyState();
 
    if (lpfnMenuItemChanged != NULL)
    {
       g_fNoDesc = TRUE;
+#if PD_Menu_KeyLeftOrRight_NextLine
       (*lpfnMenuItemChanged)(gpGlobals->rgInventory[*iCurMenuItem].wItem);
+#else
+      (*lpfnMenuItemChanged)(gpGlobals->rgInventory[gpGlobals->iCurInvMenuItem].wItem);
+#endif // PD_Menu_KeyLeftOrRight_NextLine
    }
 
    dwTime = SDL_GetTicks();
@@ -486,6 +538,7 @@ PAL_ItemSelectMenu(
          return w;
       }
 
+#if PD_Menu_KeyLeftOrRight_NextLine
       if (iPrevIndex != (*iCurMenuItem))
       {
          if ((*iCurMenuItem) >= 0 && (*iCurMenuItem) < MAX_INVENTORY)
@@ -499,6 +552,20 @@ PAL_ItemSelectMenu(
          iPrevIndex = (*iCurMenuItem);
       }
    }
+#else
+      if (iPrevIndex != gpGlobals->iCurInvMenuItem)
+      {
+         if (gpGlobals->iCurInvMenuItem >= 0 && gpGlobals->iCurInvMenuItem < MAX_INVENTORY)
+         {
+            if (lpfnMenuItemChanged != NULL)
+            {
+               (*lpfnMenuItemChanged)(gpGlobals->rgInventory[gpGlobals->iCurInvMenuItem].wItem);
+            }
+         }
+
+         iPrevIndex = gpGlobals->iCurInvMenuItem;
+      }
+#endif // PD_Menu_KeyLeftOrRight_NextLine
 
    assert(FALSE);
    return 0; // should not really reach here

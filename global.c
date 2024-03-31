@@ -954,8 +954,10 @@ PAL_InitGameData(
 
 #if !PD_LoadSave_NoResetItemCursor
    gpGlobals->iCurInvMenuItem = 0;
+#if PD_Menu_KeyLeftOrRight_NextLine
    gpGlobals->iCurSellMenuItem = 0;
-#endif
+#endif // PD_Menu_KeyLeftOrRight_NextLine
+#endif // PD_LoadSave_NoResetItemCursor
    gpGlobals->fInBattle = FALSE;
 
 #if PD_Player_Status_Index_error

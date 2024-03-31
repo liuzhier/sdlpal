@@ -1795,8 +1795,10 @@ PAL_SellMenu(
 {
    WORD      w;
 
+#if PD_Menu_KeyLeftOrRight_NextLine
    // Special handling in Win version, no longer requiring cursor position recording
    if (gConfig.fIsWIN95) gpGlobals->iCurSellMenuItem = 0;
+#endif // PD_Menu_KeyLeftOrRight_NextLine
 
    while (TRUE)
    {

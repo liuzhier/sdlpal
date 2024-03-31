@@ -506,7 +506,11 @@ typedef struct tagGLOBALVARS
    int              iCurMainMenuItem;    // current main menu item number
    int              iCurSystemMenuItem;  // current system menu item number
    int              iCurInvMenuItem;     // current inventory menu item number
+
+#if PD_Menu_KeyLeftOrRight_NextLine
    int              iCurSellMenuItem;    // current sell menu item number
+#endif // PD_Menu_KeyLeftOrRight_NextLine
+
    int              iCurPlayingRNG;      // current playing RNG animation
    BYTE             bCurrentSaveSlot;    // current save slot (1-5)
    BOOL             fInMainGame;         // TRUE if in main game

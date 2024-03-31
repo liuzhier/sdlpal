@@ -83,6 +83,7 @@
    #define     PD_Game_CPUSpeed_NotLower          1
 
    // 取消掉菜单的左右键到菜单行边界后上下移功能
+   // 区分开道具菜单和当铺菜单的光标
    #define     PD_Menu_KeyLeftOrRight_NextLine    1
 
    // 修复走路逻辑
