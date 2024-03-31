@@ -211,6 +211,19 @@ PAL_RLEGetHeight(
    LPCBITMAPRLE      lpBitmapRLE
 );
 
+#if PD_Wine_God_Effects
+INT
+PAL_MKFGetNumChunks(
+   LPSPRITE       lpBuffer
+);
+
+LPBYTE
+PAL_MKFSpriteGetFrame(
+   LPBYTE         lpBuffer,
+   UINT           uiChunkNum
+);
+#endif // PD_Wine_God_Effects
+
 WORD
 PAL_SpriteGetNumFrames(
    LPCSPRITE       lpSprite

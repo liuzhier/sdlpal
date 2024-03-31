@@ -210,6 +210,10 @@ typedef struct tagBATTLE
    INT              iSummonFrame;         // current frame of the summoned god
    BOOL             fSummonColorShift;
 
+#if PD_Wine_God_Effects
+   BOOL             iIsSummonSS;         // SS summon god
+#endif
+
    INT              iExpGained;           // total experience value gained
    INT              iCashGained;          // total cash gained
 

@@ -772,6 +772,73 @@ PAL_RLEGetHeight(
    return lpBitmapRLE[2] | (lpBitmapRLE[3] << 8);
 }
 
+#if PD_Wine_God_Effects
+INT
+PAL_MKFGetNumChunks(
+   LPSPRITE       lpBuffer
+)
+/*++
+  Purpose:
+
+    Get the total number of frames of MKF.
+
+  Parameters:
+
+    [IN]  lpBuffer - pointer to the destination buffer.
+
+  Return value:
+
+    Number of frames of the sprite.
+
+--*/
+{
+   INT iNumChunk;
+
+   if (lpBuffer == NULL)
+   {
+      return 0;
+   }
+
+   iNumChunk = SDL_SwapLE32(((INT*)lpBuffer)[0]);
+
+   return (iNumChunk >> 2) - 1;
+}
+
+LPBYTE
+PAL_MKFSpriteGetFrame(
+   LPBYTE         lpBuffer,
+   UINT           uiChunkNum
+)
+/*++
+  Purpose:
+
+    Get the size of a chunk in an MKF archive.
+
+  Parameters:
+
+    [IN]  lpBuffer - pointer to the destination buffer.
+
+    [IN]  uiChunkNum - the number of the chunk in the MKF archive.
+
+  Return value:
+
+    Integer value which indicates the size of the chunk.
+    -1 if the chunk does not exist.
+
+--*/
+{
+   //
+   // Check whether the uiChunkNum is out of range..
+   //
+   if (uiChunkNum >= PAL_MKFGetNumChunks(lpBuffer)) return -1;
+
+   //
+   // Return the length of the chunk.
+   //
+   return lpBuffer + SDL_SwapLE32(((UINT*)lpBuffer)[uiChunkNum]);
+}
+#endif // PD_Wine_God_Effects
+
 WORD
 PAL_SpriteGetNumFrames(
    LPCSPRITE       lpSprite

@@ -110,6 +110,9 @@
    // 穿墙
    #define     PD_Can_Penetrate_Walls             1
 
+   // 酒神特效替换
+   #define     PD_Wine_God_Effects                1
+
    // 场景显示额外信息开关
    #define     PD_Scene_ShowMoreMessages          1
       #if     PD_Scene_ShowMoreMessages
