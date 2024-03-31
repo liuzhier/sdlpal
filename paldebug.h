@@ -92,6 +92,9 @@
    // 解决失去道具后获得道具导致背包光标前移一项的问题
    #define     PD_Del_Item_Menu_Cursor_Move_Prev  1
 
+   // 修复探云手坐标错误
+   #define     PD_Head_Pos                        1
+
 #endif // PAL_FIXBUG
 
 
