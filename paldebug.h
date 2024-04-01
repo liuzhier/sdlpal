@@ -92,8 +92,14 @@
    // 解决失去道具后获得道具导致背包光标前移一项的问题
    #define     PD_Del_Item_Menu_Cursor_Move_Prev  1
 
-   // 修复探云手坐标错误
+   // 修正探云手坐标错误
    #define     PD_Head_Pos                        1
+
+   // 指令 0x0093 淡入场景不应该重置按键方向
+   #define     PD_Fade_Scene_Cancel_Clean_Dir     1
+
+   // 放置道具后再拿回来不要放到背包末尾
+   #define     PD_Add_Item_Not_End_Place          1
 
 #endif // PAL_FIXBUG
 
@@ -124,7 +130,7 @@
          // 显示场景号
          #define     PD_Scene_ShowSceneID         1
          // 显示方向参考值
-         #define     PD_Scene_ShowDirValue        0
+         #define     PD_Scene_ShowDirValue        1
          // 显示驱魔香或者十里香数值
          #define     PD_Scene_ShowQuMoXiangTime   1
          // 显示灵葫值

@@ -1121,7 +1121,11 @@ PAL_AddItemToInventory(
    //
    fFound = PAL_GetItemIndexToInventory(wObjectID, &index);
 
+#if PD_Add_Item_Not_End_Place
+   if (iNum >= 0)
+#else
    if (iNum > 0)
+#endif
    {
       //
       // Add item

@@ -305,8 +305,12 @@ PAL_SceneFade(
          // Generate the scene
          //
          PAL_ClearKeyState();
+
+#if !PD_Fade_Scene_Cancel_Clean_Dir
          g_InputState.dir = kDirUnknown;
          g_InputState.prevdir = kDirUnknown;
+#endif // PD_Fade_Scene_Cancel_Clean_Dir
+
          PAL_GameUpdate(FALSE);
          PAL_MakeScene();
          VIDEO_UpdateScreen(NULL);
@@ -341,8 +345,12 @@ PAL_SceneFade(
          // Generate the scene
          //
          PAL_ClearKeyState();
+
+#if !PD_Fade_Scene_Cancel_Clean_Dir
          g_InputState.dir = kDirUnknown;
          g_InputState.prevdir = kDirUnknown;
+#endif // PD_Fade_Scene_Cancel_Clean_Dir
+
          PAL_GameUpdate(FALSE);
          PAL_MakeScene();
          VIDEO_UpdateScreen(NULL);
@@ -431,8 +439,12 @@ PAL_PaletteFade(
       if (fUpdateScene)
       {
          PAL_ClearKeyState();
+
+#if !PD_Fade_Scene_Cancel_Clean_Dir
          g_InputState.dir = kDirUnknown;
          g_InputState.prevdir = kDirUnknown;
+#endif // PD_Fade_Scene_Cancel_Clean_Dir
+
          PAL_GameUpdate(FALSE);
          PAL_MakeScene();
          VIDEO_UpdateScreen(NULL);
