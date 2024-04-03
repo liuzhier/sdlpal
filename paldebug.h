@@ -101,6 +101,9 @@
    // 放置道具后再拿回来不要放到背包末尾
    #define     PD_Add_Item_Not_End_Place          1
 
+   // 指令 0x0023 队员编号获取错误
+   #define     PD_Script_0x0023_PlayerID          1
+
 #endif // PAL_FIXBUG
 
 

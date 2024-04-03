@@ -1096,6 +1096,9 @@ PAL_InterpretInstruction(
       //
       // Remove equipment from the specified player
       //
+#if PD_Script_0x0023_PlayerID
+      iPlayerRole = pScript->rgwOperand[0];
+#endif
       if (pScript->rgwOperand[1] == 0)
       {
          //
