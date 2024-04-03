@@ -104,6 +104,9 @@
    // 指令 0x0023 队员编号获取错误
    #define     PD_Script_0x0023_PlayerID          1
 
+   // 战斗结算，修行晋级界面可以通过上下左右键跳过
+   #define     PD_Battle_Won_Level_Up_Key_Pass    1
+
 #endif // PAL_FIXBUG
 
 
