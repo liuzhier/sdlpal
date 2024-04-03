@@ -143,6 +143,8 @@
          #define     PD_Scene_ShowLingHuValue     1
          // 显示所有事件的名称和编号
          #define     PD_Scene_ShowEventMessages   1
+         // 显示事件触发范围
+         #define     PD_Scene_ShowEventCheckBlock 1
       #endif // PD_Scene_ShowMoreMessages
 
    // 战斗显示额外信息开关

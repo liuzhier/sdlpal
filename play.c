@@ -508,6 +508,12 @@ PAL_Search(
       rgPos[i * 3 + 3] = PAL_XY(x + xOffset, y);
       x += xOffset;
       y += yOffset;
+
+#if PD_Scene_ShowEventCheckBlock
+      if (gpGlobals->fShowEventMessages)
+         PAL_DrawText(L"♻", PAL_XY(x - PAL_X(gpGlobals->viewport) - 8,
+               y - PAL_Y(gpGlobals->viewport) - 8), 0x0F, TRUE, FALSE, FALSE);
+#endif // PD_Scene_ShowEventCheckBlock
    }
 
    for (i = 0; i < 13; i++)
@@ -529,6 +535,12 @@ PAL_Search(
          ex = p->x / 32;
          ey = p->y / 16;
          eh = ((p->x % 32) ? 1 : 0);
+
+#if PD_Scene_ShowEventCheckBlock
+         if (gpGlobals->fShowEventMessages)
+            PAL_DrawText(L"♻", PAL_XY(p->x - PAL_X(gpGlobals->viewport) - 8,
+                  p->y - PAL_Y(gpGlobals->viewport) - 8), 0x1A, TRUE, FALSE, FALSE);
+#endif // PD_Scene_ShowEventCheckBlock
 
          if (p->sState <= 0 || p->wTriggerMode >= kTriggerTouchNear ||
             p->wTriggerMode * 6 - 4 < i || dx != ex || dy != ey || dh != eh)
@@ -593,6 +605,10 @@ PAL_Search(
          return; // don't go further
       }
    }
+
+#if PD_Scene_ShowEventCheckBlock
+   if (gpGlobals->fShowEventMessages) VIDEO_UpdateScreen(NULL);
+#endif // PD_Scene_ShowEventCheckBlock
 }
 
 VOID
@@ -708,6 +724,8 @@ PAL_StartFrame(
       gpGlobals->fCanPenetrateWalls = !gpGlobals->fCanPenetrateWalls;
    }
 #endif // PD_Can_Penetrate_Walls
+
+   if (gpGlobals->fShowEventMessages) PAL_Search();
 }
 
 VOID
