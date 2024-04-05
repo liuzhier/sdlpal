@@ -22,6 +22,19 @@
 #ifndef _PALDEBUG_H
 #define _PALDEBUG_H
 
+// 缘起缘灭——
+#define     PAL_缘起缘灭                          1
+
+#if PAL_缘起缘灭
+
+   // 自定义数据结构：MKF -> YJ_1 -> MKF -> RLE
+   // 新增 解 MKF buffer 功能
+   #define     PD_File_CutMKFToBuffer             1
+
+#endif
+
+
+
 // 启用原游戏中存在的 bug
 #define     PAL_BUG                               1
 
@@ -121,9 +134,6 @@
 
    // 穿墙
    #define     PD_Can_Penetrate_Walls             1
-
-   // 酒神特效替换
-   #define     PD_Wine_God_Effects                1
 
    // 场景显示额外信息开关
    #define     PD_Scene_ShowMoreMessages          1

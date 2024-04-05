@@ -170,27 +170,11 @@ PAL_BattleDrawPlayerSprites(
       //
       if (g_Battle.lpSummonSprite != NULL)
       {
-#if PD_Wine_God_Effects
-         if (g_Battle.iIsSummonSS)
-         {
-            PAL_RLEBlitToSurface(PAL_MKFSpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame),
-               lpDstSurface, g_Battle.posSummon);
-         }
-         else
-         {
-            pos = PAL_XY(PAL_X(g_Battle.posSummon) - PAL_RLEGetWidth(PAL_SpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame)) / 2,
-               PAL_Y(g_Battle.posSummon) - PAL_RLEGetHeight(PAL_SpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame)));
-
-            PAL_RLEBlitToSurface(PAL_SpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame),
-               lpDstSurface, pos);
-         }
-#else
          pos = PAL_XY(PAL_X(g_Battle.posSummon) - PAL_RLEGetWidth(PAL_SpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame)) / 2,
             PAL_Y(g_Battle.posSummon) - PAL_RLEGetHeight(PAL_SpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame)));
 
          PAL_RLEBlitToSurface(PAL_SpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame),
             lpDstSurface, pos);
-#endif
       }
    }
    else

@@ -966,14 +966,7 @@ end:
       PAL_BattleUpdateFighters();
       PAL_BattleDelay(1, 0, FALSE);
 
-#if PD_Wine_God_Effects
-      if (!g_Battle.iIsSummonSS)
-      {
-         free(g_Battle.lpSummonSprite);
-      }
-#else
       free(g_Battle.lpSummonSprite);
-#endif
       g_Battle.lpSummonSprite = NULL;
 
       g_Battle.sBackgroundColorShift = 0;
@@ -3221,44 +3214,15 @@ PAL_BattleShowPlayerSummonMagicAnim(
    // Load the sprite of the summoned god
    //
    j = gpGlobals->g.lprgMagic[wMagicNum].rgSpecific.wSummonEffect + 10;
-#if PD_Wine_God_Effects
-   g_Battle.iIsSummonSS = (j == 15);
-
-   if (g_Battle.iIsSummonSS)
-   {
-      g_Battle.lpSummonSprite = (LPSPRITE)&dataGodEffects;
-   }
-   else
-   {
-      i = PAL_MKFGetDecompressedSize(j, gpGlobals->f.fpF);
-
-      g_Battle.lpSummonSprite = UTIL_malloc(i);
-
-      PAL_MKFDecompressChunk(g_Battle.lpSummonSprite, i, j, gpGlobals->f.fpF);
-   }
-#else
    i = PAL_MKFGetDecompressedSize(j, gpGlobals->f.fpF);
 
    g_Battle.lpSummonSprite = UTIL_malloc(i);
 
    PAL_MKFDecompressChunk(g_Battle.lpSummonSprite, i, j, gpGlobals->f.fpF);
-#endif // PD_Wine_God_Effects
 
    g_Battle.iSummonFrame = 0;
-#if PD_Wine_God_Effects
-   if (g_Battle.iIsSummonSS)
-   {
-      g_Battle.posSummon = PAL_XY(0, 0);
-   }
-   else
-   {
-      g_Battle.posSummon = PAL_XY(240 + (SHORT)(gpGlobals->g.lprgMagic[wMagicNum].wXOffset),
-         165 + (SHORT)(gpGlobals->g.lprgMagic[wMagicNum].wYOffset));
-   }
-#else
    g_Battle.posSummon = PAL_XY(240 + (SHORT)(gpGlobals->g.lprgMagic[wMagicNum].wXOffset),
       165 + (SHORT)(gpGlobals->g.lprgMagic[wMagicNum].wYOffset));
-#endif
    g_Battle.sBackgroundColorShift = (SHORT)(gpGlobals->g.lprgMagic[wMagicNum].wEffectTimes);
    g_Battle.fSummonColorShift = TRUE;
 
@@ -3274,23 +3238,7 @@ PAL_BattleShowPlayerSummonMagicAnim(
    // Show the animation of the summoned god
    // TODO: There is still something missing here compared to the original game.
    //
-#if PD_Wine_God_Effects
-   g_Battle.fSummonColorShift = TRUE;
-
-   INT iLen;
-   if (g_Battle.iIsSummonSS)
-   {
-      iLen = PAL_MKFGetNumChunks(g_Battle.lpSummonSprite) - 1;
-   }
-   else
-   {
-      iLen = PAL_SpriteGetNumFrames(g_Battle.lpSummonSprite) - 1;
-   }
-
-   while (g_Battle.iSummonFrame < iLen)
-#else
    while (g_Battle.iSummonFrame < PAL_SpriteGetNumFrames(g_Battle.lpSummonSprite) - 1)
-#endif // PD_Wine_God_Effects
    {
       //
       // Wait for the time of one frame. Accept input here.
