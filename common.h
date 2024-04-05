@@ -299,4 +299,9 @@ typedef enum tagLOGLEVEL
 
 #include "adplug/opltypes.h"
 
+#if PD_Battle_ShowPlayerLevelmagic
+   #define max(a,b) (((a) > (b)) ? (a) : (b))
+   #define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif // PD_Battle_ShowPlayerLevelmagic
+
 #endif
