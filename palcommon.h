@@ -213,6 +213,12 @@ PAL_RLEGetHeight(
 
 #if PD_File_CutMKFToBuffer
 INT
+PAL_MKFGetSizeOfChunk(
+   LPBYTE         lpBuffer,
+   UINT           uiChunkNum
+);
+
+INT
 PAL_MKFGetNumChunks(
    LPSPRITE       lpBuffer
 );

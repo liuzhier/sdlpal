@@ -774,6 +774,49 @@ PAL_RLEGetHeight(
 
 #if PD_File_CutMKFToBuffer
 INT
+PAL_MKFGetSizeOfChunk(
+   LPBYTE         lpBuffer,
+   UINT           uiChunkNum
+)
+/*++
+  Purpose:
+
+    Get the size of a chunk in an MKF archive.
+
+  Parameters:
+
+    [IN]  lpBuffer - pointer to the destination buffer.
+
+    [IN]  uiChunkNum - the number of the chunk in the MKF archive.
+
+  Return value:
+
+    Integer value which indicates the size of the chunk.
+    -1 if the chunk does not exist.
+
+--*/
+{
+   UINT    uiOffset = 0;
+   UINT    uiNextOffset = 0;
+
+   //
+   // Check whether the uiChunkNum is out of range..
+   //
+   if (uiChunkNum >= PAL_MKFGetNumChunks(lpBuffer)) return -1;
+
+   //
+   // Get the offset of the specified chunk and the next chunk.
+   //
+   uiOffset = SDL_SwapLE32(((UINT*)lpBuffer)[uiChunkNum + 1]);
+   uiNextOffset = SDL_SwapLE32(((UINT*)lpBuffer)[uiChunkNum + 2]);
+
+   //
+   // Return the length of the chunk.
+   //
+   return uiNextOffset - uiOffset;
+}
+
+INT
 PAL_MKFGetNumChunks(
    LPSPRITE       lpBuffer
 )
@@ -830,7 +873,7 @@ PAL_MKFSpriteGetFrame(
    //
    // Check whether the uiChunkNum is out of range..
    //
-   if (uiChunkNum >= PAL_MKFGetNumChunks(lpBuffer)) return -1;
+   if (uiChunkNum >= PAL_MKFGetNumChunks(lpBuffer)) return NULL;
 
    //
    // Return the length of the chunk.
