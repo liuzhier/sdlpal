@@ -22,10 +22,22 @@
 #ifndef _PALDEBUG_H
 #define _PALDEBUG_H
 
-// 缘起缘灭——
-#define     PAL_缘起缘灭                          1
+#define    PAL_Platform                           1
 
-#if PAL_缘起缘灭
+#if PAL_Platform
+
+   // 取最大值
+   #define     PD_MAX(A, B)                       (((A) > (B)) ? (A) : (B))
+
+   // 取最小值
+   #define     PD_MIN(A, B)                       (((A) < (B)) ? (A) : (B))
+
+#endif
+
+// 缘起缘灭——
+#define     PAL_YQYM                              1
+
+#if PAL_YQYM
 
    // 自定义数据结构：MKF -> YJ_1 -> MKF -> RLE
    // 新增 解 MKF buffer 功能
