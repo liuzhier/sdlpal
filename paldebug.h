@@ -126,9 +126,6 @@
    // 放置道具后再拿回来不要放到背包末尾
    #define     PD_Add_Item_Not_End_Place          1
 
-   // 战斗结算，修行晋级界面可以通过上下左右键跳过
-   #define     PD_Battle_Won_Level_Up_Key_Pass    1
-
 #endif // PAL_FIXBUG
 
 

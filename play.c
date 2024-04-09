@@ -755,12 +755,7 @@ PAL_WaitForKey(
    {
       UTIL_Delay(5);
 
-#if PD_Battle_Won_Level_Up_Key_Pass
-      if (  g_InputState.dwKeyPress && wTimeOut > 0
-         || g_InputState.dwKeyPress & (kKeySearch | kKeyMenu))
-#else
       if (g_InputState.dwKeyPress & (kKeySearch | kKeyMenu))
-#endif // PD_Battle_Won_Level_Up_Key_Pass
       {
          break;
       }
