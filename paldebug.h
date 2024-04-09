@@ -114,9 +114,6 @@
    // 解决失去道具后获得道具导致背包光标前移一项的问题
    #define     PD_Del_Item_Menu_Cursor_Move_Prev  1
 
-   // 修正探云手坐标错误
-   #define     PD_Head_Pos                        1
-
    // 指令 0x0093 淡入场景不应该重置按键方向
    #define     PD_Fade_Scene_Cancel_Clean_Dir     1
 

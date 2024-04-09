@@ -5400,16 +5400,8 @@ PAL_BattleStealFromEnemy(
    g_Battle.rgPlayer[iPlayerIndex].wCurrentFrame = 10;
    offset = ((INT)wTarget - iPlayerIndex) * 8;
 
-#if PD_Head_Pos
-   x = PAL_X(g_Battle.rgEnemy[wTarget].pos) + 85 - offset;
-   y = PAL_Y(g_Battle.rgEnemy[wTarget].pos) + 12 + offset;
-
-   x -= 21;
-   y += 10;
-#else
    x = PAL_X(g_Battle.rgEnemy[wTarget].pos) + 64 - offset;
    y = PAL_Y(g_Battle.rgEnemy[wTarget].pos) + 20 - offset / 2;
-#endif
 
    g_Battle.rgPlayer[iPlayerIndex].pos = PAL_XY(x, y);
 
