@@ -34,11 +34,6 @@ typedef struct tagPALINPUTSTATE
    BOOL                   joystickNeedUpdate;
 #endif
 
-#ifdef PD_Player_Walk_Key
-   DWORD                  dwKeyOrder[4];
-   DWORD                  dwKeyMaxCount;
-#endif // PD_Player_Walk_Key
-
 
 } PALINPUTSTATE;
 

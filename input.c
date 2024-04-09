@@ -110,37 +110,6 @@ static const int g_KeyMap[][2] = {
 #endif // PD_Battle_ShowPlayerLevelmagic
 };
 
-#ifdef PD_Player_Walk_Key
-static INT
-PAL_GetCurrDirection(
-   VOID
-)
-/*++
-  Purpose:
-
-    Get the current walking direction.
-
-  Parameters:
-
-    None.
-
-  Return value:
-
-    None.
-
---*/
-{
-   INT i, iCurrDir = kDirSouth;
-
-   for (i = 1; i < sizeof(g_InputState.dwKeyOrder) / sizeof(g_InputState.dwKeyOrder[0]); i++)
-      if (g_InputState.dwKeyOrder[iCurrDir] < g_InputState.dwKeyOrder[i]) iCurrDir = i;
-
-   if (!g_InputState.dwKeyOrder[iCurrDir]) iCurrDir = kDirUnknown;
-
-   return iCurrDir;
-}
-#endif // PD_Player_Walk_Key
-
 static VOID
 PAL_KeyDown(
    INT         key,
@@ -161,38 +130,6 @@ PAL_KeyDown(
 
 --*/
 {
-#ifdef PD_Player_Walk_Key
-   INT iCurrDir = kDirUnknown;
-
-   if (!fRepeat)
-   {
-      if (key & kKeyDown)
-      {
-         iCurrDir = kDirSouth;
-      }
-      else if (key & kKeyLeft)
-      {
-         iCurrDir = kDirWest;
-      }
-      else if (key & kKeyUp)
-      {
-         iCurrDir = kDirNorth;
-      }
-      else if (key & kKeyRight)
-      {
-         iCurrDir = kDirEast;
-      }
-
-      if (iCurrDir != kDirUnknown)
-      {
-         g_InputState.dwKeyMaxCount++;
-         g_InputState.dwKeyOrder[iCurrDir] = g_InputState.dwKeyMaxCount;
-         g_InputState.dir = PAL_GetCurrDirection();
-      }
-   }
-
-   g_InputState.dwKeyPress |= key;
-#else
    switch (key)
    {
    case kKeyUp:
@@ -235,7 +172,6 @@ PAL_KeyDown(
       g_InputState.dwKeyPress |= key;
       break;
    }
-#endif // PD_Player_Walk_Key
 }
 
 static VOID
@@ -257,34 +193,6 @@ PAL_KeyUp(
 
 --*/
 {
-#ifdef PD_Player_Walk_Key
-   INT iCurrDir = kDirUnknown;
-
-   if (key & kKeyDown)
-   {
-      iCurrDir = kDirSouth;
-   }
-   else if (key & kKeyLeft)
-   {
-      iCurrDir = kDirWest;
-   }
-   else if (key & kKeyUp)
-   {
-      iCurrDir = kDirNorth;
-   }
-   else if (key & kKeyRight)
-   {
-      iCurrDir = kDirEast;
-   }
-
-   if (iCurrDir != kDirUnknown)
-   {
-      g_InputState.dwKeyOrder[iCurrDir] = 0;
-      iCurrDir = PAL_GetCurrDirection();
-      g_InputState.dwKeyMaxCount = (iCurrDir == kDirUnknown) ? 0 : g_InputState.dwKeyOrder[iCurrDir];
-      g_InputState.dir = iCurrDir;
-   }
-#else
    switch (key)
    {
    case kKeyUp:
@@ -322,7 +230,6 @@ PAL_KeyUp(
    default:
       break;
    }
-#endif // PD_Player_Walk_Key
 }
 
 static VOID
