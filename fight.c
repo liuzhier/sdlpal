@@ -2720,11 +2720,7 @@ PAL_BattleShowPlayerOffMagicAnim(
    iMagicNum = gpGlobals->g.rgObject[wObjectID].magic.wMagicNumber;
    iEffectNum = gpGlobals->g.lprgMagic[iMagicNum].wEffect;
 
-#if PD_File_CutMKFToBuffer
    l = PAL_MKFGetChunkSize(iEffectNum, gpGlobals->f.fpFIRE);
-#else
-   l = PAL_MKFGetDecompressedSize(iEffectNum, gpGlobals->f.fpFIRE);
-#endif // PD_File_CutMKFToBuffer
    if (l <= 0)
    {
       return;
@@ -2732,15 +2728,9 @@ PAL_BattleShowPlayerOffMagicAnim(
 
    lpSpriteEffect = (LPSPRITE)UTIL_malloc(l);
 
-#if PD_File_CutMKFToBuffer
    PAL_MKFReadChunk((LPBYTE)lpSpriteEffect, l, iEffectNum, gpGlobals->f.fpFIRE);
 
    n = PAL_MKFGetNumChunks(lpSpriteEffect);
-#else
-   PAL_MKFDecompressChunk((LPBYTE)lpSpriteEffect, l, iEffectNum, gpGlobals->f.fpFIRE);
-
-   n = PAL_SpriteGetNumFrames(lpSpriteEffect);
-#endif // PD_File_CutMKFToBuffer
 
    if (gConfig.fIsWIN95 && wPlayerIndex != (WORD)-1)
    {
@@ -2797,11 +2787,7 @@ PAL_BattleShowPlayerOffMagicAnim(
             k += gpGlobals->g.lprgMagic[iMagicNum].wFireDelay;
          }
          
-#if PD_File_CutMKFToBuffer
          *b = PAL_MKFSpriteGetFrame(lpSpriteEffect, k);
-#else
-         *b = PAL_SpriteGetFrame(lpSpriteEffect, k);
-#endif // PD_File_CutMKFToBuffer
 
 		 if (!gConfig.fIsWIN95 && (i - gpGlobals->g.lprgMagic[iMagicNum].wFireDelay) % n == 0)
          {
@@ -2811,12 +2797,7 @@ PAL_BattleShowPlayerOffMagicAnim(
       else
       {
          VIDEO_ShakeScreen(i, 3);
-
-#if PD_File_CutMKFToBuffer
          *b = PAL_MKFSpriteGetFrame(lpSpriteEffect, (l - gpGlobals->g.lprgMagic[iMagicNum].wShake - 1) % n);
-#else
-         *b = PAL_SpriteGetFrame(lpSpriteEffect, (l - gpGlobals->g.lprgMagic[iMagicNum].wShake - 1) % n);
-#endif // PD_File_CutMKFToBuffer
       }
       //
       // Wait for the time of one frame. Accept input here.
@@ -2974,11 +2955,7 @@ PAL_BattleShowEnemyMagicAnim(
    iMagicNum = gpGlobals->g.rgObject[wObjectID].magic.wMagicNumber;
    iEffectNum = gpGlobals->g.lprgMagic[iMagicNum].wEffect;
 
-#if PD_File_CutMKFToBuffer
    l = PAL_MKFGetChunkSize(iEffectNum, gpGlobals->f.fpFIRE);
-#else
-   l = PAL_MKFGetDecompressedSize(iEffectNum, gpGlobals->f.fpFIRE);
-#endif // PD_File_CutMKFToBuffer
    if (l <= 0)
    {
       return;
@@ -2986,15 +2963,9 @@ PAL_BattleShowEnemyMagicAnim(
 
    lpSpriteEffect = (LPSPRITE)UTIL_malloc(l);
 
-#if PD_File_CutMKFToBuffer
    PAL_MKFReadChunk((LPBYTE)lpSpriteEffect, l, iEffectNum, gpGlobals->f.fpFIRE);
 
    n = PAL_MKFGetNumChunks(lpSpriteEffect);
-#else
-   PAL_MKFDecompressChunk((LPBYTE)lpSpriteEffect, l, iEffectNum, gpGlobals->f.fpFIRE);
-
-   n = PAL_SpriteGetNumFrames(lpSpriteEffect);
-#endif // PD_File_CutMKFToBuffer
 
    l = n - gpGlobals->g.lprgMagic[iMagicNum].wFireDelay;
    l *= (SHORT)gpGlobals->g.lprgMagic[iMagicNum].wEffectTimes;
@@ -3031,11 +3002,7 @@ PAL_BattleShowEnemyMagicAnim(
             k += gpGlobals->g.lprgMagic[iMagicNum].wFireDelay;
          }
 
-#if PD_File_CutMKFToBuffer
          *b = PAL_MKFSpriteGetFrame(lpSpriteEffect, k);
-#else
-         *b = PAL_SpriteGetFrame(lpSpriteEffect, k);
-#endif // PD_File_CutMKFToBuffer
 
          if (i == (gConfig.fIsWIN95 ? 0 : gpGlobals->g.lprgMagic[iMagicNum].wFireDelay))
          {
@@ -3054,12 +3021,7 @@ PAL_BattleShowEnemyMagicAnim(
       else
       {
          VIDEO_ShakeScreen(i, 3);
-
-#if PD_File_CutMKFToBuffer
          *b = PAL_MKFSpriteGetFrame(lpSpriteEffect, (l - gpGlobals->g.lprgMagic[iMagicNum].wShake - 1) % n);
-#else
-         *b = PAL_SpriteGetFrame(lpSpriteEffect, (l - gpGlobals->g.lprgMagic[iMagicNum].wShake - 1) % n);
-#endif // PD_File_CutMKFToBuffer
       }
 
       //

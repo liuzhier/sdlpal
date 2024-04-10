@@ -727,10 +727,6 @@ PAL_InGameMagicMenu(
    //
    PAL_CreateBox(PAL_XY(35, 62), gpGlobals->wMaxPartyMemberIndex, PAL_MenuTextMaxWidth(rgMenuItem, sizeof(rgMenuItem)/sizeof(MENUITEM)) - 1, 0, FALSE);
 
-#if PD_Scene_DeadPlayerRoleCanUseMagic
-   
-#endif
-
    w = PAL_ReadMenu(NULL, rgMenuItem, gpGlobals->wMaxPartyMemberIndex + 1, w, MENUITEM_COLOR);
 
    if (w == MENUITEM_VALUE_CANCELLED)

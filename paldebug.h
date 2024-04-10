@@ -22,9 +22,9 @@
 #ifndef _PALDEBUG_H
 #define _PALDEBUG_H
 
-#define    PAL_Platform                           1
+#define    PD_Platform                            1
 
-#if PAL_Platform
+#if PD_Platform
 
    // 取最大值
    #define     PD_MAX(A, B)                       (((A) > (B)) ? (A) : (B))
@@ -35,15 +35,8 @@
 #endif
 
 // 缘起缘灭——
-#define     PAL_YQYM                              1
-
-#if PAL_YQYM
-
-   // 自定义数据结构：MKF -> YJ_1 -> MKF -> RLE
-   // 新增 解 MKF buffer 功能
-   #define     PD_File_CutMKFToBuffer             1
-
-#endif
+   // 1.  自定义数据结构：MKF -> MKF -> RLE
+   // 2.  新增 解 MKF buffer 功能
 
 
 
@@ -53,7 +46,7 @@
 #if PAL_BUG
 
    // 前置身位（黑屏时允许玩家提前走一步）
-   #define     PD_Scene_BlackScreenOneStep        1
+   #define     PD_Scene_BlackScreenOneStep        0
 
    // 允许战外阵亡的队员使用仙术
    #define     PD_Scene_DeadPlayerRoleCanUseMagic 1

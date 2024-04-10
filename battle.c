@@ -170,19 +170,11 @@ PAL_BattleDrawPlayerSprites(
       //
       if (g_Battle.lpSummonSprite != NULL)
       {
-#if PD_File_CutMKFToBuffer
          pos = PAL_XY(PAL_X(g_Battle.posSummon) - PAL_RLEGetWidth(PAL_MKFSpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame)) / 2,
             PAL_Y(g_Battle.posSummon) - PAL_RLEGetHeight(PAL_MKFSpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame)));
 
          PAL_RLEBlitToSurface(PAL_MKFSpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame),
             lpDstSurface, pos);
-#else
-         pos = PAL_XY(PAL_X(g_Battle.posSummon) - PAL_RLEGetWidth(PAL_SpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame)) / 2,
-            PAL_Y(g_Battle.posSummon) - PAL_RLEGetHeight(PAL_SpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame)));
-
-         PAL_RLEBlitToSurface(PAL_SpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame),
-            lpDstSurface, pos);
-#endif // PD_File_CutMKFToBuffer
       }
    }
    else
@@ -204,7 +196,6 @@ PAL_BattleDrawPlayerSprites(
          pos = PAL_XY(PAL_X(pos), PAL_Y(pos) + RandomLong(-1, 1));
       }
 
-#if PD_File_CutMKFToBuffer
       pos = PAL_XY(PAL_X(pos) - PAL_RLEGetWidth(PAL_MKFSpriteGetFrame(g_Battle.rgPlayer[wPlayerIndex].lpSprite, g_Battle.rgPlayer[wPlayerIndex].wCurrentFrame)) / 2,
          PAL_Y(pos) - PAL_RLEGetHeight(PAL_MKFSpriteGetFrame(g_Battle.rgPlayer[wPlayerIndex].lpSprite, g_Battle.rgPlayer[wPlayerIndex].wCurrentFrame)));
 
@@ -218,21 +209,6 @@ PAL_BattleDrawPlayerSprites(
          PAL_RLEBlitToSurface(PAL_MKFSpriteGetFrame(g_Battle.rgPlayer[wPlayerIndex].lpSprite, g_Battle.rgPlayer[wPlayerIndex].wCurrentFrame),
             lpDstSurface, pos);
       }
-#else
-      pos = PAL_XY(PAL_X(pos) - PAL_RLEGetWidth(PAL_SpriteGetFrame(g_Battle.rgPlayer[wPlayerIndex].lpSprite, g_Battle.rgPlayer[wPlayerIndex].wCurrentFrame)) / 2,
-         PAL_Y(pos) - PAL_RLEGetHeight(PAL_SpriteGetFrame(g_Battle.rgPlayer[wPlayerIndex].lpSprite, g_Battle.rgPlayer[wPlayerIndex].wCurrentFrame)));
-
-      if (g_Battle.rgPlayer[wPlayerIndex].iColorShift != 0)
-      {
-         PAL_RLEBlitWithColorShift(PAL_SpriteGetFrame(g_Battle.rgPlayer[wPlayerIndex].lpSprite, g_Battle.rgPlayer[wPlayerIndex].wCurrentFrame),
-            lpDstSurface, pos, g_Battle.rgPlayer[wPlayerIndex].iColorShift);
-      }
-      else if (g_Battle.iHidingTime == 0)
-      {
-         PAL_RLEBlitToSurface(PAL_SpriteGetFrame(g_Battle.rgPlayer[wPlayerIndex].lpSprite, g_Battle.rgPlayer[wPlayerIndex].wCurrentFrame),
-            lpDstSurface, pos);
-      }
-#endif // PD_File_CutMKFToBuffer
    }
 }
 
@@ -909,11 +885,7 @@ PAL_LoadBattleSprites(
    {
       s = PAL_GetPlayerBattleSprite(gpGlobals->rgParty[i].wPlayerRole);
 
-#if PD_File_CutMKFToBuffer
       l = PAL_MKFGetChunkSize(s, gpGlobals->f.fpF);
-#else
-      l = PAL_MKFGetDecompressedSize(s, gpGlobals->f.fpF);
-#endif // PD_File_CutMKFToBuffer
 
       if (l <= 0)
       {
@@ -922,13 +894,8 @@ PAL_LoadBattleSprites(
 
       g_Battle.rgPlayer[i].lpSprite = UTIL_calloc(l, 1);
 
-#if PD_File_CutMKFToBuffer
       PAL_MKFReadChunk(g_Battle.rgPlayer[i].lpSprite, l,
          s, gpGlobals->f.fpF);
-#else
-      PAL_MKFDecompressChunk(g_Battle.rgPlayer[i].lpSprite, l,
-         s, gpGlobals->f.fpF);
-#endif // PD_File_CutMKFToBuffer
 
       //
       // Set the default position for this player

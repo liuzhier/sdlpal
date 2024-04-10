@@ -772,7 +772,6 @@ PAL_RLEGetHeight(
    return lpBitmapRLE[2] | (lpBitmapRLE[3] << 8);
 }
 
-#if PD_File_CutMKFToBuffer
 INT
 PAL_MKFGetSizeOfChunk(
    LPBYTE         lpBuffer,
@@ -880,7 +879,6 @@ PAL_MKFSpriteGetFrame(
    //
    return lpBuffer + SDL_SwapLE32(((UINT*)lpBuffer)[uiChunkNum]);
 }
-#endif // PD_File_CutMKFToBuffer
 
 WORD
 PAL_SpriteGetNumFrames(
