@@ -42,6 +42,12 @@ PAL_GameMain(
 {
    DWORD       dwTime;
 
+   FILE          *fp = UTIL_OpenRequiredFile("map.mkf");
+   int             l = PAL_MKFGetDecompressedSize(18, fp);
+
+   LPSPRITE lpSprite = UTIL_calloc(l, 1);
+   PAL_MKFDecompressChunk(lpSprite, l, 18, fp);
+
    //
    // Show the opening menu.
    //

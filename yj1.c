@@ -29,6 +29,7 @@
 
 typedef struct _YJ1_TreeNode
 {
+   unsigned int    index;
 	unsigned char   value;
 	unsigned char   leaf;
 	unsigned short  level;
@@ -135,7 +136,7 @@ INT
 	PYJ_1_FILEHEADER hdr = (PYJ_1_FILEHEADER)Source;
 	unsigned char *src = (unsigned char *)Source;
 	unsigned char *dest;
-	unsigned int i;
+	unsigned int i, j;
 	YJ1_TreeNode *root, *node;
 
 	if (Source == NULL)
@@ -144,7 +145,7 @@ INT
 		return -1;
 	if (SDL_SwapLE32(hdr->UncompressedLength) > (unsigned int)DestSize)
 		return -1;
-
+   int  aaa = 0;
 	do
 	{
 		unsigned short tree_len = ((unsigned short)hdr->HuffmanTreeLength) * 2;
@@ -153,10 +154,12 @@ INT
 
 		if ((node = root = (YJ1_TreeNode *)malloc(sizeof(YJ1_TreeNode) * (tree_len + 1))) == NULL)
 			return -1;
+      root[0].index = 0;
 		root[0].leaf = 0;
 		root[0].value = 0;
 		root[0].left = root + 1;
 		root[0].right = root + 2;
+      for (i = 1; i <= tree_len; i++) root[i].index = i;
 		for (i = 1; i <= tree_len; i++)
 		{
 			root[i].leaf = !yj1_get_bits(flag, &bitptr, 1);
@@ -169,7 +172,8 @@ INT
 				root[i].right = root[i].left + 1;
 			}
 		}
-		src += 16 + tree_len + (((tree_len & 0xf) ? (tree_len >> 4) + 1 : (tree_len >> 4)) << 1);
+      src += 16 + tree_len + (((tree_len & 0xf) ? (tree_len >> 4) + 1 : (tree_len >> 4)) << 1);
+      aaa += 16 + tree_len + (((tree_len & 0xf) ? (tree_len >> 4) + 1 : (tree_len >> 4)) << 1);
 	} while (0);
 
 	dest = (unsigned char *)Destination;
@@ -192,9 +196,13 @@ INT
 		}
 		src += 20;
 		bitptr = 0;
-		for (;;)
+		for (j = 0;;j++)
 		{
 			unsigned short loop;
+
+         if (i == 3 && j == 2)
+            j = j;
+
 			if ((loop = yj1_get_loop(src, &bitptr, header)) == 0)
 				break;
 
@@ -238,7 +246,8 @@ INT
 
 typedef struct _YJ2_TreeNode
 {
-	unsigned short      weight;
+   unsigned short      index;
+   unsigned short      weight;
 	unsigned short      value;
 	struct _YJ2_TreeNode   *parent;
 	struct _YJ2_TreeNode   *left;
@@ -281,11 +290,17 @@ static void yj2_adjust_tree(YJ2_Tree tree, unsigned short value)
 	YJ2_TreeNode tmp;
 	YJ2_TreeNode* tmp1;
 	YJ2_TreeNode* temp;
+   INT ii = -1;
 	while (node->value != 0x280)
 	{
+      if (++ii >= 321 - 1)
+      {
+         ii = ii;
+      }
+
 		temp = node + 1;
-		while (node->weight == temp->weight)
-			temp++;
+      while (node->weight == temp->weight)
+            temp++;
 		temp--;
 		if (temp != node)
 		{
@@ -329,6 +344,9 @@ static int yj2_build_tree(YJ2_Tree *tree)
 	}
 	memset(list, 0, 321 * sizeof(YJ2_TreeNode*));
 	memset(node, 0, 641 * sizeof(YJ2_TreeNode));
+
+   for (i = 0; i <= 641; i++) node[i].index = i;
+
 	for (i = 0; i <= 0x140; i++)
 		list[i] = node + i;
 	for (i = 0; i <= 0x280; i++)
