@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -45,6 +45,23 @@
 
 #include "SDL.h"
 #include "SDL_endian.h"
+
+#define MAX_DAMAGE							32000	//最大伤害值
+
+#define FINISH_GAME_MORE_ONE_TIME //可以多次完成游戏
+
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+
+typedef enum tagPlayerRoleID
+{
+	RoleID_LiXiaoYao		= 0,
+	RoleID_ZhaoLingEr		= 1,  
+	RoleID_LinYueRu			= 2,  
+	RoleID_WuHou			= 3,  
+	RoleID_ANu				= 4,  
+	RoleID_GaiLuoJiao		= 5,  
+} PlayerRoleID;
 
 #define __WIDETEXT(quote) L##quote
 #define WIDETEXT(quote) __WIDETEXT(quote)

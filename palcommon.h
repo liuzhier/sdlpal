@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -38,7 +38,8 @@ typedef DWORD           PAL_POS;
 #define PAL_XY_OFFSET(xy, x, y)    (PAL_POS)(((((INT)(y) << 16) & 0xFFFF0000) + ((xy) & 0xFFFF0000)) | (((INT)(x) & 0xFFFF) + ((xy) & 0xFFFF)))
 
 // maximum number of players in party
-#define     MAX_PLAYERS_IN_PARTY         3
+//多人战斗：多人战总设置
+#define     MAX_PLAYERS_IN_PARTY         5
 
 // total number of possible player roles
 #define     MAX_PLAYER_ROLES             6
@@ -77,14 +78,12 @@ typedef DWORD           PAL_POS;
 // maximum number of effective poisons to players
 #define     MAX_POISONS                  16
 
-// maximum number of level
+// maximum number of level 等级
 #define     MAX_LEVELS                   99
 
 #define     MINIMAL_WORD_COUNT           (MAX_OBJECTS + 13)
 
 #define PAL_CDTRACK_BASE    10000
-
-#define PAL_RLEBUFSIZE	64000
 
 typedef enum tagPALDIRECTION
 {

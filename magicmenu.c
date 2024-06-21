@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -279,17 +279,12 @@ PAL_MagicSelectionMenuUpdate(
       if (rgMagicItem[g_iCurrentItem].fEnabled)
       {
          j = g_iCurrentItem % iItemsPerLine;
-         k = (g_iCurrentItem < iItemsPerLine * iPageLineOffset) ? (g_iCurrentItem / iItemsPerLine) : iPageLineOffset;
+		 k = (g_iCurrentItem < iItemsPerLine * iPageLineOffset) ? (g_iCurrentItem / iItemsPerLine) : iPageLineOffset;
 
-         j = 35 + j * iItemTextWidth;
-         k = 54 + k * 18 + iBoxYOffset;
+		 j = 35 + j * iItemTextWidth;
+		 k = 54 + k * 18 + iBoxYOffset;
 
          PAL_DrawText(PAL_GetWord(rgMagicItem[g_iCurrentItem].wMagic), PAL_XY(j, k), MENUITEM_COLOR_CONFIRMED, FALSE, TRUE, FALSE);
-
-         //
-         // Draw the cursor on the current selected item
-         //
-         PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_CURSOR), gpScreen, PAL_XY(j + iCursorXOffset, k + 10));
 
          return rgMagicItem[g_iCurrentItem].wMagic;
       }
@@ -442,12 +437,17 @@ PAL_MagicSelectionMenu(
    PAL_ClearKeyState();
 
    dwTime = SDL_GetTicks();
-
+//多人战斗：非战斗下多人状态栏选择项
    while (TRUE)
    {
       PAL_MakeScene();
 
       w = 45;
+	  
+	  if (gpGlobals->wMaxPartyMemberIndex >= 3)
+	  {
+		  w = 10;
+	  }  
 
       for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
       {

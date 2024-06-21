@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -26,11 +26,11 @@
 #include <errno.h>
 #include <wctype.h>
 
-#define   FONT_COLOR_DEFAULT        0x4F
+#define   FONT_COLOR_DEFAULT        0x0F
 #define   FONT_COLOR_YELLOW         0x2D
 #define   FONT_COLOR_RED            0x1A
-#define   FONT_COLOR_CYAN           0x8D
-#define   FONT_COLOR_CYAN_ALT       0x8C
+#define   FONT_COLOR_CYAN           0x8E
+#define   FONT_COLOR_CYAN_ALT       0x8E
 #define   FONT_COLOR_RED_ALT        0x17
 
 BOOL      g_fUpdatedInBattle      = FALSE;
@@ -38,6 +38,7 @@ BOOL      g_fUpdatedInBattle      = FALSE;
 static wchar_t internal_wbuffer[PAL_GLOBAL_BUFFER_SIZE];
 
 #define   MESSAGE_MAX_BUFFER_SIZE   512
+
 
 #define INCLUDE_CODEPAGE_H
 #include "codepage.h"
@@ -981,6 +982,115 @@ PAL_GetWord(
 
 --*/
 {
+	if (iNumWord == 29981)
+	{
+    return L"快捷存档  Z" ;
+	} 
+	else if (iNumWord == 29982)
+	{
+    return L"快捷读档  X" ;
+	} 
+	else if (iNumWord == 29983)
+	{
+    return L"按键连发  I" ;
+	} 
+	else if (iNumWord == 29984)
+	{
+    return L"炼药" ;
+	} 
+	else if (iNumWord == 29985)
+	{
+    return L"炼符" ;
+	} 
+	else if (iNumWord == 29986)
+	{
+    return L"炼毒" ;
+	} 
+	else if (iNumWord == 29987)
+	{
+    return L"炼丹" ;
+	} 
+	else if (iNumWord == 29988)
+	{
+    return L"炼装" ;
+	} 
+	else if (iNumWord == 29989)
+	{
+    return L"召唤傀儡林月如--临时项目" ;
+	} 
+	else if (iNumWord == 29990)
+	{
+    return L"无" ;
+	} 
+	else if (iNumWord == 29991)
+	{
+    return L"战斗数据  T" ;
+	} 
+	else if (iNumWord == 29992)
+	{
+    return L"怪物属性  G" ;
+	} 
+	else if (iNumWord == 29993)
+	{
+    return L"等级法术  Y" ;
+	} 
+	else if (iNumWord == 29994)
+	{
+    return L"战斗加速  J" ;
+	} 
+	else if (iNumWord == 29995)
+	{
+    return L"最快加速" ;
+	} 
+	else if (iNumWord == 29996)
+	{
+    return L"帮助说明  H" ;
+	} 
+	else if (iNumWord == 29997)
+	{
+    return L"功能" ;
+	} 
+	else if (iNumWord == 30000)
+	{
+    return L"进度一" ;
+	}
+	else if (iNumWord == 30001)
+	{
+	return L"进度二" ;
+	}
+	else if (iNumWord == 30002)
+	{
+	return L"进度三" ;
+	}
+	else if (iNumWord == 30003)
+	{
+	return L"进度四" ;
+	}
+	else if (iNumWord == 30004)
+	{
+	return L"进度五" ;
+	}
+	else if (iNumWord == 30005)
+	{
+	return L"进度六" ;
+	}
+	else if (iNumWord == 30006)
+	{
+	return L"进度七" ;
+	}
+	else if (iNumWord == 30007)
+	{
+	return L"进度八" ;
+	}
+	else if (iNumWord == 30008)
+	{
+	return L"进度九" ;
+	}
+	else if (iNumWord == 30009)
+	{
+	return L"快捷档" ;
+	}
+	
    return (iNumWord >= g_TextLib.nWords || !g_TextLib.lpWordBuf[iNumWord]) ? L"" : g_TextLib.lpWordBuf[iNumWord];
 }
 
@@ -1139,22 +1249,14 @@ PAL_DrawTextUnescape(
       //
       // Draw the character
       //
-      int char_width = fUse8x8Font ? 8 : PAL_CharWidth(*lpszText);
+	  int char_width = fUse8x8Font ? 8 : PAL_CharWidth(*lpszText);
 
       if (fShadow)
       {
-         //
-         // Note: In the original PAL DOS version, 
-         // the text has triple shadows, while Win95 only has one layer. 
-         // It is suspected that there is a bug in the original Win95 version, 
-         // so sdlpal chose to use triple shadows for both.
-         //
-         PAL_DrawCharOnSurface(*lpszText, gpScreen, PAL_XY(rect.x + 1, rect.y), 0, fUse8x8Font);
-         PAL_DrawCharOnSurface(*lpszText, gpScreen, PAL_XY(rect.x, rect.y + 1), 0, fUse8x8Font);
-         PAL_DrawCharOnSurface(*lpszText, gpScreen, PAL_XY(rect.x + 1, rect.y + 1), 0, fUse8x8Font);
+		  PAL_DrawCharOnSurface(*lpszText, gpScreen, PAL_XY(rect.x + 1, rect.y + 1), 0, fUse8x8Font);
       }
-      PAL_DrawCharOnSurface(*lpszText++, gpScreen, PAL_XY(rect.x, rect.y), bColor, fUse8x8Font);
-      rect.x += char_width; urect.w += char_width;
+	  PAL_DrawCharOnSurface(*lpszText++, gpScreen, PAL_XY(rect.x, rect.y), bColor, fUse8x8Font);
+	  rect.x += char_width; urect.w += char_width;
    }
 
    //
@@ -1245,7 +1347,7 @@ PAL_StartDialogWithOffset(
 
 --*/
 {
-   PAL_LARGE BYTE buf[PAL_RLEBUFSIZE];
+   PAL_LARGE BYTE buf[16384];
    SDL_Rect       rect;
 
    if (gpGlobals->fInBattle && !g_fUpdatedInBattle)
@@ -1282,7 +1384,7 @@ PAL_StartDialogWithOffset(
          //
          // Display the character face at the upper part of the screen
          //
-         if (PAL_MKFReadChunk(buf, PAL_RLEBUFSIZE, iNumCharFace, gpGlobals->f.fpRGM) > 0)
+         if (PAL_MKFReadChunk(buf, 16384, iNumCharFace, gpGlobals->f.fpRGM) > 0)
          {
             rect.w = PAL_RLEGetWidth((LPCBITMAPRLE)buf);
             rect.h = PAL_RLEGetHeight((LPCBITMAPRLE)buf);
@@ -1327,7 +1429,7 @@ PAL_StartDialogWithOffset(
          //
          // Display the character face at the lower part of the screen
          //
-         if (PAL_MKFReadChunk(buf, PAL_RLEBUFSIZE, iNumCharFace, gpGlobals->f.fpRGM) > 0)
+         if (PAL_MKFReadChunk(buf, 16384, iNumCharFace, gpGlobals->f.fpRGM) > 0)
          {
             rect.x = 270 - PAL_RLEGetWidth((LPCBITMAPRLE)buf) / 2 + xOff;
             rect.y = 144 - PAL_RLEGetHeight((LPCBITMAPRLE)buf) / 2 + yOff;
@@ -1344,6 +1446,14 @@ PAL_StartDialogWithOffset(
    case kDialogCenterWindow:
       g_TextLib.posDialogText = PAL_XY(160, 40);
       break;
+	  
+   case kDialogCenterWindow1:
+	  g_TextLib.posDialogText = PAL_XY(160, 40);
+	  break;
+			
+   case kDialogCenterWindow2:
+	  g_TextLib.posDialogText = PAL_XY(160, 40);
+	  break;
    }
    
    g_TextLib.posDialogTitle = PAL_XY( PAL_X(g_TextLib.posDialogTitle) + xOff, PAL_Y(g_TextLib.posDialogTitle) + yOff);
@@ -1382,7 +1492,7 @@ PAL_DialogWaitForKeyWithMaximumSeconds(
    pCurrentPalette = PAL_GetPalette(gpGlobals->wNumPalette, gpGlobals->fNightPalette);
    memcpy(palette, pCurrentPalette, sizeof(palette));
 
-   if (g_TextLib.bDialogPosition != kDialogCenterWindow &&
+   if (g_TextLib.bDialogPosition != kDialogCenterWindow && g_TextLib.bDialogPosition != kDialogCenterWindow1 && g_TextLib.bDialogPosition != kDialogCenterWindow2 &&
       g_TextLib.bDialogPosition != kDialogCenter)
    {
       //
@@ -1409,7 +1519,7 @@ PAL_DialogWaitForKeyWithMaximumSeconds(
    {
       UTIL_Delay(100);
 
-      if (g_TextLib.bDialogPosition != kDialogCenterWindow &&
+      if (g_TextLib.bDialogPosition != kDialogCenterWindow && g_TextLib.bDialogPosition != kDialogCenterWindow1 && g_TextLib.bDialogPosition != kDialogCenterWindow2 &&
          g_TextLib.bDialogPosition != kDialogCenter)
       {
          //
@@ -1436,7 +1546,7 @@ PAL_DialogWaitForKeyWithMaximumSeconds(
       }
    }
 
-   if (g_TextLib.bDialogPosition != kDialogCenterWindow &&
+   if (g_TextLib.bDialogPosition != kDialogCenterWindow && g_TextLib.bDialogPosition != kDialogCenterWindow1 && g_TextLib.bDialogPosition != kDialogCenterWindow2 &&
       g_TextLib.bDialogPosition != kDialogCenter)
    {
       PAL_SetPalette(gpGlobals->wNumPalette, gpGlobals->fNightPalette);
@@ -1660,7 +1770,7 @@ PAL_ShowDialogText(
    x = PAL_X(g_TextLib.posDialogText);
    y = PAL_Y(g_TextLib.posDialogText) + g_TextLib.nCurrentDialogLine * 18;
 
-   if (g_TextLib.bDialogPosition == kDialogCenterWindow)
+   if (g_TextLib.bDialogPosition == kDialogCenterWindow || g_TextLib.bDialogPosition == kDialogCenterWindow1 || g_TextLib.bDialogPosition == kDialogCenterWindow2)
    {
       //
       // The text should be shown in a small window at the center of the screen
@@ -1689,7 +1799,16 @@ PAL_ShowDialogText(
          rect.x = PAL_X(pos);
          rect.y = PAL_Y(pos);
          rect.w = 320 - rect.x * 2 + 32;
-         rect.h = 64;
+		 
+		 if (g_TextLib.bDialogPosition == kDialogCenterWindow1)
+		{
+			rect.h = 120;
+		}
+		else
+		{
+			rect.h = 64;
+		}
+		 
          VIDEO_UpdateScreen(&rect);
 
          //
@@ -1697,8 +1816,15 @@ PAL_ShowDialogText(
          //
          TEXT_DisplayText(lpszText, PAL_X(pos) + 8 + ((len & 1) << 2), PAL_Y(pos) + 10, TRUE);
          VIDEO_UpdateScreen(&rect);
-
-         PAL_DialogWaitForKeyWithMaximumSeconds(1.4);
+		 
+		 if (g_TextLib.bDialogPosition == kDialogCenterWindow1 || g_TextLib.bDialogPosition == kDialogCenterWindow2)
+		{
+			PAL_DialogWaitForKeyWithMaximumSeconds(0.4);
+		}
+		else
+		{
+			PAL_DialogWaitForKeyWithMaximumSeconds(1.4);
+		}
 
          //
          // Delete the box

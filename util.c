@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2023, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -906,7 +906,7 @@ UTIL_LogOutput(
 
 	snprintf(_log_buffer, PAL_LOG_BUFFER_EXTRA_SIZE,
 		"%04d-%02d-%02d %02d:%02d:%02d %s: ",
-		tmval->tm_year + 1900, tmval->tm_mon+1, tmval->tm_mday,
+		tmval->tm_year + 1900, tmval->tm_mon, tmval->tm_mday,
 		tmval->tm_hour, tmval->tm_min, tmval->tm_sec,
 		_loglevel_str[level]);
 	if( strlen(_log_prelude) > 0 )

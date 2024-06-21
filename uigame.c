@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -117,6 +117,9 @@ PAL_OpeningMenu(
    // Draw the background
    //
    PAL_DrawOpeningMenuBackground();
+   PAL_DrawText(L"免费游戏 谨防受骗", PAL_XY(90, 140), MENUITEM_COLOR_SELECTED, TRUE, TRUE, FALSE);
+   PAL_DrawText(L"禁止买卖 打击买卖", PAL_XY(90, 160), MENUITEM_COLOR_SELECTED, TRUE, TRUE, FALSE);
+   PAL_DrawText(L"作者: 爱莉希雅 -- 2024/01/24 --", PAL_XY(30, 180), MENUITEM_COLOR_SELECTED, TRUE, TRUE, FALSE);
    PAL_FadeIn(0, FALSE, 1);
 
    while (TRUE)
@@ -141,13 +144,16 @@ PAL_OpeningMenu(
          //
          VIDEO_BackupScreen(gpScreen);
          wItemSelected = PAL_SaveSlotMenu(1);
-         VIDEO_RestoreScreen(gpScreen);
-         VIDEO_UpdateScreen(NULL);
          if (wItemSelected != MENUITEM_VALUE_CANCELLED)
          {
             break;
          }
-         wDefaultItem = 0;
+		 else
+		 {
+		 VIDEO_RestoreScreen(gpScreen);
+         VIDEO_UpdateScreen(NULL);	
+		 }
+         wDefaultItem = 1;
       }
    }
 
@@ -165,6 +171,7 @@ PAL_OpeningMenu(
    return (INT)wItemSelected;
 }
 
+//存档
 INT
 PAL_SaveSlotMenu(
    WORD        wDefaultSlot
@@ -184,53 +191,63 @@ PAL_SaveSlotMenu(
 
 --*/
 {
-   LPBOX           rgpBox[5];
-   int             i, w = PAL_WordMaxWidth(LOADMENU_LABEL_SLOT_FIRST, 5);
+   int             i, w = PAL_WordMaxWidth(LOADMENU_LABEL_SLOT_FIRST, 10);
    int             dx = (w > 4) ? (w - 4) * 16 : 0;
    WORD            wItemSelected;
+   PAL_LARGE BYTE  bufBackground[320 * 200];
 
-   MENUITEM        rgMenuItem[5];
+   MENUITEM        rgMenuItem[10];
 
-   const SDL_Rect  rect = { 195 - dx, 7, 120 + dx, 190 };
+   const SDL_Rect  rect = {0, 0, 320, 200};
+   
+   PAL_MKFDecompressChunk(bufBackground, 320 * 200, 71, gpGlobals->f.fpFBP);
+	
+   PAL_FBPBlitToSurface(bufBackground, gpScreen);
+	
+   PAL_CreateBox(PAL_XY(0 , 0), 9, 4, 0, FALSE);
 
    //
    // Create the boxes and create the menu items
    //
-   for (i = 0; i < 5; i++)
+   for (i = 0; i < 10; i++)
    {
       // Fix render problem with shadow
-      rgpBox[i] = PAL_CreateSingleLineBox(PAL_XY(195 - dx, 7 + 38 * i), 6 + (w > 4 ? w - 4 : 0), FALSE);
+
 
       rgMenuItem[i].wValue = i + 1;
+	  
+	  //快捷档名
+	  if (i == 9)
+	  {
+      rgMenuItem[i].wValue = 100;
+	  }
+	  
       rgMenuItem[i].fEnabled = TRUE;
       rgMenuItem[i].wNumWord = LOADMENU_LABEL_SLOT_FIRST + i;
-	  rgMenuItem[i].pos = PAL_XY(210 - dx, 17 + 38 * i);
+	  rgMenuItem[i].pos = PAL_XY(10, 10 + 18 * i);
    }
 
    //
    // Draw the numbers of saved times
    //
-   for (i = 1; i <= 5; i++)
+   for (i = 1; i <= 9; i++)
    {
       //
       // Draw the number
       //
-      PAL_DrawNumber((UINT)GetSavedTimes(i), 4, PAL_XY(270, 38 * i - 17),
-         kNumColorYellow, kNumAlignRight);
+      PAL_DrawNumber((UINT)GetSavedTimes(i), 4, PAL_XY(70, (18 * i) - 1),
+         kNumColorYellow, kNumAlignRight); 
    }
-
+   
+      //快捷档次数
+      PAL_DrawNumber((UINT)GetSavedTimes(100), 4, PAL_XY(70, 179),
+         kNumColorCyan, kNumAlignRight);
+		 
    //
    // Activate the menu
    //
-   wItemSelected = PAL_ReadMenu(NULL, rgMenuItem, 5, wDefaultSlot - 1, MENUITEM_COLOR);
+   wItemSelected = PAL_ReadMenu(NULL, rgMenuItem, 10, wDefaultSlot - 1, MENUITEM_COLOR);
 
-   //
-   // Delete the boxes
-   //
-   for (i = 0; i < 5; i++)
-   {
-      PAL_DeleteBox(rgpBox[i]);
-   }
 
    VIDEO_UpdateScreen(&rect);
 
@@ -358,10 +375,17 @@ PAL_ConfirmMenu(
 
 --*/
 {
+   INT      i;
+  
+   i = 0;
    WORD wItems[2] = { CONFIRMMENU_LABEL_NO, CONFIRMMENU_LABEL_YES };
-   WORD wReturnValue = PAL_SelectionMenu(2, 0, wItems);
-
-   return (wReturnValue == MENUITEM_VALUE_CANCELLED || wReturnValue == 0) ? FALSE : TRUE;
+   
+	   //商店买卖
+       WORD wReturnValue = PAL_SelectionMenu(2, 1, wItems);
+	   return (wReturnValue == MENUITEM_VALUE_CANCELLED || wReturnValue == 0) ? FALSE : TRUE;
+        
+       //WORD wReturnValue = PAL_SelectionMenu(2, 0, wItems);
+	   //return (wReturnValue == MENUITEM_VALUE_CANCELLED || wReturnValue == 0) ? FALSE : TRUE;
 }
 
 BOOL
@@ -385,6 +409,54 @@ PAL_SwitchMenu(
 {
    WORD wItems[2] = { SWITCHMENU_LABEL_DISABLE, SWITCHMENU_LABEL_ENABLE };
    WORD wReturnValue = PAL_SelectionMenu(2, fEnabled ? 1 : 0, wItems);
+   return (wReturnValue == MENUITEM_VALUE_CANCELLED) ? fEnabled : ((wReturnValue == 0) ? FALSE : TRUE);
+}
+
+BOOL
+PAL_SwitchMenu1(
+   BOOL      fEnabled
+)
+/*++
+  Purpose:
+
+    Show a "Enable/Disable" selection box.
+
+  Parameters:
+
+    [IN]  fEnabled - whether the option is originally enabled or not.
+
+  Return value:
+
+    TRUE if user selected "Enable", FALSE if selected "Disable".
+
+--*/
+{
+   WORD wItems[2] = { SWITCHMENU_LABEL_DISABLE, SWITCHMENU_LABEL_ENABLE };
+   WORD wReturnValue = PAL_SelectionMenu(2, fEnabled ? 0 : 1, wItems);
+   return (wReturnValue == MENUITEM_VALUE_CANCELLED) ? fEnabled : ((wReturnValue == 1) ? FALSE : TRUE);
+}
+
+BOOL
+PAL_SwitchMenu2(
+   BOOL      fEnabled
+)
+/*++
+  Purpose:
+
+    Show a "Enable/Disable" selection box.
+
+  Parameters:
+
+    [IN]  fEnabled - whether the option is originally enabled or not.
+
+  Return value:
+
+    TRUE if user selected "Enable", FALSE if selected "Disable".
+
+--*/
+{
+   WORD wItems[2] = { SWITCHMENU_LABEL_DISABLE,  };
+   WORD wReturnValue = PAL_SelectionMenu(1, fEnabled ? 1 : 0, wItems);
    return (wReturnValue == MENUITEM_VALUE_CANCELLED) ? fEnabled : ((wReturnValue == 0) ? FALSE : TRUE);
 }
 
@@ -581,12 +653,13 @@ PAL_SystemMenu(
       //
       iSlot = PAL_SaveSlotMenu(gpGlobals->bCurrentSaveSlot);
 
-      if (iSlot != MENUITEM_VALUE_CANCELLED)
+      if (iSlot != MENUITEM_VALUE_CANCELLED && iSlot != 100)
       {
          WORD wSavedTimes = 0;
          gpGlobals->bCurrentSaveSlot = (BYTE)iSlot;
 
-         for (i = 1; i <= 5; i++)
+         //存档
+         for (i = 1; i <= 100; i++)
          {
             WORD curSavedTimes = GetSavedTimes(i);
             if (curSavedTimes > wSavedTimes)
@@ -596,6 +669,10 @@ PAL_SystemMenu(
          }
          PAL_SaveGame(iSlot, wSavedTimes + 1);
       }
+      else if (iSlot == 100)
+            {
+               PAL_New_kuaijiecundang();
+            }
       break;
 
    case 2:
@@ -674,19 +751,25 @@ PAL_InGameMagicMenu(
    static WORD      w;
    WORD             wMagic;
 
+
    //
    // Draw the player info boxes
-   //
+   //多人战斗：非战斗下多人状态栏
    y = 45;
 
-   for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
-   {
-      PAL_PlayerInfoBox(PAL_XY(y, 165), gpGlobals->rgParty[i].wPlayerRole, 100,
-         TIMEMETER_COLOR_DEFAULT, TRUE);
-      y += 78;
-   }
+	if (gpGlobals->wMaxPartyMemberIndex >= 3)
+	{
+		y = 10;
+	}
 
-   y = 75;
+	for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+	{
+		PAL_PlayerInfoBox(PAL_XY(y, 165), gpGlobals->rgParty[i].wPlayerRole, 100,
+			TIMEMETER_COLOR_DEFAULT, TRUE);
+		y += 78;
+	}
+
+	y = 75;
 
    //
    // Generate one menu items for each player in the party
@@ -727,8 +810,6 @@ PAL_InGameMagicMenu(
          break;
       }
 
-      VIDEO_BackupScreen(gpScreen);
-
       if (gpGlobals->g.rgObject[wMagic].magic.wFlags & kMagicFlagApplyToAll)
       {
          gpGlobals->g.rgObject[wMagic].magic.wScriptOnUse =
@@ -762,8 +843,13 @@ PAL_InGameMagicMenu(
          {
             //
             // Redraw the player info boxes first
-            //
+            //多人战斗：非战斗下多人状态栏
             y = 45;
+
+	        if (gpGlobals->wMaxPartyMemberIndex >= 3)
+	        {
+		       y = 10;
+	        }
 
             for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
             {
@@ -775,15 +861,13 @@ PAL_InGameMagicMenu(
             //
             // Draw the cursor on the selected item
             //
-            rect.x = 0;
-            rect.y = 158;
-            rect.w = 320;
+            rect.x = 70 + 78 * wPlayer;
+            rect.y = 193;
+            rect.w = 9;
             rect.h = 6;
 
-            VIDEO_RestoreScreen(gpScreen);
-
-            PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_CURSOR_UP),
-               gpScreen, PAL_XY(75 + 78 * wPlayer, rect.y));
+            PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_CURSOR),
+               gpScreen, PAL_XY(rect.x, rect.y));
 
             VIDEO_UpdateScreen(&rect);
 
@@ -854,8 +938,13 @@ PAL_InGameMagicMenu(
 
       //
       // Redraw the player info boxes
-      //
+      //多人战斗：非战斗下多人状态栏
       y = 45;
+
+	  if (gpGlobals->wMaxPartyMemberIndex >= 3)
+	  {
+		 y = 10;
+	  }
 
       for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
       {
@@ -886,17 +975,24 @@ PAL_InventoryMenu(
 --*/
 {
    static WORD      w = 0;
+   WORD             wPlayerRole;
+
+   wPlayerRole = gpGlobals->rgParty[g_Battle.UI.wCurPlayerIndex].wPlayerRole;
 
    MENUITEM        rgMenuItem[2] =
    {
       // value  label                     enabled   pos
       { 1,      INVMENU_LABEL_EQUIP,      TRUE,     PAL_XY(43, 73) },
+	  
       { 2,      INVMENU_LABEL_USE,        TRUE,     PAL_XY(43, 73 + 18) },
    };
 
    PAL_CreateBox(PAL_XY(30, 60), 1, PAL_MenuTextMaxWidth(rgMenuItem, sizeof(rgMenuItem)/sizeof(MENUITEM)) - 1, 0, FALSE);
 
    w = PAL_ReadMenu(NULL, rgMenuItem, 2, w - 1, MENUITEM_COLOR);
+   
+   //物品栏自动排序
+   PAL_New_SortInventory();
 
    switch (w)
    {
@@ -960,13 +1056,14 @@ PAL_InGameMenu(
    //
    // Create menu items
    //
-   MENUITEM        rgMainMenuItem[4] =
+   MENUITEM        rgMainMenuItem[5] =
    {
       // value  label                      enabled   pos
       { 1,      GAMEMENU_LABEL_STATUS,     TRUE,     PAL_XY(16, 50) },
       { 2,      GAMEMENU_LABEL_MAGIC,      TRUE,     PAL_XY(16, 50 + 18) },
       { 3,      GAMEMENU_LABEL_INVENTORY,  TRUE,     PAL_XY(16, 50 + 36) },
-      { 4,      GAMEMENU_LABEL_SYSTEM,     TRUE,     PAL_XY(16, 50 + 54) },
+	  { 4,      29997,                     TRUE,     PAL_XY(16, 50 + 54)},
+      { 5,      GAMEMENU_LABEL_SYSTEM,     TRUE,     PAL_XY(16, 50 + 72) },
    };
 
    //
@@ -978,14 +1075,14 @@ PAL_InGameMenu(
    // Create the menu box.
    //
    // Fix render problem with shadow
-   lpMenuBox = PAL_CreateBox(PAL_XY(3, 37), 3, PAL_MenuTextMaxWidth(rgMainMenuItem, 4) - 1, 0, FALSE);
+   lpMenuBox = PAL_CreateBox(PAL_XY(3, 37), 4, PAL_MenuTextMaxWidth(rgMainMenuItem, 5) - 1, 0, FALSE);
 
    //
    // Process the menu
    //
    while (TRUE)
    {
-      wReturnValue = PAL_ReadMenu(PAL_InGameMenu_OnItemChange, rgMainMenuItem, 4,
+      wReturnValue = PAL_ReadMenu(PAL_InGameMenu_OnItemChange, rgMainMenuItem, 5,
          gpGlobals->iCurMainMenuItem, MENUITEM_COLOR);
 
       if (wReturnValue == MENUITEM_VALUE_CANCELLED)
@@ -1015,8 +1112,15 @@ PAL_InGameMenu(
          //
          PAL_InventoryMenu();
          goto out;
+		 
+	  case 4:
+		 //
+		 // 功能
+		 //
+		 PAL_gongneng();
+		 goto out;
 
-      case 4:
+      case 5:
          //
          // System
          //
@@ -1040,6 +1144,61 @@ out:
 }
 
 VOID
+PAL_gongneng(
+VOID
+)
+/*++
+功能菜单
+
+  --*/
+{
+	static WORD      w = 0;
+	const SDL_Rect   rect = {30, 40, 110, 150};
+
+	MENUITEM        rgMenuItem[5] =
+	{
+		// value  label                     enabled   pos
+		{1, 29981, TRUE, PAL_XY(43, 93)},
+		{2, 29982, TRUE, PAL_XY(43, 93 + 18)},
+		{3, 29993, TRUE, PAL_XY(43, 93 + 36)},
+		{4, 29983, TRUE, PAL_XY(43, 93 + 54)},
+		{5, 29996, TRUE, PAL_XY(43, 93 + 72)},
+	};
+
+	PAL_CreateBox(PAL_XY(30, 80), 4, 4, 0, FALSE);
+	VIDEO_UpdateScreen(&rect);
+
+	w = PAL_ReadMenu(NULL, rgMenuItem, 5, w - 1, MENUITEM_COLOR);
+
+	switch (w)
+	{
+		case 1: //快捷存档
+			PAL_New_kuaijiecundang();
+			break;
+
+		case 2: //快捷读档
+			PAL_New_kuaijiedudang();
+			break;
+			
+		case 3: //等级法术
+			PAL_New_PlayerLevelmagic();
+			break;
+			
+		case 4: //按键连发
+			PAL_DrawText(L"已默认 开启 状态", PAL_XY(100,2), 0x1A, TRUE, FALSE, FALSE);
+	        PAL_DrawText(L"是否开启按键连发？", PAL_XY(50,40), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+	        PAL_DrawText(L"自从开了按键连发！", PAL_XY(50,60), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+	        PAL_DrawText(L"妈妈再也不会担心我的手会抽筋啦！", PAL_XY(50,80), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+	        gpGlobals->flianfa = PAL_SwitchMenu1(gpGlobals->flianfa);
+			break;
+			
+		case 5: //特别说明
+			PAL_New_bangzhujiemian();
+			break;
+	}
+}
+
+VOID
 PAL_PlayerStatus(
    VOID
 )
@@ -1059,7 +1218,7 @@ PAL_PlayerStatus(
 --*/
 {
    PAL_LARGE BYTE   bufBackground[320 * 200];
-   PAL_LARGE BYTE   bufImage[PAL_RLEBUFSIZE];
+   PAL_LARGE BYTE   bufImage[16384];
    PAL_LARGE BYTE   bufImageBox[50 * 49];
    int              labels0[] = {
       STATUS_LABEL_EXP, STATUS_LABEL_LEVEL, STATUS_LABEL_HP,
@@ -1121,7 +1280,7 @@ PAL_PlayerStatus(
       //
       // Draw the image of player role
       //
-      if (PAL_MKFReadChunk(bufImage, PAL_RLEBUFSIZE, gpGlobals->g.PlayerRoles.rgwAvatar[iPlayerRole], gpGlobals->f.fpRGM) > 0)
+      if (PAL_MKFReadChunk(bufImage, 16384, gpGlobals->g.PlayerRoles.rgwAvatar[iPlayerRole], gpGlobals->f.fpRGM) > 0)
       {
          PAL_RLEBlitToSurface(bufImage, gpScreen, gConfig.ScreenLayout.RoleImage);
       }
@@ -1143,7 +1302,7 @@ PAL_PlayerStatus(
          //
          // Draw the image
          //
-         if (PAL_MKFReadChunk(bufImage, PAL_RLEBUFSIZE,
+         if (PAL_MKFReadChunk(bufImage, 16384,
             gpGlobals->g.rgObject[w].item.wBitmap, gpGlobals->f.fpBALL) > 0)
          {
             PAL_RLEBlitToSurface(bufImage, gpScreen,
@@ -1187,7 +1346,7 @@ PAL_PlayerStatus(
       }
 
       PAL_DrawText(PAL_GetWord(gpGlobals->g.PlayerRoles.rgwName[iPlayerRole]),
-         gConfig.ScreenLayout.RoleName, MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+         gConfig.ScreenLayout.RoleName, MENUITEM_COLOR, TRUE, FALSE, FALSE);
 
       //
       // Draw the stats
@@ -1208,8 +1367,8 @@ PAL_PlayerStatus(
       PAL_DrawNumber(gpGlobals->Exp.rgPrimaryExp[iPlayerRole].wExp, 5,
          gConfig.ScreenLayout.RoleCurrExp, kNumColorYellow, kNumAlignRight);
       PAL_DrawNumber(gpGlobals->g.rgLevelUpExp[gpGlobals->g.PlayerRoles.rgwLevel[iPlayerRole]], 5,
-         gConfig.ScreenLayout.RoleNextExp, kNumColorCyan, kNumAlignRight);
-      PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwLevel[iPlayerRole], 2,
+         gConfig.ScreenLayout.RoleNextExp, kNumColorBlue, kNumAlignRight);
+      PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwLevel[iPlayerRole], 3,
          gConfig.ScreenLayout.RoleLevel, kNumColorYellow, kNumAlignRight);
       PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwHP[iPlayerRole], 4,
          gConfig.ScreenLayout.RoleCurHP, kNumColorYellow, kNumAlignRight);
@@ -1238,7 +1397,7 @@ PAL_PlayerStatus(
       {
          w = gpGlobals->rgPoisonStatus[i][iCurrent].wPoisonID;
 
-         if (w != 0 && gpGlobals->g.rgObject[w].poison.wPoisonLevel <= 3)
+         if (w != 0)
          {
             PAL_DrawText(PAL_GetWord(w), gConfig.ScreenLayout.RolePoisonNames[j++], (BYTE)(gpGlobals->g.rgObject[w].poison.wColor + 10), TRUE, FALSE, FALSE);
          }
@@ -1300,18 +1459,19 @@ PAL_ItemUseMenu(
    BYTE           bColor, bSelectedColor;
    PAL_LARGE BYTE bufImage[2048];
    DWORD          dwColorChangeTime;
-   static SHORT   sSelectedPlayer = 0;
+   static WORD    wSelectedPlayer = 0;
    SDL_Rect       rect = {110, 2, 200, 180};
    int            i;
 
    bSelectedColor = MENUITEM_COLOR_SELECTED_FIRST;
    dwColorChangeTime = 0;
-
+   
    while (TRUE)
    {
-      if (sSelectedPlayer > gpGlobals->wMaxPartyMemberIndex)
+	   
+      if (wSelectedPlayer > gpGlobals->wMaxPartyMemberIndex)
       {
-         sSelectedPlayer = 0;
+         wSelectedPlayer = 0;
       }
 
       //
@@ -1339,7 +1499,7 @@ PAL_ItemUseMenu(
       PAL_DrawText(PAL_GetWord(STATUS_LABEL_FLEERATE), PAL_XY(200, 142),
          ITEMUSEMENU_COLOR_STATLABEL, TRUE, FALSE, FALSE);
 
-      i = gpGlobals->rgParty[sSelectedPlayer].wPlayerRole;
+      i = gpGlobals->rgParty[wSelectedPlayer].wPlayerRole;
 
       PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwLevel[i], 4, PAL_XY(240, 20),
          kNumColorYellow, kNumAlignRight);
@@ -1372,9 +1532,10 @@ PAL_ItemUseMenu(
       //
       // Draw the names of the players in the party
       //
+	  
       for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
       {
-         if (i == sSelectedPlayer)
+         if (i == wSelectedPlayer)
          {
             bColor = bSelectedColor;
          }
@@ -1407,7 +1568,7 @@ PAL_ItemUseMenu(
          // Draw the amount and label of the item
          //
          PAL_DrawText(PAL_GetWord(wItemToUse), PAL_XY(116, 143), STATUS_COLOR_EQUIPMENT, TRUE, FALSE, FALSE);
-         PAL_DrawNumber(i, 2, PAL_XY(170, 133), kNumColorCyan, kNumAlignRight);
+         PAL_DrawNumber(i, 3, PAL_XY(170, 133), kNumColorYellow, kNumAlignRight);
       }
 
       //
@@ -1443,8 +1604,8 @@ PAL_ItemUseMenu(
             // Redraw the selected item.
             //
             PAL_DrawText(
-               PAL_GetWord(gpGlobals->g.PlayerRoles.rgwName[gpGlobals->rgParty[sSelectedPlayer].wPlayerRole]),
-               PAL_XY(125, 16 + 20 * sSelectedPlayer), bSelectedColor, FALSE, TRUE, FALSE);
+               PAL_GetWord(gpGlobals->g.PlayerRoles.rgwName[gpGlobals->rgParty[wSelectedPlayer].wPlayerRole]),
+               PAL_XY(125, 16 + 20 * wSelectedPlayer), bSelectedColor, FALSE, TRUE, FALSE);
          }
 
          PAL_ProcessEvent();
@@ -1464,19 +1625,12 @@ PAL_ItemUseMenu(
 
       if (g_InputState.dwKeyPress & (kKeyUp | kKeyLeft))
       {
-         sSelectedPlayer--;
-         if (sSelectedPlayer < 0)
-         {
-            sSelectedPlayer = gpGlobals->wMaxPartyMemberIndex;
-         }
+         wSelectedPlayer--;
       }
       else if (g_InputState.dwKeyPress & (kKeyDown | kKeyRight))
       {
-         sSelectedPlayer++;
-         if (sSelectedPlayer > gpGlobals->wMaxPartyMemberIndex)
-         {
-            sSelectedPlayer = 0;
-         }
+
+         wSelectedPlayer++;
       }
       else if (g_InputState.dwKeyPress & kKeyMenu)
       {
@@ -1484,7 +1638,7 @@ PAL_ItemUseMenu(
       }
       else if (g_InputState.dwKeyPress & kKeySearch)
       {
-         return gpGlobals->rgParty[sSelectedPlayer].wPlayerRole;
+         return gpGlobals->rgParty[wSelectedPlayer].wPlayerRole;
       }
    }
 
@@ -1513,31 +1667,23 @@ PAL_BuyMenu_OnItemChange(
 --*/
 {
    const SDL_Rect      rect = {20, 8, 300, 175};
-   int                 i, j, n, iPlayerID, x, y;
+   int                 i, n;
    PAL_LARGE BYTE      bufImage[2048];
 
-   //
-   // Prepare item bakcground box pos
-   //
-   x = 40, y = 8;
-
    if( __buymenu_firsttime_render )
-      PAL_RLEBlitToSurfaceWithShadow(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX), gpScreen, PAL_XY(x + 6, y + 6), TRUE);
+      PAL_RLEBlitToSurfaceWithShadow(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX), gpScreen, PAL_XY(35+6, 8+6), TRUE);
    //
    // Draw the picture of current selected item
    //
    PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX), gpScreen,
-      PAL_XY(x, y));
-
-   //
-   // Prepare item pos
-   //
-   x = 48, y = 15;
+      PAL_XY(35, 8));
 
    if (PAL_MKFReadChunk(bufImage, 2048,
       gpGlobals->g.rgObject[wCurrentItem].item.wBitmap, gpGlobals->f.fpBALL) > 0)
    {
-      PAL_RLEBlitToSurface(bufImage, gpScreen, PAL_XY(x, y));
+      if( __buymenu_firsttime_render )
+         PAL_RLEBlitToSurfaceWithShadow(bufImage, gpScreen, PAL_XY(42+6, 16+6), TRUE);
+      PAL_RLEBlitToSurface(bufImage, gpScreen, PAL_XY(42, 16));
    }
 
    //
@@ -1558,45 +1704,25 @@ PAL_BuyMenu_OnItemChange(
       }
    }
 
-   for (i = 0; i < MAX_PLAYER_EQUIPMENTS; i++)
-   {
-      for (j = 0; j <= gpGlobals->wMaxPartyMemberIndex; j++)
-      {
-         iPlayerID = gpGlobals->rgParty[j].wPlayerRole;
-
-         if (gpGlobals->g.PlayerRoles.rgwEquipment[i][iPlayerID] == wCurrentItem) n++;
-      }
-   }
-
-   //
-   // Prepare inventory quantities pos
-   //
-   x = 20, y = 100;
-
    if( __buymenu_firsttime_render )
-      PAL_CreateSingleLineBoxWithShadow(PAL_XY(x, y), 5, FALSE, 6);
+      PAL_CreateSingleLineBoxWithShadow(PAL_XY(20, 105), 5, FALSE, 6);
    else
    //
    // Draw the amount of this item in the inventory
    //
-   PAL_CreateSingleLineBoxWithShadow(PAL_XY(x, y), 5, FALSE, 0);
-   PAL_DrawText(PAL_GetWord(BUYMENU_LABEL_CURRENT), PAL_XY(x + 10, y + 10), 0, FALSE, FALSE, FALSE);
-   PAL_DrawNumber(n, 6, PAL_XY(x + 49, y + 15), kNumColorYellow, kNumAlignRight);
-
-   //
-   // Prepare inventory quantities pos
-   //
-   x = 20, y = 141;
+   PAL_CreateSingleLineBoxWithShadow(PAL_XY(20, 105), 5, FALSE, 0);
+   PAL_DrawText(PAL_GetWord(BUYMENU_LABEL_CURRENT), PAL_XY(30, 115), 0, FALSE, FALSE, FALSE);
+   PAL_DrawNumber(n, 6, PAL_XY(69, 119), kNumColorYellow, kNumAlignRight);
 
    if( __buymenu_firsttime_render )
-      PAL_CreateSingleLineBoxWithShadow(PAL_XY(x, y), 5, FALSE, 6);
+      PAL_CreateSingleLineBoxWithShadow(PAL_XY(20, 145), 5, FALSE, 6);
    else
    //
    // Draw the cash amount
    //
-   PAL_CreateSingleLineBoxWithShadow(PAL_XY(x, y), 5, FALSE, 0);
-   PAL_DrawText(PAL_GetWord(CASH_LABEL), PAL_XY(x + 10, y + 10), 0, FALSE, FALSE, FALSE);
-   PAL_DrawNumber(gpGlobals->dwCash, 6, PAL_XY(x + 49, y + 15), kNumColorYellow, kNumAlignRight);
+   PAL_CreateSingleLineBoxWithShadow(PAL_XY(20, 145), 5, FALSE, 0);
+   PAL_DrawText(PAL_GetWord(CASH_LABEL), PAL_XY(30, 155), 0, FALSE, FALSE, FALSE);
+   PAL_DrawNumber(gpGlobals->dwCash, 6, PAL_XY(69, 159), kNumColorYellow, kNumAlignRight);
 
    VIDEO_UpdateScreen(&rect);
    
@@ -1629,7 +1755,7 @@ PAL_BuyMenu(
    //
    // create the menu items
    //
-   y = 21;
+   y = 22;
 
    for (i = 0; i < MAX_STORE_ITEM; i++)
    {
@@ -1649,7 +1775,7 @@ PAL_BuyMenu(
    //
    // Draw the box
    //
-   PAL_CreateBox(PAL_XY(122, 8), 8, 8, 1, FALSE);
+   PAL_CreateBox(PAL_XY(125, 8), 8, 8, 1, FALSE);
 
    //
    // Draw the number of prices
@@ -1657,7 +1783,7 @@ PAL_BuyMenu(
    for (y = 0; y < i; y++)
    {
       w = gpGlobals->g.rgObject[rgMenuItem[y].wValue].item.wPrice;
-      PAL_DrawNumber(w, 6, PAL_XY(238, 26 + y * 18), kNumColorYellow, kNumAlignRight);
+      PAL_DrawNumber(w, 6, PAL_XY(235, 25 + y * 18), kNumColorYellow, kNumAlignRight);
    }
 
    w = 0;
@@ -1699,6 +1825,351 @@ PAL_BuyMenu(
 }
 
 static VOID
+PAL_linghushangdianxunhuan(
+WORD           wCurrentItem
+)
+//灵葫商店循环
+{
+   const SDL_Rect      rect = {20, 8, 300, 175};
+
+   PAL_DrawNumber(gpGlobals->wCollectValue, 6, PAL_XY(49, 14), kNumColorYellow, kNumAlignRight);
+
+   VIDEO_UpdateScreen(&rect);
+}
+
+VOID
+PAL_linghushangdian(
+WORD           wStoreNum
+)
+//灵葫商店
+{
+   int             i, y;
+   WORD            w;
+   WCHAR s[256];
+   
+   MENUITEM rgMenuItem[] = {
+		// value   label                      enabled   position
+			{0, 29984, TRUE, PAL_XY(100, 42)},
+			{1, 29985, TRUE, PAL_XY(100, 60)},
+			{2, 29986, TRUE, PAL_XY(100, 78)},
+			{3, 29987, TRUE, PAL_XY(100, 96)},
+			{4, 29988, TRUE, PAL_XY(100, 114)},
+			{5, 29989, TRUE, PAL_XY(60, 150)},
+	};
+
+   //
+   // Draw the box
+   //
+   PAL_CreateBox(PAL_XY(0, 0), 9, 17, 0, FALSE);
+   PAL_CreateSingleLineBoxWithShadow(PAL_XY(0, 0), 5, FALSE, 0);
+
+   //
+   // Draw the number of prices
+   //
+   PAL_DrawNumber(1, 2, PAL_XY(185, 47), kNumColorCyan, kNumAlignRight);
+   PAL_DrawNumber(3, 2, PAL_XY(185, 65), kNumColorCyan, kNumAlignRight);
+   PAL_DrawNumber(5, 2, PAL_XY(185, 83), kNumColorCyan, kNumAlignRight);
+   PAL_DrawNumber(5, 2, PAL_XY(185, 101), kNumColorCyan, kNumAlignRight);
+   PAL_DrawNumber(9, 2, PAL_XY(185, 119), kNumColorCyan, kNumAlignRight);
+   
+   PAL_DrawText(L"灵葫值", PAL_XY(10, 10), 0, FALSE, FALSE, FALSE);
+
+   w = 0;
+   __buymenu_firsttime_render = TRUE;
+   
+   VIDEO_BackupScreen(gpScreen);
+
+   while (TRUE)
+   {
+      w = PAL_ReadMenu(PAL_linghushangdianxunhuan, rgMenuItem, 6, w, MENUITEM_COLOR);
+
+      if (w == MENUITEM_VALUE_CANCELLED)
+      {
+         break;
+      }
+
+      if (gpGlobals->g.rgObject[w].item.wPrice <= gpGlobals->wCollectValue)
+      {
+         if (w == 0)
+		 {
+		 gpGlobals->ffenlei = 1; 
+		 }
+		 if (w == 1)
+		 {
+		 gpGlobals->ffenlei = 2; 
+		 }
+		 if (w == 2)
+		 {
+		 gpGlobals->ffenlei = 3; 
+		 }
+		 if (w == 3)
+		 {
+		 gpGlobals->ffenlei = 4; 
+		 }
+		 if (w == 4)
+		 {
+		 gpGlobals->ffenlei = 5; 
+		 }
+		 if (w == 5)
+		 {
+		 gpGlobals->ffenlei = 6; 
+		 }
+      }
+	  
+	    if (gpGlobals->ffenlei == 5)
+	    {
+	    PAL_zhuangbeilianhua();
+		}
+		else
+		{
+		if (gpGlobals->ffenlei != 6)
+		 {
+	     PAL_wupinfenlei();
+		 i = 0;
+         if (gpGlobals->wCollectValue > 0)
+      {
+
+         if (gpGlobals->ffenlei == 1)
+         {
+         i = 1;
+		 }
+		 if (gpGlobals->ffenlei == 2)
+         {
+         i = 3;
+		 }
+		 if (gpGlobals->ffenlei == 3 || gpGlobals->ffenlei == 4)
+         {
+         i = 5;
+		 }
+		 
+         if (i > gpGlobals->wCollectValue)
+         {
+            i = gpGlobals->wCollectValue;
+         }
+
+         gpGlobals->wCollectValue -= i;
+         i--;
+
+         PAL_AddItemToInventory(gpGlobals->ffenlei1, 1);
+
+         g_TextLib.iDialogShadow = 5;
+         PAL_StartDialogWithOffset(kDialogCenterWindow, 0, 0, FALSE, 0, -10);
+         PAL_swprintf(s, sizeof(s) / sizeof(WCHAR), L"%ls@%ls@", PAL_GetWord(42),
+            PAL_GetWord(gpGlobals->ffenlei1));
+         LPCBITMAPRLE pBG = PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX);
+         INT iBGWidth = PAL_RLEGetWidth(pBG), iBGHeight = PAL_RLEGetHeight(pBG);
+         INT iBG_X = (320 - iBGWidth) / 2, iBG_Y = (200 - iBGHeight) / 2;
+         PAL_POS pos = PAL_XY(iBG_X, iBG_Y);
+         SDL_Rect rect = {iBG_X, iBG_Y, iBGWidth, iBGHeight};
+         PAL_RLEBlitToSurface(pBG, gpScreen, pos);
+         
+         WORD wObject = gpGlobals->ffenlei1;
+         static WORD wPrevImageIndex = 0xFFFF;
+         static BYTE bufImage[2048];
+         if (gpGlobals->g.rgObject[wObject].item.wBitmap != wPrevImageIndex)
+         {
+            if (PAL_MKFReadChunk(bufImage, 2048,
+                                 gpGlobals->g.rgObject[wObject].item.wBitmap, gpGlobals->f.fpBALL) > 0)
+            {
+               wPrevImageIndex = gpGlobals->g.rgObject[wObject].item.wBitmap;
+            }
+            else
+            {
+               wPrevImageIndex = 0xFFFF;
+            }
+         }
+         if (wPrevImageIndex != 0xFFFF)
+         {
+            PAL_RLEBlitToSurface(bufImage, gpScreen, PAL_XY(PAL_X(pos)+8, PAL_Y(pos)+7));
+         }
+         
+         VIDEO_UpdateScreen(&rect);
+         
+         PAL_ShowDialogText(s);
+         g_TextLib.iDialogShadow = 0;
+      }
+	  else
+	  {
+		 PAL_swprintf(s, sizeof(s) / sizeof(WCHAR), L"炼化失败！灵葫值不够！！");
+		 
+		 if (s[0] != '\0')
+		{
+			PAL_StartDialog(kDialogCenterWindow, 0x60, 0, FALSE);
+			PAL_ShowDialogText(s);
+		}
+	  }
+		}
+		else
+		{
+		  //开启条件需>=36只傀儡虫
+		  if (PAL_GetItemAmount(0x0098) >= 36)
+          {
+			if (gpGlobals->rgParty[gpGlobals->wMaxPartyMemberIndex].wPlayerRole != 2)
+			{
+			gpGlobals->wMaxPartyMemberIndex++;
+            gpGlobals->rgParty[gpGlobals->wMaxPartyMemberIndex].wPlayerRole = 2;
+			g_Battle.rgPlayer[gpGlobals->wMaxPartyMemberIndex].action.ActionType = kBattleActionAttack;
+			PAL_LoadBattleSprites();
+			PAL_SetLoadFlags(kLoadPlayerSprite);
+			PAL_LoadResources();
+			PAL_UpdateEquipments();
+			}
+			else
+			{
+			gpGlobals->wMaxPartyMemberIndex--;
+			}
+		  }
+		  else
+		  {
+			PAL_swprintf(s, sizeof(s) / sizeof(WCHAR), L"失败！傀儡虫需携带36只以上！！");
+		 
+		   if (s[0] != '\0')
+		   {  
+			PAL_StartDialog(kDialogCenterWindow, 0x60, 0, FALSE);
+			PAL_ShowDialogText(s);
+		   }
+		  }
+		}
+		}
+	  
+	  VIDEO_RestoreScreen(gpScreen);
+	  VIDEO_UpdateScreen(NULL);
+
+   }
+
+}
+
+static VOID
+PAL_zhuangbeilianhuaxunhuan(
+   WORD         wCurrentItem
+)
+//装备炼化循环
+{
+	int    i;
+
+   //
+   // Draw the price
+   //
+   PAL_CreateSingleLineBoxWithShadow(PAL_XY(220, 150), 5, FALSE, 0);
+   
+   PAL_DrawText(L"灵葫值", PAL_XY(230, 160), 0, FALSE, FALSE, FALSE);
+   PAL_DrawNumber(gpGlobals->wCollectValue, 6, PAL_XY(269, 164), kNumColorYellow, kNumAlignRight);
+   
+   i = 0;
+   if (gpGlobals->ffenlei2 == 0)
+      {
+	   i = 2;
+	  }
+	  else
+	  {
+	   i = 1;
+	  }
+   
+   PAL_CreateSingleLineBoxWithShadow(PAL_XY(110, 150), 5, FALSE, 0);
+   PAL_DrawText(L"还需炼化", PAL_XY(120, 160), 0, FALSE, FALSE, FALSE);
+   PAL_DrawNumber(i, 1, PAL_XY(190, 164), kNumColorYellow, kNumAlignRight);
+}
+
+VOID
+PAL_zhuangbeilianhua(
+VOID
+)
+//装备炼化
+{
+   int       i;
+
+   while (TRUE)
+   {
+      gpGlobals->ffenlei3 = PAL_ItemSelectMenu(PAL_zhuangbeilianhuaxunhuan, kItemFlagEquipable);
+      if (gpGlobals->ffenlei3 == 0)
+      {
+         break;
+      }
+
+      PAL_wupinfenlei();
+	  
+
+         WCHAR s[256];
+		 i = 0;
+         if (gpGlobals->wCollectValue > 0)
+      {
+		 PAL_DrawText(L"你确定要炼化掉该装备吗？", PAL_XY(50, 2), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+         if (PAL_ConfirmMenu())
+         {
+			
+         if (gpGlobals->ffenlei == 5)
+         {
+         i = 9;
+		 }
+		 
+         if (i > gpGlobals->wCollectValue)
+         {
+            i = gpGlobals->wCollectValue;
+         }
+
+         gpGlobals->wCollectValue -= i;
+         i--;
+
+		 PAL_AddItemToInventory(gpGlobals->ffenlei3, -1);
+		 gpGlobals->ffenlei2++;
+		 
+		 
+         if (gpGlobals->ffenlei2 == 2)
+         {
+	     PAL_AddItemToInventory(gpGlobals->ffenlei1, 1);
+         g_TextLib.iDialogShadow = 5;
+         PAL_StartDialogWithOffset(kDialogCenterWindow, 0, 0, FALSE, 0, -10);
+         PAL_swprintf(s, sizeof(s) / sizeof(WCHAR), L"%ls@%ls@", PAL_GetWord(42),
+            PAL_GetWord(gpGlobals->ffenlei1));
+         LPCBITMAPRLE pBG = PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX);
+         INT iBGWidth = PAL_RLEGetWidth(pBG), iBGHeight = PAL_RLEGetHeight(pBG);
+         INT iBG_X = (320 - iBGWidth) / 2, iBG_Y = (200 - iBGHeight) / 2;
+         PAL_POS pos = PAL_XY(iBG_X, iBG_Y);
+         SDL_Rect rect = {iBG_X, iBG_Y, iBGWidth, iBGHeight};
+         PAL_RLEBlitToSurface(pBG, gpScreen, pos);
+         
+         WORD wObject = gpGlobals->ffenlei1;
+         static WORD wPrevImageIndex = 0xFFFF;
+         static BYTE bufImage[2048];
+         if (gpGlobals->g.rgObject[wObject].item.wBitmap != wPrevImageIndex)
+         {
+            if (PAL_MKFReadChunk(bufImage, 2048,
+                                 gpGlobals->g.rgObject[wObject].item.wBitmap, gpGlobals->f.fpBALL) > 0)
+            {
+               wPrevImageIndex = gpGlobals->g.rgObject[wObject].item.wBitmap;
+            }
+            else
+            {
+               wPrevImageIndex = 0xFFFF;
+            }
+         }
+         if (wPrevImageIndex != 0xFFFF)
+         {
+            PAL_RLEBlitToSurface(bufImage, gpScreen, PAL_XY(PAL_X(pos)+8, PAL_Y(pos)+7));
+         }
+         
+         VIDEO_UpdateScreen(&rect);
+         
+         PAL_ShowDialogText(s);
+         g_TextLib.iDialogShadow = 0;
+		 gpGlobals->ffenlei2 = 0;
+         }
+		}
+	  }
+	  else
+	  {
+		 PAL_swprintf(s, sizeof(s) / sizeof(WCHAR), L"炼化失败！灵葫值不够！！");
+		 
+		 if (s[0] != '\0')
+		{
+			PAL_StartDialog(kDialogCenterWindow, 0x60, 0, FALSE);
+			PAL_ShowDialogText(s);
+		}    
+      }
+   }
+}
+
+static VOID
 PAL_SellMenu_OnItemChange(
    WORD         wCurrentItem
 )
@@ -1719,27 +2190,23 @@ PAL_SellMenu_OnItemChange(
 
 --*/
 {
-   WORD x = 100, y = 150;
-
    //
    // Draw the cash amount
    //
-   PAL_CreateSingleLineBoxWithShadow(PAL_XY(x, y), 5, FALSE, 0);
-   PAL_DrawText(PAL_GetWord(CASH_LABEL), PAL_XY(x + 10, y + 10), 0, FALSE, FALSE, FALSE);
-   PAL_DrawNumber(gpGlobals->dwCash, 6, PAL_XY(x + 48, y + 15), kNumColorYellow, kNumAlignRight);
-
-   x += 124;
+   PAL_CreateSingleLineBoxWithShadow(PAL_XY(100, 150), 5, FALSE, 0);
+   PAL_DrawText(PAL_GetWord(CASH_LABEL), PAL_XY(110, 160), 0, FALSE, FALSE, FALSE);
+   PAL_DrawNumber(gpGlobals->dwCash, 6, PAL_XY(149, 164), kNumColorYellow, kNumAlignRight);
 
    //
    // Draw the price
    //
-   PAL_CreateSingleLineBoxWithShadow(PAL_XY(x, y), 5, FALSE, 0);
+   PAL_CreateSingleLineBoxWithShadow(PAL_XY(220, 150), 5, FALSE, 0);
 
    if (gpGlobals->g.rgObject[wCurrentItem].item.wFlags & kItemFlagSellable)
    {
-      PAL_DrawText(PAL_GetWord(SELLMENU_LABEL_PRICE), PAL_XY(x + 10, y + 10), 0, FALSE, FALSE, FALSE);
+      PAL_DrawText(PAL_GetWord(SELLMENU_LABEL_PRICE), PAL_XY(230, 160), 0, FALSE, FALSE, FALSE);
       PAL_DrawNumber(gpGlobals->g.rgObject[wCurrentItem].item.wPrice / 2, 6,
-         PAL_XY(x + 48, y + 15), kNumColorYellow, kNumAlignRight);
+         PAL_XY(269, 164), kNumColorYellow, kNumAlignRight);
    }
 }
 
@@ -1900,11 +2367,11 @@ PAL_EquipItemMenu(
       //
       // Draw the stats of the currently selected player
       //
-      PAL_DrawNumber(PAL_GetPlayerAttackStrength(w), 4, gConfig.ScreenLayout.EquipStatusValues[0], kNumColorCyan, kNumAlignRight);
-      PAL_DrawNumber(PAL_GetPlayerMagicStrength(w), 4, gConfig.ScreenLayout.EquipStatusValues[1], kNumColorCyan, kNumAlignRight);
-      PAL_DrawNumber(PAL_GetPlayerDefense(w), 4, gConfig.ScreenLayout.EquipStatusValues[2], kNumColorCyan, kNumAlignRight);
-      PAL_DrawNumber(PAL_GetPlayerDexterity(w), 4, gConfig.ScreenLayout.EquipStatusValues[3], kNumColorCyan, kNumAlignRight);
-      PAL_DrawNumber(PAL_GetPlayerFleeRate(w), 4, gConfig.ScreenLayout.EquipStatusValues[4], kNumColorCyan, kNumAlignRight);
+      PAL_DrawNumber(PAL_GetPlayerAttackStrength(w), 4, gConfig.ScreenLayout.EquipStatusValues[0], kNumColorYellow, kNumAlignRight);
+      PAL_DrawNumber(PAL_GetPlayerMagicStrength(w), 4, gConfig.ScreenLayout.EquipStatusValues[1], kNumColorYellow, kNumAlignRight);
+      PAL_DrawNumber(PAL_GetPlayerDefense(w), 4, gConfig.ScreenLayout.EquipStatusValues[2], kNumColorYellow, kNumAlignRight);
+      PAL_DrawNumber(PAL_GetPlayerDexterity(w), 4, gConfig.ScreenLayout.EquipStatusValues[3], kNumColorYellow, kNumAlignRight);
+      PAL_DrawNumber(PAL_GetPlayerFleeRate(w), 4, gConfig.ScreenLayout.EquipStatusValues[4], kNumColorYellow, kNumAlignRight);
 
       //
       // Draw a box for player selection
@@ -1951,7 +2418,7 @@ PAL_EquipItemMenu(
       if (wItem != 0)
       {
          PAL_DrawText(PAL_GetWord(wItem), gConfig.ScreenLayout.EquipItemName, MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
-         PAL_DrawNumber(PAL_GetItemAmount(wItem), 2, gConfig.ScreenLayout.EquipItemAmount, kNumColorCyan, kNumAlignRight);
+         PAL_DrawNumber(PAL_GetItemAmount(wItem), 3, gConfig.ScreenLayout.EquipItemAmount, kNumColorYellow, kNumAlignRight);
       }
 
       //
@@ -2015,7 +2482,7 @@ PAL_EquipItemMenu(
          iCurrentPlayer--;
          if (iCurrentPlayer < 0)
          {
-            iCurrentPlayer = gpGlobals->wMaxPartyMemberIndex;
+            iCurrentPlayer = 0;
          }
       }
       else if (g_InputState.dwKeyPress & (kKeyDown | kKeyRight))
@@ -2023,7 +2490,7 @@ PAL_EquipItemMenu(
          iCurrentPlayer++;
          if (iCurrentPlayer > gpGlobals->wMaxPartyMemberIndex)
          {
-            iCurrentPlayer = 0;
+            iCurrentPlayer = gpGlobals->wMaxPartyMemberIndex;
          }
       }
       else if (g_InputState.dwKeyPress & kKeyMenu)
@@ -2065,4 +2532,47 @@ PAL_QuitGame(
 		PAL_FadeOut(2);
 		PAL_Shutdown(0);
 	}
+}
+
+//快捷存档
+VOID
+PAL_New_kuaijiecundang(
+VOID
+)
+{
+	int      i;
+	
+	WORD wSavedTimes = 0;
+	for (i = 1; i <= 100; i++)
+         {
+            WORD curSavedTimes = GetSavedTimes(100);
+            if (curSavedTimes > wSavedTimes)
+            {
+               wSavedTimes = curSavedTimes;
+            }
+         }
+    PAL_SaveGame(100, wSavedTimes + 1);
+	
+	PAL_DrawText(L"↑↑快捷存档↑↑", PAL_XY(0,0), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+	
+    VIDEO_UpdateScreen(NULL);
+	SDL_Delay(300);
+}
+
+//快捷读档
+VOID
+PAL_New_kuaijiedudang(
+VOID
+)
+{
+	
+    AUDIO_PlayMusic(0, FALSE, 1);
+    PAL_ReloadInNextTick(100);
+	
+	PAL_DrawText(L"↓↓快捷读档↓↓", PAL_XY(190,0), 0x1A, TRUE, FALSE, FALSE);
+	
+	
+    VIDEO_UpdateScreen(NULL);
+	
+	PAL_FadeOut(1);
 }

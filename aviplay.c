@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2023, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -338,6 +338,11 @@ PAL_ReadAVIInfo(
 				switch (streamHeader.fccType)
 				{
 				case AVI_vids:
+					if (HAS_FLAG(flags, FLAGS_AVI_VIDEO_FORMAT) || (streamHeader.fccHandler != VIDS_MSVC && streamHeader.fccHandler != VIDS_msvc))
+					{
+						UTIL_LogOutput(LOGLEVEL_WARNING, "The AVI uses video codec with no built-in support, or video codec appeared before!");
+						return NULL;
+					}
 					if (fread(&bih, sizeof(BitmapInfoHeader), 1, fp) != 1)
 					{
 						UTIL_LogOutput(LOGLEVEL_WARNING, "Video codec information corrupted!");
@@ -345,11 +350,6 @@ PAL_ReadAVIInfo(
 					}
 					SwapStruct32(bih, BitmapInfoHeader);
 					SwapStructFields(bih, biPlanes, biBitCount);
-					if (HAS_FLAG(flags, FLAGS_AVI_VIDEO_FORMAT) || (bih.biCompression != CODEC_MSVC && bih.biCompression != CODEC_msvc && bih.biCompression != CODEC_CRAM && bih.biCompression != CODEC_cram))
-					{
-						UTIL_LogOutput(LOGLEVEL_WARNING, "The AVI uses video codec with no built-in support, or video codec appeared before!");
-						return NULL;
-					}
 					if (bih.biBitCount != 16)
 					{
 						UTIL_LogOutput(LOGLEVEL_WARNING, "Built-in AVI playing support only 16-bit video!");
@@ -358,6 +358,11 @@ PAL_ReadAVIInfo(
 					flags |= FLAGS_AVI_VIDEO_FORMAT;
 					break;
 				case AVI_auds:
+					if (HAS_FLAG(flags, FLAGS_AVI_AUDIO_FORMAT) || streamHeader.fccHandler != 0)
+					{
+						UTIL_LogOutput(LOGLEVEL_WARNING, "The AVI uses audio codec with no built-in support, or audio codec appeared before!");
+						return NULL;
+					}
 					if (fread(&wfe, sizeof(WAVEFormatPCM) + sizeof(uint16_t), 1, fp) != 1)
 					{
 						UTIL_LogOutput(LOGLEVEL_WARNING, "Audio codec information corrupted!");
@@ -366,11 +371,6 @@ PAL_ReadAVIInfo(
 					SwapStruct32(wfe, WAVEFormatPCM);
 					SwapStructFields(wfe.format, wFormatTag, nChannels);
 					SwapStructFields(wfe.format, nBlockAlign, wBitsPerSample);
-					if (HAS_FLAG(flags, FLAGS_AVI_AUDIO_FORMAT) || wfe.format.wFormatTag != CODEC_PCM_U8)
-					{
-						UTIL_LogOutput(LOGLEVEL_WARNING, "The AVI uses audio codec with no built-in support, or audio codec appeared before!");
-						return NULL;
-					}
 					flags |= FLAGS_AVI_AUDIO_FORMAT;
 					break;
 				}

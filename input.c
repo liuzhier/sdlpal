@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -87,37 +87,17 @@ static const int g_KeyMap[][2] = {
    { SDLK_w,         kKeyThrowItem },
    { SDLK_q,         kKeyFlee },
    { SDLK_f,         kKeyForce },
-   { SDLK_s,         kKeyStatus }
+   { SDLK_s,         kKeyStatus },
+   { SDLK_g,         kKeyqingbao },
+   { SDLK_t,         kKeyshuju },
+   { SDLK_y,         kKeyfashu },
+   { SDLK_j,         kKeysudu },
+   { SDLK_i,         kKeylianfa },
+   { SDLK_u,         kKeyhuanzhuang },
+   { SDLK_h,         kKeybangzhu },
+   { SDLK_z,         kKeycundang },
+   { SDLK_x,         kKeydudang },
 };
-
-static INT
-PAL_GetCurrDirection(
-   VOID
-)
-/*++
-  Purpose:
-
-    Get the current walking direction.
-
-  Parameters:
-
-    None.
-
-  Return value:
-
-    None.
-
---*/
-{
-   INT i, iCurrDir = kDirSouth;
-
-   for (i = 1; i < sizeof(g_InputState.dwKeyOrder) / sizeof(g_InputState.dwKeyOrder[0]); i++)
-      if (g_InputState.dwKeyOrder[iCurrDir] < g_InputState.dwKeyOrder[i]) iCurrDir = i;
-
-   if (!g_InputState.dwKeyOrder[iCurrDir]) iCurrDir = kDirUnknown;
-
-   return iCurrDir;
-}
 
 static VOID
 PAL_KeyDown(
@@ -139,36 +119,48 @@ PAL_KeyDown(
 
 --*/
 {
-   INT iCurrDir = kDirUnknown;
-
-   if (!fRepeat)
+   switch (key)
    {
-      if (key & kKeyDown)
+   case kKeyUp:
+      if (g_InputState.dir != kDirNorth && !fRepeat)
       {
-         iCurrDir = kDirSouth;
+         g_InputState.prevdir = (gpGlobals->fInBattle ? kDirUnknown : g_InputState.dir);
+         g_InputState.dir = kDirNorth;
       }
-      else if (key & kKeyLeft)
-      {
-         iCurrDir = kDirWest;
-      }
-      else if (key & kKeyUp)
-      {
-         iCurrDir = kDirNorth;
-      }
-      else if (key & kKeyRight)
-      {
-         iCurrDir = kDirEast;
-      }
+      g_InputState.dwKeyPress |= kKeyUp;
+      break;
 
-      if (iCurrDir != kDirUnknown)
+   case kKeyDown:
+      if (g_InputState.dir != kDirSouth && !fRepeat)
       {
-         g_InputState.dwKeyMaxCount++;
-         g_InputState.dwKeyOrder[iCurrDir] = g_InputState.dwKeyMaxCount;
-         g_InputState.dir = PAL_GetCurrDirection();
+         g_InputState.prevdir = (gpGlobals->fInBattle ? kDirUnknown : g_InputState.dir);
+         g_InputState.dir = kDirSouth;
       }
+      g_InputState.dwKeyPress |= kKeyDown;
+      break;
+
+   case kKeyLeft:
+      if (g_InputState.dir != kDirWest && !fRepeat)
+      {
+         g_InputState.prevdir = (gpGlobals->fInBattle ? kDirUnknown : g_InputState.dir);
+         g_InputState.dir = kDirWest;
+      }
+      g_InputState.dwKeyPress |= kKeyLeft;
+      break;
+
+   case kKeyRight:
+      if (g_InputState.dir != kDirEast && !fRepeat)
+      {
+         g_InputState.prevdir = (gpGlobals->fInBattle ? kDirUnknown : g_InputState.dir);
+         g_InputState.dir = kDirEast;
+      }
+      g_InputState.dwKeyPress |= kKeyRight;
+      break;
+
+   default:
+      g_InputState.dwKeyPress |= key;
+      break;
    }
-
-   g_InputState.dwKeyPress |= key;
 }
 
 static VOID
@@ -190,31 +182,42 @@ PAL_KeyUp(
 
 --*/
 {
-   INT iCurrDir = kDirUnknown;
+   switch (key)
+   {
+   case kKeyUp:
+      if (g_InputState.dir == kDirNorth)
+      {
+         g_InputState.dir = g_InputState.prevdir;
+      }
+      g_InputState.prevdir = kDirUnknown;
+      break;
 
-   if (key & kKeyDown)
-   {
-      iCurrDir = kDirSouth;
-   }
-   else if (key & kKeyLeft)
-   {
-      iCurrDir = kDirWest;
-   }
-   else if (key & kKeyUp)
-   {
-      iCurrDir = kDirNorth;
-   }
-   else if (key & kKeyRight)
-   {
-      iCurrDir = kDirEast;
-   }
+   case kKeyDown:
+      if (g_InputState.dir == kDirSouth)
+      {
+         g_InputState.dir = g_InputState.prevdir;
+      }
+      g_InputState.prevdir = kDirUnknown;
+      break;
 
-   if (iCurrDir != kDirUnknown)
-   {
-      g_InputState.dwKeyOrder[iCurrDir] = 0;
-      iCurrDir = PAL_GetCurrDirection();
-      g_InputState.dwKeyMaxCount = (iCurrDir == kDirUnknown) ? 0 : g_InputState.dwKeyOrder[iCurrDir];
-      g_InputState.dir = iCurrDir;
+   case kKeyLeft:
+      if (g_InputState.dir == kDirWest)
+      {
+         g_InputState.dir = g_InputState.prevdir;
+      }
+      g_InputState.prevdir = kDirUnknown;
+      break;
+
+   case kKeyRight:
+      if (g_InputState.dir == kDirEast)
+      {
+         g_InputState.dir = g_InputState.prevdir;
+      }
+      g_InputState.prevdir = kDirUnknown;
+      break;
+
+   default:
+      break;
    }
 }
 
@@ -245,7 +248,7 @@ PAL_UpdateKeyboardState(
    for (i = 0; i < sizeof(g_KeyMap) / sizeof(g_KeyMap[0]); i++)
    {
       if (keyState[SDL_GetScancodeFromKey(g_KeyMap[i][0])])
-      {
+      { 
          if (dwCurrentTime > rgdwKeyLastTime[i])
          {
             PAL_KeyDown(g_KeyMap[i][1], (rgdwKeyLastTime[i] != 0));
@@ -255,8 +258,16 @@ PAL_UpdateKeyboardState(
             }
             else
             {
-               rgdwKeyLastTime[i] = 0xFFFFFFFF;
-            }
+				//按键连发
+			   if (gpGlobals->flianfa == FALSE)
+               {
+			   rgdwKeyLastTime[i] = dwCurrentTime + (rgdwKeyLastTime[i] == 0 ? 200 : 75);
+			   }
+			   else
+			   {
+			   rgdwKeyLastTime[i] = 0xFFFFFFFF;
+			   }
+			}
          }
       }
       else
@@ -317,11 +328,11 @@ PAL_KeyboardEventFilter(
          VIDEO_SaveScreenshot();
       }
 #if PAL_HAS_GLSL
-      else if (lpEvent->key.keysym.sym == SDLK_z)
+      else if (lpEvent->key.keysym.sym == SDLK_F1)
       {
          Filter_StepParamSlot(1);
       }
-      else if (lpEvent->key.keysym.sym == SDLK_x)
+      else if (lpEvent->key.keysym.sym == SDLK_F2)
       {
          Filter_StepParamSlot(-1);
       }
@@ -1017,7 +1028,7 @@ PAL_EventFilter(
    {
 #if SDL_VERSION_ATLEAST(2,0,0)
    case SDL_WINDOWEVENT:
-      if (lpEvent->window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+      if (lpEvent->window.event == SDL_WINDOWEVENT_RESIZED)
       {
          //
          // resized the window

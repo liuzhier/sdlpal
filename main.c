@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -104,15 +104,15 @@ PAL_Init(
    PAL_AVIInit();
 
    VIDEO_SetWindowTitle(UTIL_va(UTIL_GlobalBuffer(0), PAL_GLOBAL_BUFFER_SIZE,
-	   "Pal %s%s%s%s",
-	   gConfig.fIsWIN95 ? "Win95" : "DOS",
+	   "%s%s%s%s",
+	   gConfig.fIsWIN95 ? "" : "",
 #if defined(_DEBUG) || defined(DEBUG)
 	   " (Debug) ",
 #else
 	   "",
 #endif
 #if defined(PAL_HAS_GIT_REVISION) && defined(PAL_GIT_REVISION)
-	   " ["  PAL_GIT_REVISION "] "
+	   " "  PAL_GIT_REVISION " "
 #else
 	   ""
 #endif

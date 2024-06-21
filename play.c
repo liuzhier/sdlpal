@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -43,7 +43,6 @@ PAL_GameUpdate(
    WORD            wEventObjectID, wDir;
    int             i;
    LPEVENTOBJECT   p;
-   WORD            wResult;
 
    //
    // Check for trigger events
@@ -224,7 +223,7 @@ PAL_GameUpdate(
 
             pos = PAL_XY(x, y);
 
-            if (!PAL_CheckObstacleWithRange(pos, TRUE, 0, TRUE))
+            if (!PAL_CheckObstacle(pos, TRUE, 0))
             {
                //
                // move here
@@ -239,11 +238,6 @@ PAL_GameUpdate(
             wDir = (wDir + 1) % 4;
          }
       }
-   }
-
-   if (--gpGlobals->wChasespeedChangeCycles == 0)
-   {
-      gpGlobals->wChaseRange = 1;
    }
 
    gpGlobals->dwFrameNum++;
@@ -364,6 +358,7 @@ PAL_GameEquipItem(
       }
 
       PAL_EquipItemMenu(wObject);
+	  PAL_LoadBattleSprites();
    }
 }
 
@@ -513,15 +508,16 @@ PAL_StartFrame(
    // Run the game logic of one frame
    //
    PAL_GameUpdate(TRUE);
+   
+   //
+   // Update the positions and gestures of party members
+   //放在上面就是前置身位
+   PAL_UpdateParty();
+   
    if (gpGlobals->fEnteringScene)
    {
       return;
    }
-
-   //
-   // Update the positions and gestures of party members
-   //
-   PAL_UpdateParty();
 
    //
    // Update the scene
@@ -536,11 +532,47 @@ PAL_StartFrame(
       //
       PAL_InGameMenu();
    }
+      //人物等级法术开关
+   else if (g_InputState.dwKeyPress & kKeyfashu)
+   {
+      PAL_New_PlayerLevelmagic();
+   }
+
+       //按键连发
+   else if (g_InputState.dwKeyPress & kKeylianfa)
+   {
+	   PAL_DrawText(L"已默认 开启 状态", PAL_XY(50,2), 0x1A, TRUE, FALSE, FALSE);
+	   PAL_DrawText(L"是否开启按键连发？", PAL_XY(50,40), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+	   PAL_DrawText(L"自从开了按键连发！", PAL_XY(50,60), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+	   PAL_DrawText(L"妈妈再也不会担心我的手会抽筋啦！", PAL_XY(50,80), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+	   gpGlobals->flianfa = PAL_SwitchMenu1(gpGlobals->flianfa);
+   }
+      //帮助开关
+   else if (g_InputState.dwKeyPress & kKeybangzhu)
+   {
+      PAL_New_bangzhujiemian();
+   }
+      //快捷存档
+   else if (g_InputState.dwKeyPress & kKeycundang)
+   {
+     PAL_New_kuaijiecundang();
+	  
+   }
+      //快捷读档
+   else if (g_InputState.dwKeyPress & kKeydudang)
+   {
+     PAL_New_kuaijiedudang();
+	  
+   }
+ 
    else if (g_InputState.dwKeyPress & kKeyUseItem)
    {
       //
       // Show the use item menu
       //
+	  //物品栏自动排序
+      PAL_New_SortInventory();
+	  
       PAL_GameUseItem();
    }
    else if (g_InputState.dwKeyPress & kKeyThrowItem)
@@ -548,6 +580,9 @@ PAL_StartFrame(
       //
       // Show the equipment menu
       //
+	  //物品栏自动排序
+      PAL_New_SortInventory();
+	  
       PAL_GameEquipItem();
    }
    else if (g_InputState.dwKeyPress & kKeyForce)
@@ -578,12 +613,33 @@ PAL_StartFrame(
       //
       PAL_QuitGame();
    }
+
+   if (--gpGlobals->wChasespeedChangeCycles == 0)
+   {
+      gpGlobals->wChaseRange = 1;
+   }
+   
+   
+    gpGlobals->a2 = RandomLong(0, 0xFFFFFFFF);
+    gpGlobals->a2 = RandomLong(0, 0xFFFFFFFF);
+	gpGlobals->a3 = RandomLong(0, 0xFFFFFFFF);
+	gpGlobals->a4 = RandomLong(0, 0xFFFFFFFF);
+	gpGlobals->a5 = RandomLong(0, 0xFFFFFFFF);
+	gpGlobals->a6 = RandomLong(0, 0xFFFFFFFF);
+	gpGlobals->a7 = RandomLong(0, 0xFFFFFFFF);
+	gpGlobals->a8 = RandomLong(0, 0xFFFFFFFF);
+	gpGlobals->a9 = RandomLong(0, 0xFFFFFFFF);
+	gpGlobals->a10 = RandomLong(0, 0xFFFFFFFF);
+	gpGlobals->a11 = RandomLong(0, 0xFFFFFFFF);
+	gpGlobals->a12 = RandomLong(0, 0xFFFFFFFF);
+	gpGlobals->a13 = RandomLong(0, 0xFFFFFFFF);
+	gpGlobals->a14 = RandomLong(0, 0xFFFFFFFF);
+	gpGlobals->a15 = RandomLong(0, 0xFFFFFFFF);
 }
 
-static inline VOID
-PAL_WaitForKeyInternal(
-   WORD      wTimeOut,
-   BOOL      fAllowAnyKey
+VOID
+PAL_WaitForKey(
+   WORD      wTimeOut
 )
 /*++
   Purpose:
@@ -593,8 +649,6 @@ PAL_WaitForKeyInternal(
   Parameters:
 
     [IN]  wTimeOut - the maximum time of the waiting. 0 = wait forever.
-
-    [IN]  fAllowAnyKey - Whether any key are allowed. If no, only KeySearch and KeyMenu allowed.
 
   Return value:
 
@@ -610,54 +664,9 @@ PAL_WaitForKeyInternal(
    {
       UTIL_Delay(5);
 
-      if (g_InputState.dwKeyPress && fAllowAnyKey
-         || g_InputState.dwKeyPress & (kKeySearch | kKeyMenu))
+      if (g_InputState.dwKeyPress & (kKeySearch | kKeyMenu))
       {
          break;
       }
    }
-}
-
-VOID
-PAL_WaitForKey(
-   WORD      wTimeOut
-)
-/*++
-  Purpose:
-
-    Wait for KeySearch and KeyMenu.
-
-  Parameters:
-
-    [IN]  wTimeOut - the maximum time of the waiting. 0 = wait forever.
-
-  Return value:
-
-    None.
-
---*/
-{
-   PAL_WaitForKeyInternal(wTimeOut, FALSE);
-}
-
-VOID
-PAL_WaitForAnyKey(
-   WORD      wTimeOut
-)
-/*++
-  Purpose:
-
-    Wait for any key.
-
-  Parameters:
-
-    [IN]  wTimeOut - the maximum time of the waiting. 0 = wait forever.
-
-  Return value:
-
-    None.
-
---*/
-{
-   PAL_WaitForKeyInternal(wTimeOut, TRUE);
 }

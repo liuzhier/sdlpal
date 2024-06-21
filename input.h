@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -29,8 +29,6 @@ typedef struct tagPALINPUTSTATE
 {
    PALDIRECTION           dir, prevdir;
    DWORD                  dwKeyPress;
-   DWORD                  dwKeyOrder[4];
-   DWORD                  dwKeyMaxCount;
 #if PAL_HAS_JOYSTICKS
    int                    axisX,axisY;
    BOOL                   joystickNeedUpdate;
@@ -58,6 +56,15 @@ enum PALKEY
    kKeyForce       = (1 << 15),
    kKeyHome        = (1 << 16),
    kKeyEnd         = (1 << 17),
+   kKeyqingbao     = (1 << 18),
+   kKeyshuju       = (1 << 19),
+   kKeyfashu       = (1 << 20),
+   kKeysudu        = (1 << 21),
+   kKeylianfa      = (1 << 22),
+   kKeyhuanzhuang  = (1 << 23),
+   kKeybangzhu     = (1 << 24),
+   kKeycundang     = (1 << 25),
+   kKeydudang      = (1 << 26),
 };
 
 PAL_C_LINKAGE_BEGIN

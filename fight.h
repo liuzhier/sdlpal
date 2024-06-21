@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -114,6 +114,20 @@ PAL_BattleSimulateMagic(
    SHORT      sTarget,
    WORD       wMagicObjectID,
    WORD       wBaseDamage
+);
+
+BOOL PAL_New_IfPlayerCanMove(WORD wPlayerRole);
+
+VOID
+PAL_BattleDyingSound(
+BOOL      fPlayersDyingSound
+);
+
+VOID
+PAL_BattleShowPlayerDefMagicAnim(
+   WORD         wPlayerIndex,
+   WORD         wObjectID,
+   SHORT        sTarget
 );
 
 PAL_C_LINKAGE_END

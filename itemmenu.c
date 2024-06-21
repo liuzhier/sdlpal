@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -48,6 +48,7 @@ PAL_ItemSelectMenuUpdate(
    WORD               wObject, wScript;
    BYTE               bColor;
    static BYTE        bufImage[2048];
+   static WORD        wPrevImageIndex = 0xFFFF;
    const int          iItemsPerLine = 32 / gConfig.dwWordLength;
    const int          iItemTextWidth = 8 * gConfig.dwWordLength + 20;
    const int          iLinesPerPage = 7 - gConfig.ScreenLayout.ExtraItemDescLines;
@@ -55,7 +56,6 @@ PAL_ItemSelectMenuUpdate(
    const int          iAmountXOffset = gConfig.dwWordLength * 8 + 1;
    const int          iPageLineOffset = (iLinesPerPage + 1) / 2;
    const int          iPictureYOffset = (gConfig.ScreenLayout.ExtraItemDescLines > 1) ? (gConfig.ScreenLayout.ExtraItemDescLines - 1) * 16 : 0;
-   PAL_POS            cursorPos = PAL_XY(15 + iCursorXOffset, 22);;
 
    //
    // Process input
@@ -125,8 +125,6 @@ PAL_ItemSelectMenuUpdate(
       i = 0;
    }
 
-   const int xBase = 0, yBase = 140;
-
    for (j = 0; j < iLinesPerPage; j++)
    {
       for (k = 0; k < iItemsPerLine; k++)
@@ -184,46 +182,58 @@ PAL_ItemSelectMenuUpdate(
          //
          // Draw the text
          //
-         PAL_DrawText(PAL_GetWord(wObject), PAL_XY(15 + k * iItemTextWidth, 12 + j * 18), bColor, TRUE, FALSE, FALSE);
+		 PAL_DrawText(PAL_GetWord(wObject), PAL_XY(15 + k * iItemTextWidth, 12 + j * 18), bColor, TRUE, FALSE, FALSE);
 
+         //
+         // Draw the cursor on the current selected item
+         //
          if (i == gpGlobals->iCurInvMenuItem)
          {
-            cursorPos = PAL_XY(15 + iCursorXOffset + k * iItemTextWidth, 22 + j * 18);
-
-            //
-            // Draw the picture of current selected item
-            //
-            PAL_RLEBlitToSurfaceWithShadow(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX), gpScreen,
-               PAL_XY(xBase + 5, yBase + 5 - iPictureYOffset), TRUE);
-            PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX), gpScreen,
-               PAL_XY(xBase, yBase - iPictureYOffset));
-
-            if (PAL_MKFReadChunk(bufImage, 2048,
-               gpGlobals->g.rgObject[wObject].item.wBitmap, gpGlobals->f.fpBALL) > 0)
-            {
-               PAL_RLEBlitToSurface(bufImage, gpScreen, PAL_XY(xBase + 8, yBase + 7 - iPictureYOffset));
-            }
+            PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_CURSOR),
+               gpScreen, PAL_XY(15 + iCursorXOffset + k * iItemTextWidth, 22 + j * 18));
          }
 
          //
          // Draw the amount of this item
          //
-         if ((SHORT)gpGlobals->rgInventory[i].nAmount - (SHORT)gpGlobals->rgInventory[i].nAmountInUse > 1)
-         {
+		 if ((SHORT)gpGlobals->rgInventory[i].nAmount - (SHORT)gpGlobals->rgInventory[i].nAmountInUse > 1)
+		 {
             PAL_DrawNumber(gpGlobals->rgInventory[i].nAmount - gpGlobals->rgInventory[i].nAmountInUse,
-               2, PAL_XY(15 + iAmountXOffset + k * iItemTextWidth, 17 + j * 18), kNumColorCyan, kNumAlignRight);
-         }
+               3, PAL_XY(10 + iAmountXOffset + k * iItemTextWidth, 17 + j * 18), kNumColorYellow, kNumAlignRight);
+		 }
 
          i++;
       }
    }
 
+   int xBase = 0, yBase = 140;
    //
-   // Draw the cursor on the current selected item
+   // Draw the picture of current selected item
    //
-   PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_CURSOR), gpScreen, cursorPos);
+   PAL_RLEBlitToSurfaceWithShadow(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX), gpScreen,
+      PAL_XY(xBase+5, yBase+5 - iPictureYOffset),TRUE);
+   PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX), gpScreen,
+      PAL_XY(xBase, yBase - iPictureYOffset));
 
    wObject = gpGlobals->rgInventory[gpGlobals->iCurInvMenuItem].wItem;
+
+   if (gpGlobals->g.rgObject[wObject].item.wBitmap != wPrevImageIndex)
+   {
+      if (PAL_MKFReadChunk(bufImage, 2048,
+         gpGlobals->g.rgObject[wObject].item.wBitmap, gpGlobals->f.fpBALL) > 0)
+      {
+         wPrevImageIndex = gpGlobals->g.rgObject[wObject].item.wBitmap;
+      }
+      else
+      {
+         wPrevImageIndex = 0xFFFF;
+      }
+   }
+
+   if (wPrevImageIndex != 0xFFFF)
+   {
+      PAL_RLEBlitToSurface(bufImage, gpScreen, PAL_XY(xBase+8, yBase+7 - iPictureYOffset));
+   }
 
    //
    // Draw the description of the selected item
@@ -292,15 +302,10 @@ PAL_ItemSelectMenuUpdate(
       {
          if (gpGlobals->rgInventory[gpGlobals->iCurInvMenuItem].nAmount > 0)
          {
-            j = (gpGlobals->iCurInvMenuItem < iItemsPerLine * iPageLineOffset) ? (gpGlobals->iCurInvMenuItem / iItemsPerLine) : iPageLineOffset;
-            k = gpGlobals->iCurInvMenuItem % iItemsPerLine;
+			 j = (gpGlobals->iCurInvMenuItem < iItemsPerLine * iPageLineOffset) ? (gpGlobals->iCurInvMenuItem / iItemsPerLine) : iPageLineOffset;
+			k = gpGlobals->iCurInvMenuItem % iItemsPerLine;
 
             PAL_DrawText(PAL_GetWord(wObject), PAL_XY(15 + k * iItemTextWidth, 12 + j * 18), MENUITEM_COLOR_CONFIRMED, FALSE, FALSE, FALSE);
-
-            //
-            // Draw the cursor on the current selected item
-            //
-            PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_CURSOR), gpScreen, cursorPos);
          }
 
          return wObject;
@@ -463,4 +468,97 @@ PAL_ItemSelectMenu(
 
    assert(FALSE);
    return 0; // should not really reach here
+}
+
+VOID
+PAL_wupinfenlei(
+VOID
+)
+{
+	int    i, p;
+	
+	if (gpGlobals->ffenlei == 1)
+	   {
+		 p = RandomLong(1, 100);
+		   
+		 if (p < 60)
+         {
+		 gpGlobals->ffenlei1 = RandomLong(0x0054, 0x006E);
+		 }
+		 if (p >= 60 && p < 70)
+         {
+		 gpGlobals->ffenlei1 = 0x0083;
+		 }
+		 if (p >= 70 && p < 80)
+         {
+		 gpGlobals->ffenlei1 = RandomLong(0x004B, 0x0050);
+		 }
+		 
+		 if (p >= 80 && p < 90)
+         {
+		 gpGlobals->ffenlei1 = RandomLong(0x007E, 0x0080);
+		 }
+		 if (p >= 90)
+         {
+		 gpGlobals->ffenlei1 = 0x0087;
+		 }
+	   }
+	
+	if (gpGlobals->ffenlei == 2)
+	   {
+		 gpGlobals->ffenlei1 = RandomLong(0x003D, 0x0047);
+	   }
+	
+	if (gpGlobals->ffenlei == 3)
+	   {
+		 p = RandomLong(1, 100);
+		   
+		 if (p < 60)
+         {
+		 gpGlobals->ffenlei1 = RandomLong(0x0074, 0x007D);
+		 }
+		 if (p >= 60 && p < 70)
+         {
+		 gpGlobals->ffenlei1 = 0x0082;
+		 }
+		 if (p >= 70 && p < 80)
+         {
+		 gpGlobals->ffenlei1 = RandomLong(0x0085, 0x0086);
+		 }
+		 
+		 if (p >= 80 && p < 90)
+         {
+		 gpGlobals->ffenlei1 = RandomLong(0x0088, 0x0089);
+		 }
+		 if (p >= 90)
+         {
+		 gpGlobals->ffenlei1 = 0x0116;
+		 }
+	   }
+	
+	if (gpGlobals->ffenlei == 4)
+	   {
+		 p = RandomLong(1, 100);
+		   
+		 if (p < 45)
+         {
+		 gpGlobals->ffenlei1 = RandomLong(0x0048, 0x004a);
+		 }
+		 if (p >= 45 && p < 90)
+         {
+		 gpGlobals->ffenlei1 = RandomLong(0x006F, 0x0072);
+		 }
+		 if (p > 90)
+         {
+		 gpGlobals->ffenlei1 = 0x0084;
+		 }
+	   }
+	   
+	   
+	if (gpGlobals->ffenlei == 5)
+	   {
+		 gpGlobals->ffenlei1 = RandomLong(0x00A3, 0x0103);
+
+	   }
+
 }

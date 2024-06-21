@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -24,20 +24,23 @@
 BATTLE          g_Battle;
 
 WORD
-g_rgPlayerPos[3][3][2] = {
+//多人战斗：战斗时多人战
+g_rgPlayerPos[5][5][2] = {
    {{240, 170}},                         // one player
    {{200, 176}, {256, 152}},             // two players
-   {{180, 180}, {234, 170}, {270, 146}}  // three players
+   {{180, 180}, {234, 170}, {270, 146}},  // three players
+   {{160, 180}, {217, 175}, {255, 155}, {285, 135}},  // 4 players
+   {{160, 180}, {210, 175}, {240, 160}, {265, 145}, {285, 125}},  // 5 players
 };
 
 VOID
-PAL_BattleDrawBackground(
+PAL_BattleMakeScene(
    VOID
 )
 /*++
   Purpose:
 
-    Generate the combat background to the specified screen buffer.
+    Generate the battle scene into the scene buffer.
 
   Parameters:
 
@@ -49,9 +52,11 @@ PAL_BattleDrawBackground(
 
 --*/
 {
-   int          i;
+   int          i,j;
+   PAL_POS      pos;
    LPBYTE       pSrc, pDst;
    BYTE         b;
+   INT          enemyDrawSeq[MAX_ENEMIES_IN_TEAM];
 
    //
    // Draw the background
@@ -80,529 +85,134 @@ PAL_BattleDrawBackground(
    }
 
    PAL_ApplyWave(g_Battle.lpSceneBuf);
-}
 
-VOID
-PAL_BattleDrawEnemySprites(
-   WORD              wEnemyIndex,
-   SDL_Surface      *lpDstSurface
-)
-/*++
-  Purpose:
-
-    Generate enemies in battle into the specified buffer.
-
-  Parameters:
-
-    [IN]  wEnemyIndex - The index of the enemy.
-
-    [OUT] lpDstSurface - pointer to the destination SDL surface.
-
-  Return value:
-
-    None.
-
---*/
-{
-   PAL_POS       pos;
+   memset(&enemyDrawSeq,-1,sizeof(enemyDrawSeq));
+   // sort by y
+   for (i = 0; i <= g_Battle.wMaxEnemyIndex; i++ )
+      enemyDrawSeq[i] = i;
+   for(i=0;i<g_Battle.wMaxEnemyIndex;i++)
+       for(j=i+1;j<g_Battle.wMaxEnemyIndex;j++)
+           if( PAL_Y(g_Battle.rgEnemy[i].pos) < PAL_Y(g_Battle.rgEnemy[j].pos) ) {
+               INT tmp = enemyDrawSeq[i];
+               enemyDrawSeq[i]=enemyDrawSeq[j];
+               enemyDrawSeq[j]=tmp;
+           }
 
    //
    // Draw the enemies
    //
-   pos = g_Battle.rgEnemy[wEnemyIndex].pos;
-
-   if (g_Battle.rgEnemy[wEnemyIndex].rgwStatus[kStatusConfused] > 0 &&
-      g_Battle.rgEnemy[wEnemyIndex].rgwStatus[kStatusSleep] == 0 &&
-      g_Battle.rgEnemy[wEnemyIndex].rgwStatus[kStatusParalyzed] == 0)
+   for (j = g_Battle.wMaxEnemyIndex; j >= 0; j--)
    {
-      //
-      // Enemy is confused
-      //
-      pos = PAL_XY(PAL_X(pos) + RandomLong(-1, 1), PAL_Y(pos));
-   }
-      
-   pos = PAL_XY(PAL_X(pos) - PAL_RLEGetWidth(PAL_SpriteGetFrame(g_Battle.rgEnemy[wEnemyIndex].lpSprite, g_Battle.rgEnemy[wEnemyIndex].wCurrentFrame)) / 2,
-      PAL_Y(pos) - PAL_RLEGetHeight(PAL_SpriteGetFrame(g_Battle.rgEnemy[wEnemyIndex].lpSprite, g_Battle.rgEnemy[wEnemyIndex].wCurrentFrame)));
+      i = enemyDrawSeq[j];
+      pos = g_Battle.rgEnemy[i].pos;
 
-   if (g_Battle.rgEnemy[wEnemyIndex].wObjectID != 0)
-   {
-      if (g_Battle.rgEnemy[wEnemyIndex].iColorShift)
+      if (g_Battle.rgEnemy[i].rgwStatus[kStatusConfused] > 0 &&
+         g_Battle.rgEnemy[i].rgwStatus[kStatusSleep] == 0 &&
+         g_Battle.rgEnemy[i].rgwStatus[kStatusParalyzed] == 0)
       {
-         PAL_RLEBlitWithColorShift(PAL_SpriteGetFrame(g_Battle.rgEnemy[wEnemyIndex].lpSprite, g_Battle.rgEnemy[wEnemyIndex].wCurrentFrame),
-            lpDstSurface, pos, g_Battle.rgEnemy[wEnemyIndex].iColorShift);
+         //
+         // Enemy is confused
+         //
+         pos = PAL_XY(PAL_X(pos) + RandomLong(-1, 1), PAL_Y(pos));
       }
-      else
+
+      pos = PAL_XY(PAL_X(pos) - PAL_RLEGetWidth(PAL_SpriteGetFrame(g_Battle.rgEnemy[i].lpSprite, g_Battle.rgEnemy[i].wCurrentFrame)) / 2,
+         PAL_Y(pos) - PAL_RLEGetHeight(PAL_SpriteGetFrame(g_Battle.rgEnemy[i].lpSprite, g_Battle.rgEnemy[i].wCurrentFrame)));
+
+      if (g_Battle.rgEnemy[i].wObjectID != 0)
       {
-         PAL_RLEBlitToSurface(PAL_SpriteGetFrame(g_Battle.rgEnemy[wEnemyIndex].lpSprite, g_Battle.rgEnemy[wEnemyIndex].wCurrentFrame),
-            lpDstSurface, pos);
+         if (g_Battle.rgEnemy[i].iColorShift)
+         {
+            PAL_RLEBlitWithColorShift(PAL_SpriteGetFrame(g_Battle.rgEnemy[i].lpSprite, g_Battle.rgEnemy[i].wCurrentFrame),
+               g_Battle.lpSceneBuf, pos, g_Battle.rgEnemy[i].iColorShift);
+         }
+         else
+         {
+            PAL_RLEBlitToSurface(PAL_SpriteGetFrame(g_Battle.rgEnemy[i].lpSprite, g_Battle.rgEnemy[i].wCurrentFrame),
+               g_Battle.lpSceneBuf, pos);
+         }
       }
    }
-}
 
-VOID
-PAL_BattleDrawPlayerSprites(
-   WORD              wPlayerIndex,
-   SDL_Surface      *lpDstSurface
-)
-/*++
-  Purpose:
-
-    Generate players in battle into the specified buffer.
-
-  Parameters:
-
-    [IN]  wPlayerIndex - The index of the player (-1 = summon god).
-
-    [OUT] lpDstSurface - pointer to the destination SDL surface.
-
-  Return value:
-
-    None.
-
---*/
-{
-   PAL_POS      pos;
-
-   if (wPlayerIndex == 0xFFFF)
+   if (g_Battle.lpSummonSprite != NULL)
    {
       //
       // Draw the summoned god
       //
-      if (g_Battle.lpSummonSprite != NULL)
-      {
-         pos = PAL_XY(PAL_X(g_Battle.posSummon) - PAL_RLEGetWidth(PAL_SpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame)) / 2,
-            PAL_Y(g_Battle.posSummon) - PAL_RLEGetHeight(PAL_SpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame)));
+      pos = PAL_XY(PAL_X(g_Battle.posSummon) - PAL_RLEGetWidth(PAL_SpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame)) / 2,
+         PAL_Y(g_Battle.posSummon) - PAL_RLEGetHeight(PAL_SpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame)));
 
-         PAL_RLEBlitToSurface(PAL_SpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame),
-            lpDstSurface, pos);
-      }
+      PAL_RLEBlitToSurface(PAL_SpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame),
+         g_Battle.lpSceneBuf, pos);
    }
    else
    {
       //
       // Draw the players
       //
-      pos = g_Battle.rgPlayer[wPlayerIndex].pos;
-
-      if (gpGlobals->rgPlayerStatus[gpGlobals->rgParty[wPlayerIndex].wPlayerRole][kStatusConfused] != 0 &&
-         gpGlobals->rgPlayerStatus[gpGlobals->rgParty[wPlayerIndex].wPlayerRole][kStatusSleep] == 0 &&
-         gpGlobals->rgPlayerStatus[gpGlobals->rgParty[wPlayerIndex].wPlayerRole][kStatusParalyzed] == 0 &&
-         gpGlobals->g.PlayerRoles.rgwHP[gpGlobals->rgParty[wPlayerIndex].wPlayerRole] > 0 &&
-         !PAL_IsPlayerDying(gpGlobals->rgParty[wPlayerIndex].wPlayerRole))
+      for (i = gpGlobals->wMaxPartyMemberIndex; i >= 0; i--)
       {
-         //
-         // Player is confused and not dead
-         //
-         pos = PAL_XY(PAL_X(pos), PAL_Y(pos) + RandomLong(-1, 1));
-      }
-
-      pos = PAL_XY(PAL_X(pos) - PAL_RLEGetWidth(PAL_SpriteGetFrame(g_Battle.rgPlayer[wPlayerIndex].lpSprite, g_Battle.rgPlayer[wPlayerIndex].wCurrentFrame)) / 2,
-         PAL_Y(pos) - PAL_RLEGetHeight(PAL_SpriteGetFrame(g_Battle.rgPlayer[wPlayerIndex].lpSprite, g_Battle.rgPlayer[wPlayerIndex].wCurrentFrame)));
-
-      if (g_Battle.rgPlayer[wPlayerIndex].iColorShift != 0)
-      {
-         PAL_RLEBlitWithColorShift(PAL_SpriteGetFrame(g_Battle.rgPlayer[wPlayerIndex].lpSprite, g_Battle.rgPlayer[wPlayerIndex].wCurrentFrame),
-            lpDstSurface, pos, g_Battle.rgPlayer[wPlayerIndex].iColorShift);
-      }
-      else if (g_Battle.iHidingTime == 0)
-      {
-         PAL_RLEBlitToSurface(PAL_SpriteGetFrame(g_Battle.rgPlayer[wPlayerIndex].lpSprite, g_Battle.rgPlayer[wPlayerIndex].wCurrentFrame),
-            lpDstSurface, pos);
-      }
-   }
-}
-
-VOID
-PAL_BattleDrawMagicSprites(
-   INT               iMagicNum,
-   SDL_Surface      *lpDstSurface,
-   PAL_POS           pos
-)
-/*++
-  Purpose:
-
-    Generate magic in battle into the specified buffer.
-
-  Parameters:
-
-    [IN]  wObjectID - The index of the magic.
-
-    [OUT] lpDstSurface - pointer to the destination SDL surface.
-
-  Return value:
-
-    None.
-
---*/
-{
-   SHORT x, y;
-   LPCBITMAPRLE lpBitmap = g_Battle.lpMagicBitmap;
-
-   x = PAL_X(pos);
-   y = PAL_Y(pos);
-
-   PAL_RLEBlitToSurface(lpBitmap, lpDstSurface, PAL_XY(x - PAL_RLEGetWidth(lpBitmap) / 2, y - PAL_RLEGetHeight(lpBitmap)));
-}
-
-VOID
-PAL_BattleClearSpriteObject(
-   VOID
-)
-/*++
-  Purpose:
-
-    Empty the Sprite object drawing sequence.
-
-  Parameters:
-
-    [IN]  wSpriteObjectIndex - Specifies the index of the sprite object to be removed.
-
-  Return value:
-
-    None.
-
---*/
-{
-   memset(&g_Battle.SpriteDrawSeq, 0, sizeof(g_Battle.SpriteDrawSeq));
-
-   g_Battle.wMaxSpriteDrawSeqIndex = 0;
-}
-
-VOID
-PAL_BattleSpriteAddUnlock(
-   VOID
-)
-{
-   g_Battle.fSpriteAddLock = FALSE;
-
-   PAL_BattleClearSpriteObject();
-}
-
-VOID
-PAL_BattleAddSpriteObject(
-   WORD               wType,
-   WORD               wObjectIndex,
-   PAL_POS            pos,
-   SHORT              sLayerOffset,
-   BOOL               fHaveColorShift
-)
-/*++
-  Purpose:
-
-    Add sprite objects to the drawing sequence.
-
-  Parameters:
-
-    [IN]  bType - What type is the sprite object?
-
-    [IN]  bObjectIndex - The index of this sprite object in its type.
-
-    [IN]  pos - The pos of sprite object.
-
-    [IN]  sLayerOffset - The layer offset of sprite object.
-
-    [IN]  fHaveColorShift - TRUE is the highest layer in battle.
-
-  Return value:
-
-    None.
-
---*/
-{
-   WORD *wMaxIndex = &g_Battle.wMaxSpriteDrawSeqIndex;
-   BATTLESPRITESEQ *SpriteObject;
-
-   if (*wMaxIndex + 1 < MAX_BATTLESPRITESEQ_ITEMS)
-   {
-      SpriteObject = &g_Battle.SpriteDrawSeq[*wMaxIndex];
-
-      SpriteObject->wType = wType;
-      SpriteObject->wObjectIndex = wObjectIndex;
-      SpriteObject->pos = pos;
-      SpriteObject->sLayerOffset = sLayerOffset;
-      SpriteObject->fHaveColorShift = fHaveColorShift;
-
-      (*wMaxIndex)++;
-   }
-}
-
-VOID
-PAL_BattleRemoveSpriteObject(
-   WORD               wSpriteObjectIndex
-)
-/*++
-  Purpose:
-
-    Removes the specified sprite object from the drawn sequence by index.
-
-  Parameters:
-
-    [IN]  wSpriteObjectIndex - Specifies the index of the sprite object to be removed.
-
-  Return value:
-
-    None.
-
---*/
-{
-   BATTLESPRITESEQ *SpriteObject;
-
-   if (wSpriteObjectIndex < MAX_BATTLESPRITESEQ_ITEMS)
-   {
-      SpriteObject = &g_Battle.SpriteDrawSeq[wSpriteObjectIndex];
-
-      memset(SpriteObject, 0, sizeof(*SpriteObject));
-
-      g_Battle.wMaxSpriteDrawSeqIndex--;
-   }
-}
-
-VOID
-PAL_BattleAddFighterSpriteObject(
-   VOID
-)
-/*++
-  Purpose:
-
-    Place enemies and players in the drawing sequence.
-
-  Parameters:
-
-    None.
-
-  Return value:
-
-    None.
-
---*/
-{
-   INT i;
-
-   //
-   // Place enemies in the drawing sequence.
-   //
-   for (i = 0; i <= g_Battle.wMaxEnemyIndex; i++)
-   {
-      PAL_BattleAddSpriteObject(kBattleSpriteTypeEnemy, i, g_Battle.rgEnemy[i].pos, 0, g_Battle.rgEnemy[i].iColorShift);
-   }
-
-   if (g_Battle.lpSummonSprite != NULL)
-   {
-      //
-      // Place summon god in the drawing sequence.
-      //
-      PAL_BattleAddSpriteObject(kBattleSpriteTypePlayer, -1, g_Battle.posSummon, 0, g_Battle.fSummonColorShift);
-   }
-   else
-   {
-      //
-      // Place players in the drawing sequence.
-      //
-      for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
-      {
-         PAL_BattleAddSpriteObject(kBattleSpriteTypePlayer, i, g_Battle.rgPlayer[i].pos, 0, g_Battle.rgPlayer[i].iColorShift);
-      }
-   }
-}
-
-VOID
-PAL_BattleSortSpriteObjecByPos(
-   VOID
-)
-/*++
-  Purpose:
-
-    Sort all sprite according to pos.
-
-  Parameters:
-
-    None.
-
-  Return value:
-
-    None.
-
---*/
-{
-   INT i, j;
-   BATTLESPRITESEQ *this, *next, tmp;
-   SHORT thisPosX, thisPosY, nextPosX, nextPosY;
-
-   //
-   // Sort the players drawing order by Y coordinate
-   //
-   for (i = 0; i < g_Battle.wMaxSpriteDrawSeqIndex; i++)
-   {
-      for (j = i + 1; j <= g_Battle.wMaxSpriteDrawSeqIndex - 1; j++)
-      {
-         this = &g_Battle.SpriteDrawSeq[i];
-         next = &g_Battle.SpriteDrawSeq[j];
-
-         thisPosY = PAL_Y(this->pos) + this->sLayerOffset;
-         nextPosY = PAL_Y(next->pos) + next->sLayerOffset;
-
-         if (thisPosY > nextPosY)
+         pos = g_Battle.rgPlayer[i].pos;
+
+         if (gpGlobals->rgPlayerStatus[gpGlobals->rgParty[i].wPlayerRole][kStatusConfused] != 0 &&
+            gpGlobals->rgPlayerStatus[gpGlobals->rgParty[i].wPlayerRole][kStatusSleep] == 0 &&
+            gpGlobals->rgPlayerStatus[gpGlobals->rgParty[i].wPlayerRole][kStatusParalyzed] == 0 &&
+            gpGlobals->g.PlayerRoles.rgwHP[gpGlobals->rgParty[i].wPlayerRole] > 0)
          {
             //
-            // Pos Y compare successfully, directly swap variable values
+            // Player is confused
             //
-            tmp = *this;
-            *this = *next;
-            *next = tmp;
+            continue;
          }
-         else if(thisPosY == nextPosY)
+
+         pos = PAL_XY(PAL_X(pos) - PAL_RLEGetWidth(PAL_SpriteGetFrame(g_Battle.rgPlayer[i].lpSprite, g_Battle.rgPlayer[i].wCurrentFrame)) / 2,
+            PAL_Y(pos) - PAL_RLEGetHeight(PAL_SpriteGetFrame(g_Battle.rgPlayer[i].lpSprite, g_Battle.rgPlayer[i].wCurrentFrame)));
+
+         if (g_Battle.rgPlayer[i].iColorShift != 0)
+         {
+            PAL_RLEBlitWithColorShift(PAL_SpriteGetFrame(g_Battle.rgPlayer[i].lpSprite, g_Battle.rgPlayer[i].wCurrentFrame),
+               g_Battle.lpSceneBuf, pos, g_Battle.rgPlayer[i].iColorShift);
+         }
+         else if (g_Battle.iHidingTime == 0)
+         {
+            PAL_RLEBlitToSurface(PAL_SpriteGetFrame(g_Battle.rgPlayer[i].lpSprite, g_Battle.rgPlayer[i].wCurrentFrame),
+               g_Battle.lpSceneBuf, pos);
+         }
+      }
+
+      //
+      // Confused players should be drawn on top of normal players
+      //
+      for (i = gpGlobals->wMaxPartyMemberIndex; i >= 0; i--)
+      {
+         if (gpGlobals->rgPlayerStatus[gpGlobals->rgParty[i].wPlayerRole][kStatusConfused] != 0 &&
+            gpGlobals->rgPlayerStatus[gpGlobals->rgParty[i].wPlayerRole][kStatusSleep] == 0 &&
+            gpGlobals->rgPlayerStatus[gpGlobals->rgParty[i].wPlayerRole][kStatusParalyzed] == 0 &&
+            gpGlobals->g.PlayerRoles.rgwHP[gpGlobals->rgParty[i].wPlayerRole] > 0)
          {
             //
-            // The pos Y of the two are equal. Compare their X coordinates
+            // Player is confused
             //
-            thisPosX = PAL_X(this->pos);
-            nextPosX = PAL_X(next->pos);
+            int xd = PAL_X(g_Battle.rgPlayer[i].pos), yd = PAL_Y(g_Battle.rgPlayer[i].pos);
+            if(!PAL_IsPlayerDying(gpGlobals->rgParty[i].wPlayerRole))
+               yd += RandomLong(-1, 1);
+            pos = PAL_XY(xd, yd);
+            pos = PAL_XY(PAL_X(pos) - PAL_RLEGetWidth(PAL_SpriteGetFrame(g_Battle.rgPlayer[i].lpSprite, g_Battle.rgPlayer[i].wCurrentFrame)) / 2,
+               PAL_Y(pos) - PAL_RLEGetHeight(PAL_SpriteGetFrame(g_Battle.rgPlayer[i].lpSprite, g_Battle.rgPlayer[i].wCurrentFrame)));
 
-            if (thisPosX < nextPosX)
+            if (g_Battle.rgPlayer[i].iColorShift != 0)
             {
-               tmp = *this;
-               *this = *next;
-               *next = tmp;
+               PAL_RLEBlitWithColorShift(PAL_SpriteGetFrame(g_Battle.rgPlayer[i].lpSprite, g_Battle.rgPlayer[i].wCurrentFrame),
+                  g_Battle.lpSceneBuf, pos, g_Battle.rgPlayer[i].iColorShift);
+            }
+            else if (g_Battle.iHidingTime == 0)
+            {
+               PAL_RLEBlitToSurface(PAL_SpriteGetFrame(g_Battle.rgPlayer[i].lpSprite, g_Battle.rgPlayer[i].wCurrentFrame),
+                  g_Battle.lpSceneBuf, pos);
             }
          }
       }
    }
-}
-
-VOID
-PAL_BattleDrawAllSprites(
-   VOID
-)
-/*++
-  Purpose:
-
-    Draw all sprites to the battle screen buffer.
-
-  Parameters:
-
-    None.
-
-  Return value:
-
-    None.
-
---*/
-{
-   //
-   // Draw all sprites to the battle screen buffer.
-   //
-   PAL_BattleDrawAllSpritesWithColorShift(FALSE);
-
-   //
-   // Only draw sprites with color shift into the battle screen buffer.
-   // Because in the original game,
-   // sprites with color shift are directly overlaid on the original sprites.
-   //
-   PAL_BattleDrawAllSpritesWithColorShift(TRUE);
-}
-
-VOID
-PAL_BattleDrawAllSpritesWithColorShift(
-   BOOL               fColorShift
-)
-/*++
-  Purpose:
-
-    Draws all sprites with color shift to the battle screen buffer..
-
-  Parameters:
-
-    None.
-
-  Return value:
-
-    None.
-
---*/
-{
-   INT i;
-   BATTLESPRITESEQ *SpriteObject;
-
-   //
-   // Sort the sprite that need to be drawn
-   //
-   PAL_BattleSortSpriteObjecByPos();
-
-   for (i = 0; i <= g_Battle.wMaxSpriteDrawSeqIndex; i++)
-   {
-      SpriteObject = &g_Battle.SpriteDrawSeq[i];
-
-      if (fColorShift)
-      {
-         //
-         // Draw only sprites with color shift
-         //
-         if (!SpriteObject->fHaveColorShift) continue;
-      }
-
-      switch (SpriteObject->wType)
-      {
-      case kBattleSpriteTypeNone:
-         break;
-
-      case kBattleSpriteTypeEnemy:
-         PAL_BattleDrawEnemySprites(SpriteObject->wObjectIndex, g_Battle.lpSceneBuf);
-         break;
-
-      case kBattleSpriteTypePlayer:
-         PAL_BattleDrawPlayerSprites(SpriteObject->wObjectIndex, g_Battle.lpSceneBuf);
-         break;
-
-      case kBattleSpriteTypeMagic:
-         PAL_BattleDrawMagicSprites(SpriteObject->wObjectIndex, g_Battle.lpSceneBuf, SpriteObject->pos);
-         break;
-
-      }
-   }
-}
-
-VOID
-PAL_BattleMakeScene(
-   VOID
-)
-/*++
-  Purpose:
-
-    Generate the battle scene into the scene buffer.
-
-  Parameters:
-
-    None.
-
-  Return value:
-
-    None.
-
---*/
-{
-   PAL_BattleDrawBackground();
-
-   if (g_Battle.fSpriteAddLock)
-   {
-      //
-      // Initialize the drawing sequence
-      //
-      PAL_BattleClearSpriteObject();
-   }
-   else
-   {
-      g_Battle.fSpriteAddLock = TRUE;
-   }
-
-   //
-   // Place enemies and players in the drawing sequence
-   //
-   PAL_BattleAddFighterSpriteObject();
-
-   //
-   // Draw all sprite
-   //
-   PAL_BattleDrawAllSprites();
 }
 
 VOID
@@ -1037,15 +647,15 @@ PAL_BattleWon(
 	  PAL_CreateSingleLineBox(PAL_XY(83 - ww1, 60), w1, FALSE);
 	  PAL_CreateSingleLineBox(PAL_XY(65, 105), 10, FALSE);
 
-	  PAL_DrawText(PAL_GetWord(BATTLEWIN_GETEXP_LABEL), PAL_XY(95 - ww1, 70), 0, FALSE, FALSE, FALSE);
-	  PAL_DrawText(PAL_GetWord(BATTLEWIN_BEATENEMY_LABEL), PAL_XY(77, 115), 0, FALSE, FALSE, FALSE);
-	  PAL_DrawText(PAL_GetWord(BATTLEWIN_DOLLAR_LABEL), PAL_XY(197, 115), 0, FALSE, FALSE, FALSE);
+	  PAL_DrawText(PAL_GetWord(BATTLEWIN_GETEXP_LABEL), PAL_XY(95 - ww1, 70), 0x0F, FALSE, FALSE, FALSE);
+	  PAL_DrawText(PAL_GetWord(BATTLEWIN_BEATENEMY_LABEL), PAL_XY(77, 115), 0x0F, FALSE, FALSE, FALSE);
+	  PAL_DrawText(PAL_GetWord(BATTLEWIN_DOLLAR_LABEL), PAL_XY(197, 115), 0x0F, FALSE, FALSE, FALSE);
 
       PAL_DrawNumber(g_Battle.iExpGained, 5, PAL_XY(182 + ww1, 74), kNumColorYellow, kNumAlignRight);
       PAL_DrawNumber(g_Battle.iCashGained, 5, PAL_XY(162, 119), kNumColorYellow, kNumAlignMid);
 
       VIDEO_UpdateScreen(&rect);
-      PAL_WaitForAnyKey(g_Battle.fIsBoss ? 5500 : 3000);
+      PAL_WaitForKey(g_Battle.fIsBoss ? 5500 : 3000);
    }
 
    //
@@ -1130,7 +740,7 @@ PAL_BattleWon(
 
          WCHAR buffer[256] = L"";
          PAL_swprintf(buffer, sizeof(buffer) / sizeof(WCHAR), L"%ls%ls%ls", PAL_GetWord(gpGlobals->g.PlayerRoles.rgwName[w]), PAL_GetWord(STATUS_LABEL_LEVEL), PAL_GetWord(BATTLEWIN_LEVELUP_LABEL));
-         PAL_DrawText(buffer, PAL_XY(110, 10), 0, FALSE, FALSE, FALSE);
+         PAL_DrawText(buffer, PAL_XY(110, 10), 0x0F, FALSE, FALSE, FALSE);
 
          for (j = 0; j < 8; j++)
          {
@@ -1138,14 +748,14 @@ PAL_BattleWon(
                gpScreen, PAL_XY(-offsetX+180, 48 + 18 * j));
          }
 
-         PAL_DrawText(PAL_GetWord(STATUS_LABEL_LEVEL), PAL_XY(offsetX+100, 44), BATTLEWIN_LEVELUP_LABEL_COLOR, TRUE, FALSE, FALSE);
-         PAL_DrawText(PAL_GetWord(STATUS_LABEL_HP), PAL_XY(offsetX+100, 62), BATTLEWIN_LEVELUP_LABEL_COLOR, TRUE, FALSE, FALSE);
-         PAL_DrawText(PAL_GetWord(STATUS_LABEL_MP), PAL_XY(offsetX+100, 80), BATTLEWIN_LEVELUP_LABEL_COLOR, TRUE, FALSE, FALSE);
-         PAL_DrawText(PAL_GetWord(STATUS_LABEL_ATTACKPOWER), PAL_XY(offsetX+100, 98), BATTLEWIN_LEVELUP_LABEL_COLOR, TRUE, FALSE, FALSE);
-         PAL_DrawText(PAL_GetWord(STATUS_LABEL_MAGICPOWER), PAL_XY(offsetX+100, 116), BATTLEWIN_LEVELUP_LABEL_COLOR, TRUE, FALSE, FALSE);
-         PAL_DrawText(PAL_GetWord(STATUS_LABEL_RESISTANCE), PAL_XY(offsetX+100, 134), BATTLEWIN_LEVELUP_LABEL_COLOR, TRUE, FALSE, FALSE);
-         PAL_DrawText(PAL_GetWord(STATUS_LABEL_DEXTERITY), PAL_XY(offsetX+100, 152), BATTLEWIN_LEVELUP_LABEL_COLOR, TRUE, FALSE, FALSE);
-         PAL_DrawText(PAL_GetWord(STATUS_LABEL_FLEERATE), PAL_XY(offsetX+100, 170), BATTLEWIN_LEVELUP_LABEL_COLOR, TRUE, FALSE, FALSE);
+         PAL_DrawText(PAL_GetWord(STATUS_LABEL_LEVEL), PAL_XY(offsetX+100, 44), 0x0F, TRUE, FALSE, FALSE);
+         PAL_DrawText(PAL_GetWord(STATUS_LABEL_HP), PAL_XY(offsetX+100, 62), 0x0F, TRUE, FALSE, FALSE);
+         PAL_DrawText(PAL_GetWord(STATUS_LABEL_MP), PAL_XY(offsetX+100, 80), 0x0F, TRUE, FALSE, FALSE);
+         PAL_DrawText(PAL_GetWord(STATUS_LABEL_ATTACKPOWER), PAL_XY(offsetX+100, 98), 0x0F, TRUE, FALSE, FALSE);
+         PAL_DrawText(PAL_GetWord(STATUS_LABEL_MAGICPOWER), PAL_XY(offsetX+100, 116), 0x0F, TRUE, FALSE, FALSE);
+         PAL_DrawText(PAL_GetWord(STATUS_LABEL_RESISTANCE), PAL_XY(offsetX+100, 134), 0x0F, TRUE, FALSE, FALSE);
+         PAL_DrawText(PAL_GetWord(STATUS_LABEL_DEXTERITY), PAL_XY(offsetX+100, 152), 0x0F, TRUE, FALSE, FALSE);
+         PAL_DrawText(PAL_GetWord(STATUS_LABEL_FLEERATE), PAL_XY(offsetX+100, 170), 0x0F, TRUE, FALSE, FALSE);
 
          //
          // Draw the original stats and stats after level up
@@ -1158,26 +768,26 @@ PAL_BattleWon(
          PAL_DrawNumber(OrigPlayerRoles.rgwHP[w], 4, PAL_XY(-offsetX+133, 64),
             kNumColorYellow, kNumAlignRight);
          PAL_DrawNumber(OrigPlayerRoles.rgwMaxHP[w], 4, PAL_XY(-offsetX+154, 68),
-            kNumColorBlue, kNumAlignRight);
+            kNumColorYellow, kNumAlignRight);
          PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH), gpScreen,
             PAL_XY(-offsetX+156, 66));
          PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwHP[w], 4, PAL_XY(-offsetX+195, 64),
             kNumColorYellow, kNumAlignRight);
          PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwMaxHP[w], 4, PAL_XY(-offsetX+216, 68),
-            kNumColorBlue, kNumAlignRight);
+            kNumColorYellow, kNumAlignRight);
          PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH), gpScreen,
             PAL_XY(-offsetX+218, 66));
 
          PAL_DrawNumber(OrigPlayerRoles.rgwMP[w], 4, PAL_XY(-offsetX+133, 82),
             kNumColorYellow, kNumAlignRight);
          PAL_DrawNumber(OrigPlayerRoles.rgwMaxMP[w], 4, PAL_XY(-offsetX+154, 86),
-            kNumColorBlue, kNumAlignRight);
+            kNumColorYellow, kNumAlignRight);
          PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH), gpScreen,
             PAL_XY(-offsetX+156, 84));
          PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwMP[w], 4, PAL_XY(-offsetX+195, 82),
             kNumColorYellow, kNumAlignRight);
          PAL_DrawNumber(gpGlobals->g.PlayerRoles.rgwMaxMP[w], 4, PAL_XY(-offsetX+216, 86),
-            kNumColorBlue, kNumAlignRight);
+            kNumColorYellow, kNumAlignRight);
          PAL_RLEBlitToSurface(PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_SLASH), gpScreen,
             PAL_XY(-offsetX+218, 84));
 
@@ -1215,7 +825,7 @@ PAL_BattleWon(
          // Update the screen and wait for key
          //
          VIDEO_UpdateScreen(&rect1);
-         PAL_WaitForAnyKey(3000);
+         PAL_WaitForKey(3000);
 
          OrigPlayerRoles = gpGlobals->g.PlayerRoles;
       }
@@ -1266,10 +876,10 @@ PAL_BattleWon(
       WCHAR buffer[256] = L""; \
       PAL_swprintf(buffer, sizeof(buffer) / sizeof(WCHAR), L"%ls%ls%ls", PAL_GetWord(gpGlobals->g.PlayerRoles.rgwName[w]), PAL_GetWord(label), PAL_GetWord(BATTLEWIN_LEVELUP_LABEL)); \
       PAL_CreateSingleLineBox(PAL_XY(offsetX+78, 60), maxNameWidth+maxPropertyWidth+PAL_TextWidth(PAL_GetWord(BATTLEWIN_LEVELUP_LABEL))/32+4, FALSE);    \
-      PAL_DrawText(buffer, PAL_XY(offsetX+90, 70),  0, FALSE, FALSE, FALSE); \
+      PAL_DrawText(buffer, PAL_XY(offsetX+90, 70),  0x0F, FALSE, FALSE, FALSE); \
       PAL_DrawNumber(gpGlobals->g.PlayerRoles.statname[w] - OrigPlayerRoles.statname[w], 5, PAL_XY(183+(maxNameWidth+maxPropertyWidth-3)*8, 74), kNumColorYellow, kNumAlignRight); \
       VIDEO_UpdateScreen(&rect);                            \
-      PAL_WaitForAnyKey(3000);                              \
+      PAL_WaitForKey(3000);                                 \
    }                                                        \
 }
 
@@ -1316,12 +926,12 @@ PAL_BattleWon(
 
             PAL_CreateSingleLineBox(PAL_XY(65 - ww, 105), w1 + w2 + w3, FALSE);
 
-            PAL_DrawText(PAL_GetWord(gpGlobals->g.PlayerRoles.rgwName[w]), PAL_XY(75 - ww, 115), 0, FALSE, FALSE, FALSE);
-            PAL_DrawText(PAL_GetWord(BATTLEWIN_ADDMAGIC_LABEL), PAL_XY(75 + 16 * w1 - ww, 115), 0, FALSE, FALSE, FALSE);
-            PAL_DrawText(PAL_GetWord(gpGlobals->g.lprgLevelUpMagic[j].m[w].wMagic), PAL_XY(75 + 16 * (w1 + w2) - ww, 115), 0x1B, FALSE, FALSE, FALSE);
+            PAL_DrawText(PAL_GetWord(gpGlobals->g.PlayerRoles.rgwName[w]), PAL_XY(75 - ww, 115), 0x0F, FALSE, FALSE, FALSE);
+            PAL_DrawText(PAL_GetWord(BATTLEWIN_ADDMAGIC_LABEL), PAL_XY(75 + 16 * w1 - ww, 115), 0x0F, FALSE, FALSE, FALSE);
+            PAL_DrawText(PAL_GetWord(gpGlobals->g.lprgLevelUpMagic[j].m[w].wMagic), PAL_XY(75 + 16 * (w1 + w2) - ww, 115), 0x0F, FALSE, FALSE, FALSE);
 
             VIDEO_UpdateScreen(&rect);
-            PAL_WaitForAnyKey(3000);
+            PAL_WaitForKey(3000);
          }
 
          j++;
@@ -1504,6 +1114,18 @@ PAL_BattlePlayerEscape(
                          PAL_Y(g_Battle.rgPlayer[j].pos) + 3);
                break;
 
+			case 3:
+			   g_Battle.rgPlayer[j].pos =
+				  PAL_XY(PAL_X(g_Battle.rgPlayer[j].pos) + 7,
+						 PAL_Y(g_Battle.rgPlayer[j].pos) + 2);
+			   break;
+
+			case 4:
+			   g_Battle.rgPlayer[j].pos =
+				  PAL_XY(PAL_X(g_Battle.rgPlayer[j].pos) + 8,
+						 PAL_Y(g_Battle.rgPlayer[j].pos) + 1);
+			   break;
+
             default:
                assert(FALSE); // Not possible
                break;
@@ -1609,6 +1231,8 @@ PAL_StartBattle(
       if (w != 0)
       {
          g_Battle.rgEnemy[i].e = gpGlobals->g.lprgEnemy[gpGlobals->g.rgObject[w].enemy.wEnemyID];
+		 g_Battle.rgEnemy[i].dwActualHealth = g_Battle.rgEnemy[i].e.wHealth;
+		 g_Battle.rgEnemy[i].dwMaxHealth = g_Battle.rgEnemy[i].dwActualHealth;
          g_Battle.rgEnemy[i].wObjectID = w;
          g_Battle.rgEnemy[i].state = kFighterWait;
          g_Battle.rgEnemy[i].wScriptOnTurnStart = gpGlobals->g.rgObject[w].enemy.wScriptOnTurnStart;
@@ -1630,7 +1254,7 @@ PAL_StartBattle(
          //
          // HACK: Heal up automatically for final boss
          //
-         if (g_Battle.rgEnemy[i].e.wHealth == 32760)
+         if (g_Battle.rgEnemy[i].dwActualHealth > 30000)
          {
             for (w = 0; w < MAX_PLAYER_ROLES; w++)
             {
@@ -1714,8 +1338,21 @@ PAL_StartBattle(
 #endif
       }
    }
-
+		
    g_Battle.wMaxEnemyIndex = i - 1;
+   
+   //增加敌人的血量
+   for (i = 0; i <= g_Battle.wMaxEnemyIndex; i++)
+   {
+	   //增加拜月的血量
+	   if (g_Battle.rgEnemy[i].wObjectID == 0x0222)
+	   {
+	   g_Battle.rgEnemy[i].dwActualHealth = 250000;
+	   g_Battle.rgEnemy[i].dwMaxHealth = 250000;
+	   }
+   }
+   
+   //gpGlobals->fdunjia = 1;
 
    //
    // Store all players
@@ -1776,7 +1413,6 @@ PAL_StartBattle(
 
    gpGlobals->fInBattle = TRUE;
    g_Battle.BattleResult = kBattleResultPreBattle;
-   g_Battle.fSpriteAddLock = TRUE;
 
    PAL_BattleUpdateFighters();
 
@@ -1825,8 +1461,29 @@ PAL_StartBattle(
    for (w = 0; w < MAX_PLAYER_ROLES; w++)
    {
       PAL_CurePoisonByLevel(w, 3);
+	  PAL_CurePoisonByKind(w, 0x0236);
+	  PAL_CurePoisonByKind(w, 0x0238);
+	  PAL_CurePoisonByKind(w, 0x023A);
       PAL_RemoveEquipmentEffect(w, kBodyPartExtra);
+	  PAL_RemoveEquipmentEffect(w, kBodyPartfujia);
+	  gpGlobals->rgPlayerStatus[w][kStatusfujia] = 0;
+	  gpGlobals->rgPlayerStatus[w][kStatusfujia1] = 0;
+	  gpGlobals->rgPlayerStatus[w][kStatusdunjia] = 0;
+	  gpGlobals->rgPlayerStatus[w][kStatusdunjia1] = 0;
    }
+   gpGlobals->fzhufu = 0;
+   gpGlobals->fdunjia = 0;
+   gpGlobals->fzhufu1 = FALSE; 
+   if (gpGlobals->fdunjia1 == TRUE)
+   {
+   gpGlobals->g.PlayerRoles.rgwMaxHP[0] -= 1000;
+   gpGlobals->g.PlayerRoles.rgwMaxMP[0] -= 1000;
+   gpGlobals->g.PlayerRoles.rgwHP[0] = gpGlobals->g.PlayerRoles.rgwMaxHP[0];
+   gpGlobals->g.PlayerRoles.rgwMP[0] = gpGlobals->g.PlayerRoles.rgwMaxMP[0];
+   gpGlobals->fdunjia1 = FALSE;
+   }
+   gpGlobals->ftiangang = 0;
+   gpGlobals->ftouqiefangtao = FALSE;
 
    //
    // Free all the battle sprites
@@ -1854,4 +1511,557 @@ PAL_StartBattle(
    gpGlobals->wScreenWave = wPrevWaveLevel;
 
    return i;
+}
+
+VOID
+PAL_New_DecreaseHPForEnemy(
+WORD			wEnemyIndex,
+INT				sDamage
+)
+{
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return;
+	}
+
+	if (sDamage > 0)
+	{   //使用min比较不同类型的正负数的时候有时候会不符合预期
+		sDamage = min(sDamage, g_Battle.rgEnemy[wEnemyIndex].dwActualHealth);
+	}
+	g_Battle.rgEnemy[wEnemyIndex].dwActualHealth -= sDamage;
+
+	g_Battle.rgEnemy[wEnemyIndex].dwMaxHealth = max(g_Battle.rgEnemy[wEnemyIndex].dwMaxHealth, 
+		g_Battle.rgEnemy[wEnemyIndex].dwActualHealth);
+}
+
+
+VOID
+PAL_New_CurePoisonForEnemyByKind(
+WORD		wEnemyIndex,
+WORD		wPoisonID
+)
+{
+	int j;
+
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return;
+	}
+
+	for (j = 0; j < MAX_POISONS; j++)
+	{
+		if (g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonID == wPoisonID)
+		{
+#ifdef POISON_STATUS_EXPAND
+			memset(&g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j], 0, sizeof(g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j]));
+#else
+			g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonID = 0;
+			g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonScript = 0;
+#endif
+			break;
+		}
+	}
+}
+
+VOID
+PAL_New_CurePoisonForEnemyByLevel(
+WORD		wEnemyIndex,
+WORD		wMaxLevel
+)
+{
+	int		j;
+	WORD       w;
+
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return;
+	}
+
+	for (j = 0; j < MAX_POISONS; j++)
+	{
+		w = g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonID;
+		if (gpGlobals->g.rgObject[w].poison.wPoisonLevel <= wMaxLevel)
+		{
+
+#ifdef POISON_STATUS_EXPAND
+			memset(&g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j], 0, sizeof(g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j]));
+#else
+			g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonID = 0;
+			g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonScript = 0;
+#endif
+			break;
+		}
+	}
+}
+
+
+INT
+PAL_New_GetPoisonIndexForEnemy(
+WORD		wEnemyIndex,
+WORD		wPoisonID
+)
+{
+	int i;
+
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return 0;
+	}
+
+	for (i = 0; i < MAX_POISONS; i++)
+	{
+		if (g_Battle.rgEnemy[wEnemyIndex].rgPoisons[i].wPoisonID == wPoisonID)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+VOID 
+PAL_New_AddPoisonForEnemy(
+WORD		wEnemyIndex, 
+WORD		wPoisonID
+)
+/*++
+Purpose:   	对敌方增加指定的毒
+Parameters:    [IN]  wEnemyIndex - 敌人在队伍中的序号.
+[IN]  wPoisonID - the poison to be added.
+Return value:    None.
+注：不可以在该函数内进行毒排序，会造成脚本执行混乱
+--*/
+{
+	int         j;
+	WORD        w;
+
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return;
+	}
+
+	for (j = 0; j < MAX_POISONS; j++)
+	{
+		if (g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonID == wPoisonID)
+		{
+#ifdef POISON_STATUS_EXPAND // 增加毒的烈度
+			INT iSuccessRate = 100;
+			WORD wPoisonLevel = gpGlobals->g.rgObject[wPoisonID].poison.wPoisonLevel;
+			iSuccessRate -= wPoisonLevel * 20;
+			iSuccessRate = max(iSuccessRate, 0);
+			iSuccessRate *= 2;
+			if (PAL_New_GetTrueByPercentage(iSuccessRate))
+			{
+				g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonIntensity++;
+			}
+			switch (wPoisonLevel)
+			{
+				case 0:
+				case 1:
+				case 2:
+					g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonIntensity =
+						min(g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonIntensity, 4);
+					break;
+
+				case 3:
+					g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonIntensity =
+						min(g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonIntensity, 2);
+
+				default:
+					g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonIntensity = 
+						min(g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonIntensity, 1);
+					break;
+			}
+#endif
+			return;
+		}
+	}
+
+	for (j = 0; j < MAX_POISONS; j++)
+	{
+		w = g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonID;
+		if (w == 0)
+		{
+			break;
+		}
+	}
+
+	j = min(j, MAX_POISONS - 1);
+	g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonID = wPoisonID;
+	g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonScript = gpGlobals->g.rgObject[wPoisonID].poison.wEnemyScript;
+
+#ifdef POISON_STATUS_EXPAND // 增加毒的烈度
+	g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonIntensity = 0;
+#endif
+}
+
+
+VOID 
+PAL_New_SortPoisonsForEnemyByLevel(
+WORD		wEnemyIndex
+)
+{
+	int         i, j, PoisonNum;
+	WORD        wPoisonID1, wPoisonID2;
+	WORD        wPoisonLevel1, wPoisonLevel2;
+	POISONSTATUS	tempPoison;
+
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return;
+	}
+
+	for (j = 0, PoisonNum = 0; j < MAX_POISONS; j++)
+	{
+		wPoisonID1 = g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonID;
+		if (wPoisonID1 == 0)
+		{
+			g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonID = 0;
+		}
+		else
+		{
+			PoisonNum++;
+		}
+	}
+
+	if (PoisonNum < 2)		//中毒数目小于2不用排序
+	{
+		return;
+	}
+
+	for (i = 0; i < MAX_POISONS - 1; i++)
+	{
+		for (j = 0; j < MAX_POISONS - i - 1; j++)
+		{
+			wPoisonID1 = g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j].wPoisonID;
+			wPoisonLevel1 = gpGlobals->g.rgObject[wPoisonID1].poison.wPoisonLevel;
+			wPoisonID2 = g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j + 1].wPoisonID;
+			wPoisonLevel2 = gpGlobals->g.rgObject[wPoisonID2].poison.wPoisonLevel;
+
+			if (wPoisonLevel1 < wPoisonLevel2)
+			{
+				tempPoison = g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j];
+				g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j] = g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j + 1];
+				g_Battle.rgEnemy[wEnemyIndex].rgPoisons[j + 1] = tempPoison;
+			}
+		}
+	}
+	return;
+}
+
+WORD 
+PAL_New_GetEnemySorceryResistance(
+WORD		wEnemyIndex
+)
+{
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return 0;
+	}
+
+	WORD w = gpGlobals->g.rgObject[wObjectID].enemy.wResistanceToSorcery * 10;
+
+	return min(w, 100);
+}
+
+WORD
+PAL_New_GetEnemyPoisonResistance(
+WORD		wEnemyIndex
+)
+{
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return 0;
+	}
+
+	WORD w = g_Battle.rgEnemy[wEnemyIndex].e.wPoisonResistance * 10;
+
+	return min(w, 100);
+}
+
+WORD
+PAL_New_GetEnemyDualMove(
+WORD		wEnemyIndex
+)
+{
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return 0;
+	}
+
+	if (g_Battle.rgEnemy[wEnemyIndex].e.wDualMove == 0)
+	{
+		return 1;
+	}
+    if (g_Battle.rgEnemy[wEnemyIndex].e.wDualMove > 0 && g_Battle.rgEnemy[wEnemyIndex].e.wDualMove < 3)
+    {
+		return 2;
+	}
+	if (g_Battle.rgEnemy[wEnemyIndex].e.wDualMove == 3)
+	{
+		return 3;
+	}
+
+	WORD w = g_Battle.rgEnemy[wEnemyIndex].e.wDualMove;
+
+	return min(w, 3);
+}
+
+WORD
+PAL_New_GetEnemyPhysicalResistance(
+WORD		wEnemyIndex
+)
+{
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return 0;
+	}
+
+	WORD w = g_Battle.rgEnemy[wEnemyIndex].e.wPhysicalResistance * 10;
+
+	return min(w, 100);
+}
+
+WORD
+PAL_New_GetEnemyElementalResistance(
+WORD		wEnemyIndex,
+INT			iAttrib
+)
+{
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return 0;
+	}
+
+	WORD w = g_Battle.rgEnemy[wEnemyIndex].e.wElemResistance[iAttrib] * 10;
+
+	return min(w, 100);
+}
+
+VOID
+PAL_New_SetEnemyStatus(
+WORD		wEnemyIndex,
+WORD		wStatusID,
+WORD		wNumRound
+)
+{
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return;
+	}
+
+	WORD wNumRoundNow = g_Battle.rgEnemy[wEnemyIndex].rgwStatus[wStatusID];
+
+	switch (wStatusID)
+	{
+		case kStatusConfused:
+		case kStatusSleep:
+		case kStatusSilence:
+#ifdef PAL_CLASSIC
+		case kStatusParalyzed:
+#else
+		case kStatusSlow:
+#endif
+		case kStatusPuppet:
+		case kStatusBravery:
+		case kStatusProtect:
+		case kStatusDualAttack:
+		case kStatusHaste:
+		{
+			if (wNumRoundNow == 0)
+			{
+				g_Battle.rgEnemy[wEnemyIndex].rgwStatus[wStatusID] = wNumRound;
+			}
+			else if (wNumRoundNow <= 2)
+			{
+				g_Battle.rgEnemy[wEnemyIndex].rgwStatus[wStatusID]++;
+			}
+			break;
+		}
+
+		default:
+			assert(FALSE);
+			break;
+	}
+}
+
+WORD
+PAL_New_GetEnemyAttackStrength(
+WORD		wEnemyIndex
+)
+{
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return 0;
+	}
+
+	INT s = (SHORT)g_Battle.rgEnemy[wEnemyIndex].e.wAttackStrength;
+
+#ifdef EDIT_DAMAGE_CALC
+	s += g_Battle.rgEnemy[wEnemyIndex].e.wLevel * 7;
+#else
+	s += (g_Battle.rgEnemy[wEnemyIndex].e.wLevel + 6) * 6;
+#endif
+
+#ifdef FINISH_GAME_MORE_ONE_TIME
+	s += g_Battle.rgEnemy[wEnemyIndex].e.wLevel * gpGlobals->bFinishGameTime / 2;
+#endif
+
+	s = max(s, 0);
+	s = min(s, 0xFFFF);
+
+	return (WORD)s;
+}
+
+WORD
+PAL_New_GetEnemyMagicStrength(
+WORD		wEnemyIndex
+)
+{
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return 0;
+	}
+
+	INT s = (SHORT)g_Battle.rgEnemy[wEnemyIndex].e.wMagicStrength;
+
+#ifdef EDIT_DAMAGE_CALC
+
+	s += g_Battle.rgEnemy[wEnemyIndex].e.wLevel * 7;
+#else
+	s += (g_Battle.rgEnemy[wEnemyIndex].e.wLevel + 6) * 6;
+#endif
+
+#ifdef FINISH_GAME_MORE_ONE_TIME
+	s += g_Battle.rgEnemy[wEnemyIndex].e.wLevel * gpGlobals->bFinishGameTime;
+#endif
+
+	s = max(s, 0);
+	s = min(s, 0xFFFF);
+
+	return (WORD)s;
+}
+
+WORD
+PAL_New_GetEnemyDefense(
+WORD		wEnemyIndex
+)
+{
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return 0;
+	}
+
+	INT s = (SHORT)g_Battle.rgEnemy[wEnemyIndex].e.wDefense;
+	
+#ifdef EDIT_DAMAGE_CALC
+	s += g_Battle.rgEnemy[wEnemyIndex].e.wLevel * 5;
+#else
+	s += (g_Battle.rgEnemy[wEnemyIndex].e.wLevel + 6) * 4;
+#endif
+
+#ifdef FINISH_GAME_MORE_ONE_TIME
+	s += g_Battle.rgEnemy[wEnemyIndex].e.wLevel * gpGlobals->bFinishGameTime;
+#endif
+
+	s = max(s, 0);
+	s = min(s, 0xFFFF);
+
+	return (WORD)s;
+}
+
+WORD 
+PAL_New_GetEnemyDexterity(
+WORD		wEnemyIndex
+)
+{
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return 0;
+	}
+
+	INT s = (SHORT)g_Battle.rgEnemy[wEnemyIndex].e.wDexterity;
+
+#ifdef EDIT_DAMAGE_CALC
+	s += g_Battle.rgEnemy[wEnemyIndex].e.wLevel * 4;
+#else
+	s += (g_Battle.rgEnemy[wEnemyIndex].e.wLevel + 6) * 3;
+#endif
+
+#ifdef FINISH_GAME_MORE_ONE_TIME
+	s += g_Battle.rgEnemy[wEnemyIndex].e.wLevel * (gpGlobals->bFinishGameTime - 1);
+#endif
+
+	s = max(s, 0);
+	s = min(s, 0xFFFF);
+
+	return (WORD)s;
+}
+
+WORD
+PAL_New_GetEnemyFleeRate(
+WORD		wEnemyIndex
+)
+{
+	WORD wObjectID = g_Battle.rgEnemy[wEnemyIndex].wObjectID;
+	if (wEnemyIndex >= MAX_ENEMIES_IN_TEAM || wObjectID == 0)
+	{
+		return 0;
+	}
+
+	INT s = (SHORT)(g_Battle.rgEnemy[wEnemyIndex].e.wFleeRate);
+
+#ifdef EDIT_DAMAGE_CALC
+	s += g_Battle.rgEnemy[wEnemyIndex].e.wLevel * 3;
+#else
+	s += (g_Battle.rgEnemy[wEnemyIndex].e.wLevel + 6) * 2;
+#endif
+
+#ifdef FINISH_GAME_MORE_ONE_TIME
+	s += g_Battle.rgEnemy[wEnemyIndex].e.wLevel * gpGlobals->bFinishGameTime;
+#endif
+
+	s = max(s, 0);
+	s = min(s, 0xFFFF);
+
+	return (WORD)s;
+}
+
+DWORD
+PAL_New_EstimateEnemyHealthByLevel(
+WORD		wEnemyLevel
+)
+{
+	DWORD dwNewHP = 0;
+
+	if (wEnemyLevel <= 50)
+	{
+		dwNewHP = 50 * wEnemyLevel + 200;
+	}
+	else if (wEnemyLevel <= 100)
+	{
+		dwNewHP = (DWORD)(0.01 * pow(wEnemyLevel, 3));
+		dwNewHP += 1200;
+	}
+	else
+	{
+		dwNewHP = 11200;
+		dwNewHP += 50 * (wEnemyLevel - 100) + 200;
+	}
+	return dwNewHP;
 }

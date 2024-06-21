@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -52,6 +52,10 @@ typedef enum tagSTATUS
    kStatusProtect,       // more defense value
    kStatusHaste,         // faster
    kStatusDualAttack,    // dual attack
+   kStatusfujia,
+   kStatusfujia1,
+   kStatusdunjia,
+   kStatusdunjia1,
    kStatusAll
 } STATUS;
 
@@ -69,6 +73,7 @@ typedef enum tagBODYPART
    kBodyPartFeet,
    kBodyPartWear,
    kBodyPartExtra,
+   kBodyPartfujia,
 } BODYPART;
 
 // state of event object, used by the sState field of the EVENTOBJECT struct
@@ -303,7 +308,7 @@ typedef struct tagPLAYERROLES
    PLAYERS            rgwSpriteNum;          // sprite displayed in normal scene (in MGO.MKF)
    PLAYERS            rgwName;               // name of player class (in WORD.DAT)
    PLAYERS            rgwAttackAll;          // whether player can attack everyone in a bulk or not
-   PLAYERS            rgwUnknown1;           // FIXME: ???
+   PLAYERS            rgwCanBeyondMaxPara;   // 未知属性 //暂时用来作为是否检查超过最大值的标志位
    PLAYERS            rgwLevel;              // level
    PLAYERS            rgwMaxHP;              // maximum HP
    PLAYERS            rgwMaxMP;              // maximum MP
@@ -317,9 +322,9 @@ typedef struct tagPLAYERROLES
    PLAYERS            rgwFleeRate;           // chance of successful fleeing
    PLAYERS            rgwPoisonResistance;   // resistance to poison
    WORD               rgwElementalResistance[NUM_MAGIC_ELEMENTAL][MAX_PLAYER_ROLES]; // resistance to elemental magics
-   PLAYERS            rgwUnknown2;           // FIXME: ???
-   PLAYERS            rgwUnknown3;           // FIXME: ???
-   PLAYERS            rgwUnknown4;           // FIXME: ???
+   PLAYERS            rgwSorceryResistance;  // 未知属性 //暂时用来作为巫抗
+   PLAYERS            rgwPhysicalResistance; // 未知属性 //暂时用来作为物抗
+   PLAYERS            rgwSorceryStrength;    // 未知属性 //暂时用来作为巫攻
    PLAYERS            rgwCoveredBy;          // who will cover me when I am low of HP or not sane
    WORD               rgwMagic[MAX_PLAYER_MAGICS][MAX_PLAYER_ROLES]; // magics
    PLAYERS            rgwWalkFrames;         // walk frame (???)
@@ -347,20 +352,13 @@ typedef enum tagMAGIC_TYPE
    kMagicTypeSummon           = 9,  // summon
 } MAGIC_TYPE;
 
-typedef union tagMAGIC_SPECIAL
-{
-   WORD               wSummonEffect;         // summon effect sprite (in F.MKF)
-   SHORT              sLayerOffset;          // limited to non-summon magic.
-                                             // actual layer: PAL_Y(pos) + wYOffset + wMagicLayerOffset
-} MAGIC_SPECIAL, * LPMAGIC_SPECIAL;
-
 typedef struct tagMAGIC
 {
    WORD               wEffect;               // effect sprite
    WORD               wType;                 // type of this magic
    WORD               wXOffset;
    WORD               wYOffset;
-   MAGIC_SPECIAL      rgSpecific;            // have multiple meanings
+   WORD               wSummonEffect;         // summon effect sprite (in F.MKF)
    SHORT              wSpeed;                // speed of the effect
    WORD               wKeepEffect;           // FIXME: ???
    WORD               wFireDelay;            // start frame of the magic fire stage
@@ -518,7 +516,7 @@ typedef struct tagGLOBALVARS
 #endif
    WORD             wLastUnequippedItem; // last unequipped item
 
-   PLAYERROLES      rgEquipmentEffect[MAX_PLAYER_EQUIPMENTS + 1]; // equipment effects
+   PLAYERROLES      rgEquipmentEffect[MAX_PLAYER_EQUIPMENTS + 2]; // equipment effects
    WORD             rgPlayerStatus[MAX_PLAYER_ROLES][kStatusAll]; // player status
 
    PAL_POS          viewport;            // viewport coordination
@@ -548,6 +546,45 @@ typedef struct tagGLOBALVARS
    INVENTORY        rgInventory[MAX_INVENTORY];  // inventory status
    LPOBJECTDESC     lpObjectDesc;
    DWORD            dwFrameNum;
+   
+   BOOL				fShowDataInBattle;
+   BOOL				fhuanzhuang;
+   BOOL				flianfa;
+   BOOL				fsudu;
+   BOOL				fsudu2;
+   
+   BOOL				fzhufu;
+   BOOL				fzhufu1;
+   BOOL				fdunjia;
+   BOOL				fdunjia1;
+   BOOL				ftiangang;
+   BOOL				ffenlei;
+   BOOL				ffenlei1;
+   BOOL				ffenlei2;
+   WORD				ffenlei3;
+   BOOL				fzidongshouyao;
+   BOOL				ftouqiefangtao;//偷窃防逃：只要是战斗中偷窃了，就逃跑不了。
+   BOOL				ftouqiefangtao1;
+
+#ifdef FINISH_GAME_MORE_ONE_TIME
+   BYTE				bFinishGameTime;
+#endif
+
+   DWORD            a1;    
+   DWORD            a2; 
+   DWORD            a3;    
+   DWORD            a4; 
+   DWORD            a5;    
+   DWORD            a6; 
+   DWORD            a7;    
+   DWORD            a8; 
+   DWORD            a9;    
+   DWORD            a10; 
+   DWORD            a11;    
+   DWORD            a12; 
+   DWORD            a13;    
+   DWORD            a14;
+   DWORD            a15;    
 } GLOBALVARS, *LPGLOBALVARS;
 
 PAL_C_LINKAGE_BEGIN
@@ -596,12 +633,6 @@ PAL_CountItem(
 );
 
 BOOL
-PAL_GetItemIndexToInventory(
-   WORD          wObjectID,
-   INT* index
-);
-
-BOOL
 PAL_AddItemToInventory(
    WORD          wObjectID,
    INT           iNum
@@ -633,6 +664,16 @@ VOID
 PAL_RemoveEquipmentEffect(
    WORD         wPlayerRole,
    WORD         wEquipPart
+);
+
+VOID
+PAL_zhufu(
+   WORD         wPlayerRole
+);
+
+VOID
+PAL_qimendunjia(
+   WORD         wPlayerRole
 );
 
 VOID
@@ -728,7 +769,7 @@ PAL_RemoveMagic(
    WORD           wMagic
 );
 
-BOOL
+VOID
 PAL_SetPlayerStatus(
    WORD         wPlayerRole,
    WORD         wStatusID,
@@ -750,6 +791,35 @@ VOID
 PAL_PlayerLevelUp(
    WORD          wPlayerRole,
    WORD          wNumLevel
+);
+
+WORD 
+PAL_New_GetPlayerSorceryResistance(
+WORD			wPlayerRole
+);
+
+WORD
+PAL_New_GetPlayerSorceryStrength(
+WORD			wPlayerRole
+);
+
+#ifdef FINISH_GAME_MORE_ONE_TIME
+VOID PAL_New_GoBackAndLoadDefaultGame(VOID);
+#endif
+
+INT PAL_New_GetPlayerIndexByHealth(BOOL fGetLowest);
+
+BOOL PAL_New_GetTrueByPercentage(WORD wPercentage);
+
+INT PAL_New_GetPlayerIndex(WORD wPlayerRole);
+
+VOID
+PAL_FindEnemyBooty(
+	WORD           wScriptEntry,
+	WORD           wEnemyIndex,
+	PAL_POS        pNumPos,
+	PAL_POS        pUIPos,
+	PAL_POS        pTextPos
 );
 
 PAL_C_LINKAGE_END

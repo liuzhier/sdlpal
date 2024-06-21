@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -503,20 +503,9 @@ PAL_MakeScene(
 
 BOOL
 PAL_CheckObstacle(
-    PAL_POS         pos,
-    BOOL            fCheckEventObjects,
-    WORD            wSelfObject
-)
-{
-    return PAL_CheckObstacleWithRange(pos, fCheckEventObjects, wSelfObject, FALSE);
-}
-
-BOOL
-PAL_CheckObstacleWithRange(
-    PAL_POS         pos,
-    BOOL            fCheckEventObjects,
-    WORD            wSelfObject,
-    BOOL			fCheckRange
+   PAL_POS         pos,
+   BOOL            fCheckEventObjects,
+   WORD            wSelfObject
 )
 /*++
    Purpose:
@@ -531,8 +520,6 @@ PAL_CheckObstacleWithRange(
            check for the map.
 
      [IN]  wSelfObject - the event object which will be skipped.
-
-     [IN]  fCheckRange - whether need to check range.
 
    Return value:
 
@@ -553,7 +540,6 @@ PAL_CheckObstacleWithRange(
    //
    // Avoid walk out of range, look out of map
    //
-   if( fCheckRange )
    if (x < blockX || x >= 2048 || y < blockY || y >= 2048 )
    {
       return TRUE;
@@ -679,31 +665,46 @@ PAL_UpdatePartyGestures(
 
       //
       // Update the gestures and positions for other party members
-      //
-      for (i = 1; i <= (short)gpGlobals->wMaxPartyMemberIndex; i++)
+      //多人战斗：人物行走
+		for (i = 1; i <= (short)gpGlobals->wMaxPartyMemberIndex; i++)
       {
          gpGlobals->rgParty[i].x = gpGlobals->rgTrail[1].x - PAL_X(gpGlobals->viewport);
          gpGlobals->rgParty[i].y = gpGlobals->rgTrail[1].y - PAL_Y(gpGlobals->viewport);
 
-         if (i == 2)
-         {
-            gpGlobals->rgParty[i].x +=
-               (gpGlobals->rgTrail[1].wDirection == kDirEast || gpGlobals->rgTrail[1].wDirection == kDirWest) ? -16 : 16;
-            gpGlobals->rgParty[i].y += 8;
-         }
-         else
+         if (i == 1)
          {
             gpGlobals->rgParty[i].x +=
                ((gpGlobals->rgTrail[1].wDirection == kDirWest || gpGlobals->rgTrail[1].wDirection == kDirSouth) ? 16 : -16);
             gpGlobals->rgParty[i].y +=
                ((gpGlobals->rgTrail[1].wDirection == kDirWest || gpGlobals->rgTrail[1].wDirection == kDirNorth) ? 8 : -8);
          }
+		 
+         if (i == 2)
+         {
+            gpGlobals->rgParty[i].x +=
+               (gpGlobals->rgTrail[1].wDirection == kDirEast || gpGlobals->rgTrail[1].wDirection == kDirWest) ? -18 : 18;
+            gpGlobals->rgParty[i].y += 8;
+         }
+         
+		 if (i == 3)
+         {
+            gpGlobals->rgParty[i].x +=
+               (gpGlobals->rgTrail[1].wDirection == kDirEast || gpGlobals->rgTrail[1].wDirection == kDirWest) ? 0 : 0;
+            gpGlobals->rgParty[i].y += -10;
+         }
+		 
+		 if (i == 4)
+         {
+            gpGlobals->rgParty[i].x +=
+               ((gpGlobals->rgTrail[1].wDirection == kDirWest || gpGlobals->rgTrail[1].wDirection == kDirSouth) ? 0 : 0);
+            gpGlobals->rgParty[i].y += 26;
+         }
 
          //
          // Adjust the position if there is obstacle
          //
-         if (PAL_CheckObstacleWithRange(PAL_XY(gpGlobals->rgParty[i].x + PAL_X(gpGlobals->viewport),
-            gpGlobals->rgParty[i].y + PAL_Y(gpGlobals->viewport)), TRUE, 0, TRUE))
+         if (PAL_CheckObstacle(PAL_XY(gpGlobals->rgParty[i].x + PAL_X(gpGlobals->viewport),
+            gpGlobals->rgParty[i].y + PAL_Y(gpGlobals->viewport)), TRUE, 0))
          {
             gpGlobals->rgParty[i].x = gpGlobals->rgTrail[1].x - PAL_X(gpGlobals->viewport);
             gpGlobals->rgParty[i].y = gpGlobals->rgTrail[1].y - PAL_Y(gpGlobals->viewport);
@@ -808,7 +809,7 @@ PAL_UpdateParty(
       //
       // Check for obstacles on the destination location
       //
-      if (!PAL_CheckObstacleWithRange(PAL_XY(xTarget, yTarget), TRUE, 0, TRUE))
+      if (!PAL_CheckObstacle(PAL_XY(xTarget, yTarget), TRUE, 0))
       {
          //
          // Player will actually be moved. Store trail.

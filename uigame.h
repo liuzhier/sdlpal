@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -57,6 +57,16 @@ PAL_SwitchMenu(
    BOOL      fEnabled
 );
 
+BOOL
+PAL_SwitchMenu1(
+   BOOL      fEnabled
+);
+
+BOOL
+PAL_SwitchMenu2(
+   BOOL      fEnabled
+);
+
 VOID
 PAL_InGameMagicMenu(
    VOID
@@ -95,6 +105,31 @@ PAL_EquipItemMenu(
 VOID
 PAL_QuitGame(
    VOID
+);
+
+VOID
+PAL_New_kuaijiecundang(
+VOID
+);
+
+VOID
+PAL_New_kuaijiedudang(
+VOID
+);
+
+VOID
+PAL_gongneng(
+VOID
+);
+
+VOID
+PAL_linghushangdian(
+   WORD           wStoreNum
+);
+
+VOID
+PAL_zhuangbeilianhua(
+VOID
 );
 
 PAL_C_LINKAGE_END

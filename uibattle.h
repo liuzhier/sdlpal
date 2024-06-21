@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -43,6 +43,7 @@ typedef enum tagBATTLEMENUSTATE
    kBattleMenuThrowItemSelect,
    kBattleMenuMisc,
    kBattleMenuMiscItemSubMenu,
+   kBattleMenugongneng,
 } BATTLEMENUSTATE;
 
 typedef enum tagBATTLEUIACTION
@@ -63,6 +64,8 @@ typedef enum tagBATTLEUIACTION
 
 #define SPRITENUM_BATTLE_ARROW_SELECTEDPLAYER          67
 #define SPRITENUM_BATTLE_ARROW_SELECTEDPLAYER_RED      66
+
+#define LABEL_NOTHING					29990
 
 #define BATTLEUI_LABEL_ITEM              5
 #define BATTLEUI_LABEL_DEFEND            58
@@ -143,6 +146,31 @@ PAL_BattleUIShowNum(
    WORD           wNum,
    PAL_POS        pos,
    NUMCOLOR       color
+);
+
+VOID
+PAL_New_BattleUIShowData(
+VOID
+);
+
+VOID
+PAL_New_EnemyStatus(
+VOID
+);
+
+VOID
+PAL_New_PlayerLevelmagic(
+VOID
+);
+
+VOID 
+PAL_New_SortInventory(
+VOID
+);
+
+VOID
+PAL_New_bangzhujiemian(
+VOID
 );
 
 PAL_C_LINKAGE_END

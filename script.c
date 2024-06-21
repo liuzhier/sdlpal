@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -26,6 +26,33 @@
 
 BOOL            g_fScriptSuccess = TRUE;
 static int      g_iCurEquipPart = -1;
+
+static WORD 
+PAL_NEW_CheckAndGetLegalPlayerTarget(
+WORD wPlayerRole
+)
+/*++
+  功能：    检查对象是否是一个合法的我方角色目标
+  参数：    对象id
+  返回值：  一个合法的我方角色目标id
+  --*/
+{
+	INT		i;
+	for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+	{
+		if (wPlayerRole == gpGlobals->rgParty[i].wPlayerRole)
+		{
+			return wPlayerRole;
+		}
+	}
+
+	if (i > gpGlobals->wMaxPartyMemberIndex)
+	{
+		i = RandomLong(0, gpGlobals->wMaxPartyMemberIndex);
+		wPlayerRole = gpGlobals->rgParty[i].wPlayerRole;
+	}
+	return wPlayerRole;
+}
 
 static BOOL
 PAL_NPCWalkTo(
@@ -433,6 +460,7 @@ PAL_MonsterChasePlayer(
             y = pEvtObj->y;
          }
 
+         //怪物追逐速度
          if (fFloating)
          {
             wMonsterSpeed = wSpeed;
@@ -544,7 +572,7 @@ PAL_AdditionalCredits(
       L" ",
 	  L"    (c) 2009-2011, Wei Mingzhi",
 	  L"        <whistler_wmz@users.sf.net>.",
-      L"    (c) 2011-2024, SDLPAL Team",
+      L"    (c) 2011-2021, SDLPAL Team",
 	  L"%ls",  // Porting information line 1
 	  L"%ls",  // Porting information line 2
 	  L"%ls",  // GNU line 1
@@ -596,6 +624,7 @@ PAL_InterpretInstruction(
    LPSCRIPTENTRY          pScript;
    int                    iPlayerRole, i, j, x, y;
    WORD                   w, wCurEventObjectID;
+   WORD				      wPlayerRole;
 
    pScript = &(gpGlobals->g.lprgScriptEntry[wScriptEntry]);
 
@@ -769,28 +798,11 @@ PAL_InterpretInstruction(
          w = gpGlobals->g.PlayerRoles.rgwEquipment[i][wEventObjectID];
          gpGlobals->g.PlayerRoles.rgwEquipment[i][wEventObjectID] = pScript->rgwOperand[1];
 
-         if (PAL_GetItemIndexToInventory(pScript->rgwOperand[1], &i)
-            && i < MAX_INVENTORY
-            && gpGlobals->rgInventory[i].nAmount == 1
-            && w != 0
-            && !PAL_GetItemIndexToInventory(w, &j))
-         {
-            //
-            // When the number of items you want to wear is 1 
-            // and the number of items you are wearing is also 1, 
-            // replace them directly, instead of removing items 
-            // and adding them at the end of the item menu
-            //
-            gpGlobals->rgInventory[i].wItem = w;
-         }
-         else
-         {
-            PAL_AddItemToInventory(pScript->rgwOperand[1], -1);
+         PAL_AddItemToInventory(pScript->rgwOperand[1], -1);
 
-            if (w != 0)
-            {
-               PAL_AddItemToInventory(w, 1);
-            }
+         if (w != 0)
+         {
+            PAL_AddItemToInventory(w, 1);
          }
 
          gpGlobals->wLastUnequippedItem = w;
@@ -959,6 +971,9 @@ PAL_InterpretInstruction(
       // Add item to inventory
       //
       PAL_AddItemToInventory(pScript->rgwOperand[0], (SHORT)(pScript->rgwOperand[1]));
+	  //物品栏自动排序
+	  PAL_New_SortInventory();
+	  
       break;
 
    case 0x0020:
@@ -1001,32 +1016,150 @@ PAL_InterpretInstruction(
       else
           wScriptEntry = pScript->rgwOperand[2] - 1;
       break;
-
-   case 0x0021:
+	  
+   case 0x00AA:
       //
-      // Inflict damage to the enemy
+      // 灵葫值消耗
       //
-      if (pScript->rgwOperand[0])
+      if (gpGlobals->wCollectValue < pScript->rgwOperand[0])
       {
          //
-         // Inflict damage to all enemies
+         // not enough cash
          //
-         for (i = 0;i <= g_Battle.wMaxEnemyIndex; i++)
-         {
-            if (g_Battle.rgEnemy[i].wObjectID != 0)
-            {
-               g_Battle.rgEnemy[i].e.wHealth -= pScript->rgwOperand[1];
-            }
-         }
+         wScriptEntry = pScript->rgwOperand[1] - 1;
       }
       else
       {
-         //
-         // Inflict damage to one enemy
-         //
-         g_Battle.rgEnemy[wEventObjectID].e.wHealth -= pScript->rgwOperand[1];
+         gpGlobals->wCollectValue -= pScript->rgwOperand[0];
       }
       break;
+	  
+   case 0x00AB:
+      //
+      // 若该队员已中此毒则跳转
+      //
+      if (PAL_IsPlayerPoisonedByKind(wEventObjectID, pScript->rgwOperand[0]))
+      {
+         wScriptEntry = pScript->rgwOperand[1] - 1;
+      }
+      break;
+	  
+   case 0x00AC:
+      //
+      // 若该队员血量为0则解掉该毒然后中断该脚本
+      //
+      if (gpGlobals->g.PlayerRoles.rgwHP[wEventObjectID] == 0)
+      {
+         PAL_CurePoisonByKind(wEventObjectID, pScript->rgwOperand[0]);
+		 wScriptEntry = pScript->rgwOperand[1] - 1;
+      }
+      break;
+	  
+   case 0x00AE:
+      // 参数1 参数2
+      // 临时增减属性指令
+      // 参数1 主角属性地址
+      // 参数2 整数
+      // 我方选定对象的参数1代表的属性临时增减参数2*1%，战斗结束后恢复
+      {
+         WORD *p = (WORD *)(&gpGlobals->rgEquipmentEffect[kBodyPartfujia]); // HACKHACK
+         WORD *p1 = (WORD *)(&gpGlobals->g.PlayerRoles);
+
+         if (pScript->rgwOperand[2] == 0)
+         {
+            iPlayerRole = wEventObjectID;
+         }
+         else
+         {
+            iPlayerRole = pScript->rgwOperand[2] - 1;
+         }
+
+         p[pScript->rgwOperand[0] * MAX_PLAYER_ROLES + iPlayerRole] =
+            p1[pScript->rgwOperand[0] * MAX_PLAYER_ROLES + iPlayerRole] *
+               (SHORT)pScript->rgwOperand[1] / 100;
+      }
+      break;
+	  
+   case 0x00AF:
+      // 设置圣灵祝福状态参数
+      {
+		 gpGlobals->fzhufu1 = FALSE; 
+         PAL_zhufu(wEventObjectID);
+      }
+      break;
+	  
+   case 0x00B3:
+      // 给圣灵祝福等待状态
+      {
+         gpGlobals->fzhufu = 9;
+		 PAL_SetPlayerStatus(wEventObjectID, kStatusfujia, 9);
+      }
+      break;
+	  
+   case 0x00B0:
+      // 设置以气化劲状态参数
+      {
+         PAL_qimendunjia(wEventObjectID);
+      }
+      break;
+	  
+   case 0x00B2:
+      // 给以气化劲赋值数值
+      {
+         gpGlobals->fdunjia = 1;
+      }
+      break;
+	  
+   case 0x00B4:
+      // 检测以气化劲的状态是否为0
+      {
+         if (gpGlobals->rgPlayerStatus[wEventObjectID][kStatusdunjia1] > 0)
+         {
+			 wScriptEntry = pScript->rgwOperand[0] - 1;
+		 }
+			 
+      }
+      break;
+	  
+   case 0x00FE:
+      // 关掉战斗加速
+	  // 让某些法术特效看上去更佳
+      {
+         gpGlobals->fsudu = TRUE; 
+      }
+      break;
+	  
+   case 0x00FF:
+      // 开启战斗加速
+      {
+         gpGlobals->fsudu = FALSE;
+      }
+      break;
+	  
+   case 0x0021:
+			/*
+			21 参数1 参数2	   伤敌指令
+			参数1：是否全体
+			参数2：整数
+			作用	   对选定敌人或全体造成参数2数量的伤害（伤害值为负时变为增加血量）
+			*/
+		{
+			SHORT sDamage = (SHORT)pScript->rgwOperand[1];//可正可负
+			if (pScript->rgwOperand[0])
+			{
+				// Inflict damage to all enemies
+				for (i = 0; i <= g_Battle.wMaxEnemyIndex; i++)
+				{
+					PAL_New_DecreaseHPForEnemy(i, sDamage);
+				}
+			}
+			else
+			{
+				// Inflict damage to one enemy
+				PAL_New_DecreaseHPForEnemy(wEventObjectID, sDamage);
+			}
+			break;
+		}
 
    case 0x0022:
       //
@@ -1084,7 +1217,6 @@ PAL_InterpretInstruction(
       //
       // Remove equipment from the specified player
       //
-      iPlayerRole = pScript->rgwOperand[0];
       if (pScript->rgwOperand[1] == 0)
       {
          //
@@ -1347,9 +1479,33 @@ PAL_InterpretInstruction(
       //
       // Set the status for player
       //
-      if (!PAL_SetPlayerStatus(wEventObjectID, pScript->rgwOperand[0], pScript->rgwOperand[1]))
+      /*
+	      2D 参数1 参数2 参数3		   我方特殊状态指令
+	      参数1 状态代号		    00：疯魔
+	      01：定身
+	      02：昏睡
+	      03：咒封
+	      04：死者继续攻击
+	      05：普通攻击加强
+	      06：防御加强
+	      07：身法加强
+	      08：两次攻击
+	      参数2 整
+	      参数3 是否全体
+            0：单体
+            1：全体
+	      作用		   我方选定对象或全体获得参数1代表特殊状态，持续参数2回合
+	      */
+      if ((pScript->rgwOperand[2]))
       {
-         g_fScriptSuccess = FALSE;
+         for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+         {
+            PAL_SetPlayerStatus(gpGlobals->rgParty[i].wPlayerRole, pScript->rgwOperand[0], pScript->rgwOperand[1]);
+         }
+      }
+      else
+      {
+         PAL_SetPlayerStatus(wEventObjectID, pScript->rgwOperand[0], pScript->rgwOperand[1]);
       }
       break;
 
@@ -1357,6 +1513,23 @@ PAL_InterpretInstruction(
       //
       // Set the status for enemy
       //
+      /*
+         2E 参数1 参数2 参数3
+         敌方特殊状态指令
+
+         参数1 状态代号
+
+         参数2 整数
+
+         参数3 脚本地址
+
+         作用
+         敌方选定对象或全体获得参数1代表特殊状态，持续参数2回合，若不受该状态影响，则
+
+         跳转参数3指向的脚本地址
+      */
+   {
+      WORD  k;
       w = g_Battle.rgEnemy[wEventObjectID].wObjectID;
 
 #ifdef PAL_CLASSIC
@@ -1365,21 +1538,57 @@ PAL_InterpretInstruction(
       i = ((pScript->rgwOperand[0] == kStatusSlow) ? 14 : 9);
 #endif
 
-      if (RandomLong(0, i) > gpGlobals->g.rgObject[w].enemy.wResistanceToSorcery)
+      if (pScript->rgwOperand[2])
       {
-         g_Battle.rgEnemy[wEventObjectID].rgwStatus[pScript->rgwOperand[0]] = pScript->rgwOperand[1];
+         for (k = 0; k <= g_Battle.wMaxEnemyIndex; k++)
+         {
+            if (RandomLong(0, i) > gpGlobals->g.rgObject[w].enemy.wResistanceToSorcery)
+            {
+               g_Battle.rgEnemy[k].rgwStatus[pScript->rgwOperand[0]] = pScript->rgwOperand[1];
+            }
+         }
       }
       else
       {
-         wScriptEntry = pScript->rgwOperand[2] - 1;
+         if (RandomLong(0, i) > gpGlobals->g.rgObject[w].enemy.wResistanceToSorcery)
+         {
+            g_Battle.rgEnemy[wEventObjectID].rgwStatus[pScript->rgwOperand[0]] = pScript->rgwOperand[1];
+         }
+         else
+         {
+            wScriptEntry = pScript->rgwOperand[2] - 1;
+         }
       }
-      break;
+   }
+   break;
 
    case 0x002F:
       //
       // Remove player's status
-      //
-      PAL_RemovePlayerStatus(wEventObjectID, pScript->rgwOperand[0]);
+      /*
+         2F 参数1 参数2
+            我方解除特殊状态指令
+
+            参数1 状态代号
+
+            参数2 是否全体
+               0：单体
+               1：全体
+
+            作用
+            我方选定对象或全体解除参数1代表的特殊状态
+      */
+      if ((pScript->rgwOperand[1]))
+      {
+         for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+         {
+            PAL_RemovePlayerStatus(i, pScript->rgwOperand[0]);
+         }
+      }
+      else
+      {
+         PAL_RemovePlayerStatus(wEventObjectID, pScript->rgwOperand[0]);
+      }
       break;
 
    case 0x0030:
@@ -1419,6 +1628,10 @@ PAL_InterpretInstruction(
       //
       if (g_Battle.rgEnemy[wEventObjectID].e.wCollectValue != 0)
       {
+		  
+		  //若是灵葫咒收妖，函数变量为真，不让自动收妖过判定
+		  gpGlobals->fzidongshouyao = TRUE;
+		  
          gpGlobals->wCollectValue +=
             g_Battle.rgEnemy[wEventObjectID].e.wCollectValue;
       }
@@ -1432,6 +1645,9 @@ PAL_InterpretInstruction(
       //
       // Transform collected enemies into items
       //
+	  PAL_linghushangdian(0);
+
+	  /*++
       if (gpGlobals->wCollectValue > 0)
       {
          WCHAR s[256];
@@ -1453,12 +1669,12 @@ PAL_InterpretInstruction(
          gpGlobals->wCollectValue -= i;
          i--;
 
-         PAL_AddItemToInventory(gpGlobals->g.lprgStore[0].rgwItems[i], 1);
+         PAL_AddItemToInventory(gpGlobals->ffenlei1, 1);
 
          g_TextLib.iDialogShadow = 5;
          PAL_StartDialogWithOffset(kDialogCenterWindow, 0, 0, FALSE, 0, -10);
          PAL_swprintf(s, sizeof(s) / sizeof(WCHAR), L"%ls@%ls@", PAL_GetWord(42),
-            PAL_GetWord(gpGlobals->g.lprgStore[0].rgwItems[i]));
+            PAL_GetWord(gpGlobals->ffenlei1));
          LPCBITMAPRLE pBG = PAL_SpriteGetFrame(gpSpriteUI, SPRITENUM_ITEMBOX);
          INT iBGWidth = PAL_RLEGetWidth(pBG), iBGHeight = PAL_RLEGetHeight(pBG);
          INT iBG_X = (320 - iBGWidth) / 2, iBG_Y = (200 - iBGHeight) / 2;
@@ -1466,7 +1682,7 @@ PAL_InterpretInstruction(
          SDL_Rect rect = {iBG_X, iBG_Y, iBGWidth, iBGHeight};
          PAL_RLEBlitToSurface(pBG, gpScreen, pos);
          
-         WORD wObject = gpGlobals->g.lprgStore[0].rgwItems[i];
+         WORD wObject = gpGlobals->ffenlei1;
          static WORD wPrevImageIndex = 0xFFFF;
          static BYTE bufImage[2048];
          if (gpGlobals->g.rgObject[wObject].item.wBitmap != wPrevImageIndex)
@@ -1495,6 +1711,7 @@ PAL_InterpretInstruction(
       {
          wScriptEntry = pScript->rgwOperand[0] - 1;
       }
+	  --*/
       break;
 
    case 0x0035:
@@ -1550,19 +1767,29 @@ PAL_InterpretInstruction(
       break;
 
    case 0x0039:
-      //
-      // Drain HP from enemy
-      //
-      w = gpGlobals->rgParty[g_Battle.wMovingPlayerIndex].wPlayerRole;
+			/*
+			吸取生命指令
+			参数0：整数
+			作用:		吸取选定对象"参数0"点生命，用于补充动作对象的体力
+			*/
+		{
+			SHORT sDamage = min(max(0, (SHORT)pScript->rgwOperand[0]), g_Battle.rgEnemy[wEventObjectID].dwActualHealth);
+			g_Battle.rgEnemy[wEventObjectID].dwActualHealth -= sDamage;
 
-      g_Battle.rgEnemy[wEventObjectID].e.wHealth -= pScript->rgwOperand[0];
-      gpGlobals->g.PlayerRoles.rgwHP[w] += pScript->rgwOperand[0];
+			if (g_Battle.fPlayerMoving)
+			{
+				wPlayerRole = gpGlobals->rgParty[g_Battle.wMovingPlayerIndex].wPlayerRole;
+			}
+			else
+			{
+				int index = PAL_New_GetPlayerIndexByHealth(TRUE);
+				wPlayerRole = gpGlobals->rgParty[index].wPlayerRole;
+				wPlayerRole = PAL_NEW_CheckAndGetLegalPlayerTarget(wPlayerRole);
+			}
 
-      if (gpGlobals->g.PlayerRoles.rgwHP[w] > gpGlobals->g.PlayerRoles.rgwMaxHP[w])
-      {
-         gpGlobals->g.PlayerRoles.rgwHP[w] = gpGlobals->g.PlayerRoles.rgwMaxHP[w];
-      }
-      break;
+			PAL_IncreaseHPMP(wPlayerRole, sDamage, 0);
+			break;
+		}
 
    case 0x003A:
       //
@@ -1577,7 +1804,16 @@ PAL_InterpretInstruction(
       }
       else
       {
+		 if (gpGlobals->ftouqiefangtao == FALSE)
+         {
          PAL_BattlePlayerEscape();
+		 }
+		 else
+		 {
+		 gpGlobals->ftouqiefangtao1 = TRUE;
+		 PAL_BattleDelay(20, 0, TRUE);
+		 gpGlobals->ftouqiefangtao1 = FALSE;
+		 }
       }
       break;
 
@@ -1875,12 +2111,12 @@ PAL_InterpretInstruction(
       //
       // Halve the enemy's HP
       //
-      w = g_Battle.rgEnemy[wEventObjectID].e.wHealth / 2 + 1;
+      w = g_Battle.rgEnemy[wEventObjectID].dwActualHealth / 2 + 1;
       if (w > pScript->rgwOperand[0])
       {
          w = pScript->rgwOperand[0];
       }
-      g_Battle.rgEnemy[wEventObjectID].e.wHealth -= w;
+      g_Battle.rgEnemy[wEventObjectID].dwActualHealth -= w;
       break;
 
    case 0x005C:
@@ -1930,14 +2166,37 @@ PAL_InterpretInstruction(
       //
       // Immediate KO of the enemy
       //
-      g_Battle.rgEnemy[wEventObjectID].e.wHealth = 0;
+	  /*
+	  60 参数1
+      秒杀敌人
+
+      参数1 是否全体
+            0：单体
+            1：全体
+
+      作用
+      我方秒杀对方单体或全体
+	  */
+   {
+      if (pScript->rgwOperand[0])
+      {
+         for (i = 0; i <= g_Battle.wMaxEnemyIndex; i++)
+         {
+            g_Battle.rgEnemy[i].dwActualHealth = 0;
+         }
+      }
+      else
+      {
+         g_Battle.rgEnemy[wEventObjectID].dwActualHealth = 0;
+      }
       break;
+   }
 
    case 0x0061:
       //
       // Jump if player is not poisoned
       //
-      if (!PAL_IsPlayerPoisonedByLevel(wEventObjectID, 0))
+      if (!PAL_IsPlayerPoisonedByLevel(wEventObjectID, 1))
       {
          wScriptEntry = pScript->rgwOperand[0] - 1;
       }
@@ -1964,7 +2223,7 @@ PAL_InterpretInstruction(
       // Jump if enemy's HP is more than the specified percentage
       //
       i = gpGlobals->g.rgObject[g_Battle.rgEnemy[wEventObjectID].wObjectID].enemy.wEnemyID;
-      if ((INT)(g_Battle.rgEnemy[wEventObjectID].e.wHealth) * 100 >
+      if ((INT)(g_Battle.rgEnemy[wEventObjectID].dwActualHealth) * 100 >
          (INT)(gpGlobals->g.lprgEnemy[i].wHealth) * pScript->rgwOperand[0])
       {
          wScriptEntry = pScript->rgwOperand[1] - 1;
@@ -2021,8 +2280,26 @@ PAL_InterpretInstruction(
    case 0x006A:
       //
       // Steal from the enemy
-      //
-      PAL_BattleStealFromEnemy(wEventObjectID, pScript->rgwOperand[0]);
+      //飞龙群体
+	  gpGlobals->ftouqiefangtao = TRUE;
+      for (i = 0; i <= g_Battle.wMaxEnemyIndex; i++)
+			{
+				
+			  if (g_Battle.rgEnemy[i].wObjectID == 0 || g_Battle.rgEnemy[i].dwActualHealth == 0)
+		       {
+			   continue;
+		       }
+				
+		      if (g_Battle.rgEnemy[i].e.wStealItem != 0 && g_Battle.rgEnemy[i].e.nStealItem != 0)
+		        {
+			     PAL_BattleStealFromEnemy(i, pScript->rgwOperand[0]);
+		        }
+				 
+		      if (g_Battle.rgEnemy[i].e.wStealItem == 0 && g_Battle.rgEnemy[i].e.nStealItem != 0)
+		        {
+			     PAL_BattleStealFromEnemy(i, pScript->rgwOperand[0]);
+		        }
+			 }
       break;
 
    case 0x006B:
@@ -2626,6 +2903,14 @@ PAL_InterpretInstruction(
             PAL_BattleShowPlayerPreMagicAnim(pScript->rgwOperand[0] - 1, FALSE);
             g_Battle.rgPlayer[pScript->rgwOperand[0] - 1].wCurrentFrame = 6;
          }
+		 if (pScript->rgwOperand[1] != 0)
+         {
+            PAL_BattleShowPlayerDefMagicAnim(wEventObjectID, pScript->rgwOperand[1] , PAL_IsPlayerPoisonedByKind(wEventObjectID, pScript->rgwOperand[2]));
+            //g_Battle.rgPlayer[pScript->rgwOperand[0]].wCurrentFrame = 6;
+         }
+
+
+
 
          for (i = 0; i < 5; i++)
          {
@@ -2768,7 +3053,7 @@ PAL_InterpretInstruction(
          }
       }
 
-      if (w != 1 || g_Battle.rgEnemy[wCurEventObjectID].e.wHealth <= 1)
+      if (w != 1 || g_Battle.rgEnemy[wCurEventObjectID].dwActualHealth <= 1)
       {
          //
          // Division is only possible when only 1 enemy left
@@ -2801,7 +3086,11 @@ PAL_InterpretInstruction(
 
             g_Battle.rgEnemy[i].wObjectID = g_Battle.rgEnemy[wEventObjectID].wObjectID;
             g_Battle.rgEnemy[i].e = g_Battle.rgEnemy[wEventObjectID].e;
-            g_Battle.rgEnemy[i].e.wHealth = (g_Battle.rgEnemy[wEventObjectID].e.wHealth+y)/x;
+			
+			g_Battle.rgEnemy[i].dwMaxHealth = g_Battle.rgEnemy[wEventObjectID].dwMaxHealth;
+			g_Battle.rgEnemy[i].dwActualHealth = g_Battle.rgEnemy[wEventObjectID].dwActualHealth;
+			
+            g_Battle.rgEnemy[i].dwActualHealth = (g_Battle.rgEnemy[wEventObjectID].dwActualHealth+y)/x;
             g_Battle.rgEnemy[i].wScriptOnTurnStart = g_Battle.rgEnemy[wEventObjectID].wScriptOnTurnStart;
             g_Battle.rgEnemy[i].wScriptOnBattleEnd = g_Battle.rgEnemy[wEventObjectID].wScriptOnBattleEnd;
             g_Battle.rgEnemy[i].wScriptOnReady = g_Battle.rgEnemy[wEventObjectID].wScriptOnReady;
@@ -2812,7 +3101,7 @@ PAL_InterpretInstruction(
 
          }
       }
-      g_Battle.rgEnemy[wCurEventObjectID].e.wHealth = (g_Battle.rgEnemy[wEventObjectID].e.wHealth+y)/x;
+      g_Battle.rgEnemy[wCurEventObjectID].dwActualHealth = (g_Battle.rgEnemy[wEventObjectID].dwActualHealth+y)/x;
 
       w = 0;
       for (i = 0; i < MAX_ENEMIES_IN_TEAM; i++)
@@ -2896,6 +3185,8 @@ PAL_InterpretInstruction(
 
                g_Battle.rgEnemy[i].wObjectID = w;
                g_Battle.rgEnemy[i].e = gpGlobals->g.lprgEnemy[gpGlobals->g.rgObject[w].enemy.wEnemyID];
+			   g_Battle.rgEnemy[i].dwMaxHealth = g_Battle.rgEnemy[i].e.wHealth;
+			   g_Battle.rgEnemy[i].dwActualHealth = g_Battle.rgEnemy[i].e.wHealth;
 
                g_Battle.rgEnemy[i].state = kFighterWait;
                g_Battle.rgEnemy[i].wScriptOnTurnStart = gpGlobals->g.rgObject[w].enemy.wScriptOnTurnStart;
@@ -2916,7 +3207,7 @@ PAL_InterpretInstruction(
          PAL_LoadBattleSprites();
          PAL_BattleMakeScene();
          AUDIO_PlaySound(212);
-         PAL_BattleFadeScene();
+         //PAL_BattleFadeScene();
 
          // avoid releasing gesture disappears before summon done
          PAL_BattleDelay(2, 0, TRUE);
@@ -2941,13 +3232,13 @@ PAL_InterpretInstruction(
          g_Battle.rgEnemy[wEventObjectID].rgwStatus[kStatusParalyzed] == 0 &&
          g_Battle.rgEnemy[wEventObjectID].rgwStatus[kStatusConfused] == 0)
       {
-         w = g_Battle.rgEnemy[wEventObjectID].e.wHealth;
+         w = g_Battle.rgEnemy[wEventObjectID].dwActualHealth;
 
          g_Battle.rgEnemy[wEventObjectID].wObjectID = pScript->rgwOperand[0];
          g_Battle.rgEnemy[wEventObjectID].e =
             gpGlobals->g.lprgEnemy[gpGlobals->g.rgObject[pScript->rgwOperand[0]].enemy.wEnemyID];
 
-         g_Battle.rgEnemy[wEventObjectID].e.wHealth = w;
+         g_Battle.rgEnemy[wEventObjectID].dwActualHealth = w;
          g_Battle.rgEnemy[wEventObjectID].wCurrentFrame = 0;
 
          for (i = 0; i < 6; i++)
@@ -3053,6 +3344,92 @@ PAL_InterpretInstruction(
       //
       VIDEO_BackupScreen(gpScreen);
       break;
+
+			// 增加队中人员（3人以上），参考命令0075
+		case 0x0100:
+		{
+			for (i = 0; i < 3; i++)
+			{
+				if (pScript->rgwOperand[i] != 0)
+				{
+					gpGlobals->wMaxPartyMemberIndex++;
+
+					if (gpGlobals->wMaxPartyMemberIndex > 5)
+					{
+						break;
+					}
+
+					gpGlobals->rgParty[gpGlobals->wMaxPartyMemberIndex].wPlayerRole =
+						pScript->rgwOperand[i] - 1;
+
+					g_Battle.rgPlayer[gpGlobals->wMaxPartyMemberIndex].action.ActionType =
+						kBattleActionAttack;
+				}
+			}
+			//
+			// Reload the player sprites
+			//
+			PAL_SetLoadFlags(kLoadPlayerSprite);
+			PAL_LoadResources();
+			PAL_UpdateEquipments();
+			break;
+		}
+
+
+
+			// 新命令：参考命令0075，设置队伍成员（适用于3人以上，顺序固定）领队人物延续
+		case 0x0102:
+		{
+			WORD wLeaderPlayerRole = gpGlobals->rgParty[0].wPlayerRole;
+			gpGlobals->wMaxPartyMemberIndex = 0;
+			for (i = 0; i < MAX_PLAYER_ROLES; i++)
+			{
+				if (pScript->rgwOperand[0] & (1 << i) && gpGlobals->wMaxPartyMemberIndex < MAX_PLAYERS_IN_PARTY)
+				{
+					gpGlobals->rgParty[gpGlobals->wMaxPartyMemberIndex].wPlayerRole = i;
+					g_Battle.rgPlayer[gpGlobals->wMaxPartyMemberIndex].action.ActionType = kBattleActionAttack;
+					gpGlobals->wMaxPartyMemberIndex++;
+				}
+			}
+			if (gpGlobals->wMaxPartyMemberIndex != 0)
+			{
+				gpGlobals->wMaxPartyMemberIndex--;
+			}
+
+			int index = PAL_New_GetPlayerIndex(wLeaderPlayerRole);
+			if (index != -1 && index != 0)
+			{
+				WORD temp = gpGlobals->rgParty[0].wPlayerRole;
+				gpGlobals->rgParty[0].wPlayerRole = gpGlobals->rgParty[index].wPlayerRole;
+				gpGlobals->rgParty[index].wPlayerRole = temp;
+			}
+			//
+			// Reload the player sprites
+			//
+			PAL_SetLoadFlags(kLoadPlayerSprite);
+			PAL_LoadResources();
+			PAL_UpdateEquipments();
+			break;
+		}
+
+			// 如果队伍中没有指定的角色则跳转（参考0079）
+		case 0x0103:
+		{
+			BOOL jumpFlag = TRUE;
+			for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+			{
+				if (gpGlobals->rgParty[i].wPlayerRole == pScript->rgwOperand[0] - 1)
+				{
+					jumpFlag = FALSE;
+					break;
+				}
+			}
+			if (jumpFlag)
+			{
+				wScriptEntry = pScript->rgwOperand[1] - 1;
+			}
+			break;
+		}
 
    default:
       TerminateOnError("SCRIPT: Invalid Instruction at %4x: (%4x - %4x, %4x, %4x)",
@@ -3178,7 +3555,7 @@ PAL_RunTriggerScript(
 
       UTIL_LogOutput(LOGLEVEL_DEBUG, "[SCRIPT] %.4x: %.4x %.4x %.4x %.4x\n", wScriptEntry,
          pScript->wOperation, pScript->rgwOperand[0],
-         pScript->rgwOperand[1], pScript->rgwOperand[2]);
+         pScript->rgwOperand[1], pScript->rgwOperand[2], pScript->rgwOperand[3]);
 
       switch (pScript->wOperation)
       {
@@ -3196,6 +3573,49 @@ PAL_RunTriggerScript(
          fEnded = TRUE;
          wNextScriptEntry = wScriptEntry + 1;
          break;
+		 
+	  case 0x00AD:
+      // 圣灵祝福：中断、继续9回合
+	  // 9回合后运行下一条指令
+	     gpGlobals->fzhufu1 = TRUE; 
+	     if (gpGlobals->fzhufu - 1 > 0)
+         {
+		 fEnded = TRUE;
+		 wNextScriptEntry = wScriptEntry - 1;
+		 gpGlobals->fzhufu = gpGlobals->rgPlayerStatus[wEventObjectID][kStatusfujia];
+		 }
+		 else
+		 {
+		 wScriptEntry++;
+		 }
+      break;
+	  
+	  case 0x00B1:
+      // 以气化劲：中断、继续9回合
+	  // 9回合后运行下一条指令
+		 if (gpGlobals->fdunjia < 9)
+         {
+	       if (gpGlobals->g.PlayerRoles.rgwMP[wEventObjectID] < gpGlobals->fdunjia * 100)
+           {
+		   AUDIO_PlaySound(34);
+		   fEnded = TRUE;
+		   wNextScriptEntry = wScriptEntry;
+		   }
+		   else
+		   {
+		   wScriptEntry = wScriptEntry - 2;
+		   }
+		   }
+		 else
+		 {
+		   gpGlobals->g.PlayerRoles.rgwMaxHP[wEventObjectID] += 1000;
+		   gpGlobals->g.PlayerRoles.rgwMaxMP[wEventObjectID] += 1000;
+		   PAL_qimendunjia(wEventObjectID);
+		   gpGlobals->fdunjia = 0;
+		   wScriptEntry++;
+		   gpGlobals->fdunjia1 = TRUE;
+		 }
+      break;
 
       case 0x0002:
          //
@@ -3402,7 +3822,7 @@ PAL_RunTriggerScript(
          // Show text in a window at the center of the screen
          //
          PAL_ClearDialog(TRUE);
-         PAL_StartDialog(kDialogCenterWindow, (BYTE)pScript->rgwOperand[0], 0, FALSE);
+         PAL_StartDialog(kDialogCenterWindow, 0x0F, 0, FALSE);
          wScriptEntry++;
          break;
 

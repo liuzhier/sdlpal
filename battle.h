@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2022, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -24,6 +24,7 @@
 
 #include "global.h"
 #include "uibattle.h"
+#include "common.h"
 
 #define       BATTLE_FPS               25
 #define       BATTLE_FRAME_TIME        (1000 / BATTLE_FPS)
@@ -90,9 +91,12 @@ typedef struct tagBATTLEENEMY
    WORD               wScriptOnBattleEnd;
    WORD               wScriptOnReady;
 
-   WORD               wPrevHP;              // HP value prior to action
+   DWORD               wPrevHP;              // HP value prior to action
 
    INT                iColorShift;
+   
+	DWORD              dwActualHealth;
+	DWORD              dwMaxHealth;
 } BATTLEENEMY;
 
 // We only put some data used in battle here; other data can be accessed in the global data.
@@ -110,33 +114,12 @@ typedef struct tagBATTLEPLAYER
    BATTLEACTION       action;               // action to perform
    BATTLEACTION       prevAction;           // action of the previous turn
    BOOL               fDefending;           // TRUE if player is defending
-   BOOL               fSecondAttack;           // FALSE for the first full attack, TRUE for the second full attack
    WORD               wPrevHP;              // HP value prior to action
    WORD               wPrevMP;              // MP value prior to action
 #ifndef PAL_CLASSIC
    SHORT              sTurnOrder;           // turn order
 #endif
 } BATTLEPLAYER;
-
-typedef enum tagBATTLESPRITETYPE
-{
-   kBattleSpriteTypeNone,
-   kBattleSpriteTypeEnemy,
-   kBattleSpriteTypePlayer,
-   kBattleSpriteTypeMagic,
-} BATTLESPRITETYPE;
-
-typedef struct tagBATTLESPRITESEQ
-{
-   WORD               wType;
-   WORD               wObjectIndex;
-   PAL_POS            pos;
-   SHORT              sLayerOffset;
-   BOOL               fHaveColorShift;
-} BATTLESPRITESEQ;
-
-#define MAX_BATTLE_MAGICSPRITE_ITEMS 3
-#define MAX_BATTLESPRITESEQ_ITEMS (MAX_ENEMIES_IN_TEAM + MAX_PLAYABLE_PLAYER_ROLES + MAX_BATTLE_MAGICSPRITE_ITEMS)
 
 typedef struct tagSUMMON
 {
@@ -158,7 +141,7 @@ typedef enum tabBATTLEPHASE
 typedef struct tagACTIONQUEUE
 {
    BOOL       fIsEnemy;
-   WORD       wDexterity;
+   DWORD       wDexterity;
    WORD       wIndex;
    BOOL       fIsSecond;
 } ACTIONQUEUE;
@@ -182,7 +165,6 @@ typedef struct tagBATTLE
    LPSPRITE         lpSummonSprite;       // sprite of summoned god
    PAL_POS          posSummon;
    INT              iSummonFrame;         // current frame of the summoned god
-   BOOL             fSummonColorShift;
 
    INT              iExpGained;           // total experience value gained
    INT              iCashGained;          // total cash gained
@@ -199,17 +181,13 @@ typedef struct tagBATTLE
 
    BOOL             fEnemyMoving;         // TRUE if enemy is moving
 
+   BOOL             fPlayerMoving;         // TRUE if player is moving
+
    INT              iHidingTime;          // Time of hiding
 
    WORD             wMovingPlayerIndex;   // current moving player index
 
    int              iBlow;
-
-   LPCBITMAPRLE     lpMagicBitmap;        // current magic frame bitmap
-
-   BATTLESPRITESEQ  SpriteDrawSeq[MAX_BATTLESPRITESEQ_ITEMS];
-   WORD             wMaxSpriteDrawSeqIndex;
-   BOOL             fSpriteAddLock;
 
 #ifdef PAL_CLASSIC
    BATTLEPHASE      Phase;
@@ -236,74 +214,6 @@ PAL_LoadBattleSprites(
 );
 
 VOID
-PAL_BattleDrawBackground(
-   VOID
-);
-
-VOID
-PAL_BattleDrawEnemySprites(
-   WORD              wEnemyIndex,
-   SDL_Surface      *lpDstSurface
-);
-
-VOID
-PAL_BattleDrawPlayerSprites(
-   WORD              wPlayerIndex,
-   SDL_Surface      *lpDstSurface
-);
-
-VOID
-PAL_BattleDrawMagicSprites(
-   INT               iMagicNum,
-   SDL_Surface      *lpDstSurface,
-   PAL_POS           pos
-);
-
-VOID
-PAL_BattleClearSpriteObject(
-   VOID
-);
-
-VOID
-PAL_BattleSpriteAddUnlock(
-   VOID
-);
-
-VOID
-PAL_BattleAddSpriteObject(
-   WORD               wType,
-   WORD               wObjectIndex,
-   PAL_POS            pos,
-   SHORT              sLayerOffset,
-   BOOL               fHaveColorShift
-);
-
-VOID
-PAL_BattleRemoveSpriteObject(
-   WORD               wSpriteObjectIndex
-);
-
-VOID
-PAL_BattleAddFighterSpriteObject(
-   VOID
-);
-
-VOID
-PAL_BattleSortSpriteObjecByPos(
-   VOID
-);
-
-VOID
-PAL_BattleDrawAllSprites(
-   VOID
-);
-
-VOID
-PAL_BattleDrawAllSpritesWithColorShift(
-   BOOL               fColorShift
-);
-
-VOID
 PAL_BattleMakeScene(
    VOID
 );
@@ -327,6 +237,103 @@ BATTLERESULT
 PAL_StartBattle(
    WORD        wEnemyTeam,
    BOOL        fIsBoss
+);
+
+VOID
+PAL_New_DecreaseHPForEnemy(
+WORD		wEnemyIndex,
+INT			sDamage
+);
+
+INT PAL_New_GetPoisonIndexForEnemy(
+WORD		wEnemyIndex,
+WORD		wPoisonID
+);
+
+WORD 
+PAL_New_GetEnemySorceryResistance(
+WORD		wEnemyIndex
+);
+
+WORD
+PAL_New_GetEnemyPoisonResistance(
+WORD		wEnemyIndex
+);
+
+WORD
+PAL_New_GetEnemyDualMove(
+WORD		wEnemyIndex
+);
+
+WORD
+PAL_New_GetEnemyPhysicalResistance(
+WORD		wEnemyIndex
+);
+
+WORD
+PAL_New_GetEnemyElementalResistance(
+WORD		wEnemyIndex, 
+INT			iAttrib
+);
+
+VOID
+PAL_New_SetEnemyStatus(
+WORD		wEnemyIndex,
+WORD		wStatusID,
+WORD		wNumRound
+);
+
+VOID 
+PAL_New_SortPoisonsForEnemyByLevel(
+WORD		wEnemyIndex
+);
+
+VOID 
+PAL_New_AddPoisonForEnemy(
+WORD		wEnemyIndex, 
+WORD		wPoisonID
+);
+
+VOID
+PAL_New_CurePoisonForEnemyByKind(
+WORD		wEnemyIndex,
+WORD		wPoisonID
+);
+
+VOID
+PAL_New_CurePoisonForEnemyByLevel(
+WORD		wEnemyIndex,
+WORD		wMaxLevel
+);
+
+WORD
+PAL_New_GetEnemyAttackStrength(
+WORD		wEnemyIndex
+);
+
+WORD
+PAL_New_GetEnemyMagicStrength(
+WORD		wEnemyIndex
+);
+
+WORD
+PAL_New_GetEnemyDefense(
+WORD		wEnemyIndex
+);
+
+WORD
+PAL_New_GetEnemyDexterity(
+WORD		wEnemyIndex
+);
+
+WORD
+PAL_New_GetEnemyFleeRate(
+WORD		wEnemyIndex
+);
+
+DWORD
+PAL_New_EstimateEnemyHealthByLevel(
+WORD		wEnemyLevel
 );
 
 PAL_C_LINKAGE_END

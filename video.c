@@ -1,7 +1,7 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4; c-file-style: "linux" -*- */
 //
 // Copyright (c) 2009-2011, Wei Mingzhi <whistler_wmz@users.sf.net>.
-// Copyright (c) 2011-2024, SDLPAL development team.
+// Copyright (c) 2011-2023, SDLPAL development team.
 // All rights reserved.
 //
 // This file is part of SDLPAL.
@@ -259,19 +259,19 @@ VIDEO_Startup(
       }
    }
 # if PAL_HAS_GLSL
-	// notice: power of 2
+   // notice: power of 2
 #  define PIXELS 1
-	// We need a total empty texture in case of not using touch overlay.
-	// Or GL runtime will pick the previous texture - the main screen itself
-	// and reuse it - that makes color seems overexposed
-	else if( gConfig.fEnableGLSL )
-	{
-		BYTE pixels[4*PIXELS*PIXELS];
-		memset(pixels, 0, sizeof(pixels));
-		SDL_Surface *temp = SDL_CreateRGBSurfaceFrom(pixels, PIXELS, PIXELS, 32, 4*PIXELS, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
-		gpTouchOverlay = SDL_CreateTextureFromSurface(gpRenderer, temp);
-		SDL_FreeSurface(temp);
-	}
+   // We need a total empty texture in case of not using touch overlay.
+   // Or GL runtime will pick the previous texture - the main screen itself
+   // and reuse it - that makes color seems overexposed
+   else if( gConfig.fEnableGLSL )
+   {
+	   BYTE pixels[4*PIXELS*PIXELS];
+	   memset(pixels, 0, sizeof(pixels));
+	   SDL_Surface *temp = SDL_CreateRGBSurfaceFrom(pixels, PIXELS, PIXELS, 32, PIXELS, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+	   gpTouchOverlay = SDL_CreateTextureFromSurface(gpRenderer, temp);
+	   SDL_FreeSurface(temp);
+   }
 # endif
 #else
 
