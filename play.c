@@ -728,9 +728,10 @@ PAL_StartFrame(
    if (gpGlobals->fShowEventMessages) PAL_Search();
 }
 
-VOID
-PAL_WaitForKey(
-   WORD      wTimeOut
+static inline VOID
+PAL_WaitForKeyInternal(
+   WORD      wTimeOut,
+   BOOL      fAllowAnyKey
 )
 /*++
   Purpose:
@@ -740,6 +741,8 @@ PAL_WaitForKey(
   Parameters:
 
     [IN]  wTimeOut - the maximum time of the waiting. 0 = wait forever.
+
+    [IN]  fAllowAnyKey - Whether any key are allowed. If no, only KeySearch and KeyMenu allowed.
 
   Return value:
 
@@ -757,12 +760,58 @@ PAL_WaitForKey(
 
 #if PD_Battle_Won_Level_Up_Key_Pass
       if (  g_InputState.dwKeyPress && wTimeOut > 0
+         || g_InputState.dwKeyPress && fAllowAnyKey
          || g_InputState.dwKeyPress & (kKeySearch | kKeyMenu))
 #else
-      if (g_InputState.dwKeyPress & (kKeySearch | kKeyMenu))
+      if (g_InputState.dwKeyPress && fAllowAnyKey
+         || g_InputState.dwKeyPress & (kKeySearch | kKeyMenu))
 #endif // PD_Battle_Won_Level_Up_Key_Pass
       {
          break;
       }
    }
+}
+
+VOID
+PAL_WaitForKey(
+   WORD      wTimeOut
+)
+/*++
+  Purpose:
+
+    Wait for KeySearch and KeyMenu.
+
+  Parameters:
+
+    [IN]  wTimeOut - the maximum time of the waiting. 0 = wait forever.
+
+  Return value:
+
+    None.
+
+--*/
+{
+   PAL_WaitForKeyInternal(wTimeOut, FALSE);
+}
+
+VOID
+PAL_WaitForAnyKey(
+   WORD      wTimeOut
+)
+/*++
+  Purpose:
+
+    Wait for any key.
+
+  Parameters:
+
+    [IN]  wTimeOut - the maximum time of the waiting. 0 = wait forever.
+
+  Return value:
+
+    None.
+
+--*/
+{
+   PAL_WaitForKeyInternal(wTimeOut, TRUE);
 }
