@@ -73,11 +73,11 @@ enum PALKEY
 
 #if PD_Scene_ShowEventMessages
    kKeyEventMessage = (1 << 21),
-#endif // PD_Battle_ShowPlayerLevelmagic
+#endif // PD_Scene_ShowEventMessages
 
 #if PD_Can_Penetrate_Walls
    kKeyPenetrateWalls = (1 << 22),
-#endif // PD_Battle_ShowPlayerLevelmagic
+#endif // PD_Can_Penetrate_Walls
 };
 
 PAL_C_LINKAGE_BEGIN

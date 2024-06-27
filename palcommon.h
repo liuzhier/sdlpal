@@ -37,6 +37,11 @@ typedef DWORD           PAL_POS;
 #define PAL_Y(xy)       (SHORT)(((xy) >> 16) & 0xFFFF)
 #define PAL_XY_OFFSET(xy, x, y)    (PAL_POS)(((((INT)(y) << 16) & 0xFFFF0000) + ((xy) & 0xFFFF0000)) | (((INT)(x) & 0xFFFF) + ((xy) & 0xFFFF)))
 
+#if PD_Battle_ShowPlayerLevelmagic
+   #define PAL_MAX(a,b) (((a) > (b)) ? (a) : (b))
+   #define PAL_MIN(a,b) (((a) < (b)) ? (a) : (b))
+#endif // PD_Battle_ShowPlayerLevelmagic
+
 // maximum number of players in party
 #define     MAX_PLAYERS_IN_PARTY         3
 

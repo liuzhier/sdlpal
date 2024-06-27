@@ -2360,7 +2360,7 @@ PAL_New_PlayerLevelmagic(
       //人物等级法术
       for (i = 0; i < gpGlobals->g.nLevelUpMagic; i++) {
          // 只展示等级大于0级的法术
-         if (gpGlobals->g.lprgLevelUpMagic[i].m[min(iPlayerRole, 5)].wLevel > 0)
+         if (gpGlobals->g.lprgLevelUpMagic[i].m[PAL_MIN(iPlayerRole, 5)].wLevel > 0)
          {
             // 每次都是第三个换行
             if (i % 3 == 0 && i > 0)
@@ -2369,10 +2369,10 @@ PAL_New_PlayerLevelmagic(
                iColumns++;
             }
 
-            PAL_DrawNumber(gpGlobals->g.lprgLevelUpMagic[i].m[min(iPlayerRole, 5)].wLevel, 2,
+            PAL_DrawNumber(gpGlobals->g.lprgLevelUpMagic[i].m[PAL_MIN(iPlayerRole, 5)].wLevel, 2,
                PAL_XY(iNumXMargin + iXOffset * iRows, iNumYMargin + iYOffset * iColumns), kNumColorYellow, kNumAlignRight);
 
-            PAL_DrawText(PAL_GetWord(gpGlobals->g.lprgLevelUpMagic[i].m[min(iPlayerRole, 5)].wMagic),
+            PAL_DrawText(PAL_GetWord(gpGlobals->g.lprgLevelUpMagic[i].m[PAL_MIN(iPlayerRole, 5)].wMagic),
                PAL_XY(iTextXMargin + iXOffset * iRows++, iTextYMargin + iYOffset * iColumns), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
          }
       }

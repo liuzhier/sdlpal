@@ -153,21 +153,21 @@ VOID
 PAL_New_BattleUIShowData(
    VOID
 );
-#endif
+#endif // PD_Battle_ShowMoreData
 
 #if PD_Battle_ShowEnemyStatus
 VOID
 PAL_New_EnemyStatus(
    VOID
 );
-#endif
+#endif // PD_Battle_ShowEnemyStatus
 
 #if PD_Battle_ShowPlayerLevelmagic
 VOID
 PAL_New_PlayerLevelmagic(
    VOID
 );
-#endif
+#endif // PD_Battle_ShowPlayerLevelmagic
 
 PAL_C_LINKAGE_END
 
