@@ -55,6 +55,7 @@
    #define     PD_Item_QuMoXiang_ShowTimeNoPass   1
 
    // 战斗中的快捷键 R 应该按需向前向后寻目标
+   // （当前逻辑仍然错误，缺乏测试总结--）
    #define     PD_Battle_ShortcutKey_R_AutoTarget 1
 
    // 使字体更加接近原版 Pal Windows 95
