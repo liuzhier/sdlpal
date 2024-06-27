@@ -161,7 +161,6 @@ PAL_KeyDown(
 
 --*/
 {
-#ifdef PD_Player_Walk_Key
    INT iCurrDir = kDirUnknown;
 
    if (!fRepeat)
@@ -192,50 +191,6 @@ PAL_KeyDown(
    }
 
    g_InputState.dwKeyPress |= key;
-#else
-   switch (key)
-   {
-   case kKeyUp:
-      if (g_InputState.dir != kDirNorth && !fRepeat)
-      {
-         g_InputState.prevdir = (gpGlobals->fInBattle ? kDirUnknown : g_InputState.dir);
-         g_InputState.dir = kDirNorth;
-      }
-      g_InputState.dwKeyPress |= kKeyUp;
-      break;
-
-   case kKeyDown:
-      if (g_InputState.dir != kDirSouth && !fRepeat)
-      {
-         g_InputState.prevdir = (gpGlobals->fInBattle ? kDirUnknown : g_InputState.dir);
-         g_InputState.dir = kDirSouth;
-      }
-      g_InputState.dwKeyPress |= kKeyDown;
-      break;
-
-   case kKeyLeft:
-      if (g_InputState.dir != kDirWest && !fRepeat)
-      {
-         g_InputState.prevdir = (gpGlobals->fInBattle ? kDirUnknown : g_InputState.dir);
-         g_InputState.dir = kDirWest;
-      }
-      g_InputState.dwKeyPress |= kKeyLeft;
-      break;
-
-   case kKeyRight:
-      if (g_InputState.dir != kDirEast && !fRepeat)
-      {
-         g_InputState.prevdir = (gpGlobals->fInBattle ? kDirUnknown : g_InputState.dir);
-         g_InputState.dir = kDirEast;
-      }
-      g_InputState.dwKeyPress |= kKeyRight;
-      break;
-
-   default:
-      g_InputState.dwKeyPress |= key;
-      break;
-   }
-#endif // PD_Player_Walk_Key
 }
 
 static VOID
@@ -257,7 +212,6 @@ PAL_KeyUp(
 
 --*/
 {
-#ifdef PD_Player_Walk_Key
    INT iCurrDir = kDirUnknown;
 
    if (key & kKeyDown)
@@ -284,45 +238,6 @@ PAL_KeyUp(
       g_InputState.dwKeyMaxCount = (iCurrDir == kDirUnknown) ? 0 : g_InputState.dwKeyOrder[iCurrDir];
       g_InputState.dir = iCurrDir;
    }
-#else
-   switch (key)
-   {
-   case kKeyUp:
-      if (g_InputState.dir == kDirNorth)
-      {
-         g_InputState.dir = g_InputState.prevdir;
-      }
-      g_InputState.prevdir = kDirUnknown;
-      break;
-
-   case kKeyDown:
-      if (g_InputState.dir == kDirSouth)
-      {
-         g_InputState.dir = g_InputState.prevdir;
-      }
-      g_InputState.prevdir = kDirUnknown;
-      break;
-
-   case kKeyLeft:
-      if (g_InputState.dir == kDirWest)
-      {
-         g_InputState.dir = g_InputState.prevdir;
-      }
-      g_InputState.prevdir = kDirUnknown;
-      break;
-
-   case kKeyRight:
-      if (g_InputState.dir == kDirEast)
-      {
-         g_InputState.dir = g_InputState.prevdir;
-      }
-      g_InputState.prevdir = kDirUnknown;
-      break;
-
-   default:
-      break;
-   }
-#endif // PD_Player_Walk_Key
 }
 
 static VOID
