@@ -173,8 +173,7 @@ PAL_BattleDrawPlayerSprites(
 #if PD_Wine_God_Effects
          if (g_Battle.iIsSummonSS)
          {
-            PAL_RLEBlitToSurface(PAL_MKFSpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame),
-               lpDstSurface, g_Battle.posSummon);
+            PAL_RLEBlitToSurface(PAL_MKFSpriteGetFrame(g_Battle.lpSummonSprite, g_Battle.iSummonFrame), lpDstSurface, g_Battle.posSummon);
          }
          else
          {

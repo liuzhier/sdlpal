@@ -830,7 +830,7 @@ PAL_MKFSpriteGetFrame(
    //
    // Check whether the uiChunkNum is out of range..
    //
-   if (uiChunkNum >= PAL_MKFGetNumChunks(lpBuffer)) return -1;
+   if (uiChunkNum >= PAL_MKFGetNumChunks(lpBuffer)) return NULL;
 
    //
    // Return the length of the chunk.
