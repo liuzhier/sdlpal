@@ -92,8 +92,8 @@
    // 解决失去道具后获得道具导致背包光标前移一项的问题
    #define     PD_Del_Item_Menu_Cursor_Move_Prev  1
 
-   // 修正探云手坐标错误
-   #define     PD_Head_Pos                        1
+   // 探云手更明确的坐标计算公式
+   #define     PD_Head_Pos                        0
 
    // 指令 0x0093 淡入场景不应该重置按键方向
    #define     PD_Fade_Scene_Cancel_Clean_Dir     1
@@ -123,7 +123,7 @@
    #define     PD_Can_Penetrate_Walls             1
 
    // 酒神特效替换
-   #define     PD_Wine_God_Effects                1
+   #define     PD_Wine_God_Effects                0
 
    // 场景显示额外信息开关
    #define     PD_Scene_ShowMoreMessages          1
