@@ -87,9 +87,6 @@
    // 区分开道具菜单和当铺菜单的光标
    #define     PD_Menu_KeyLeftOrRight_NextLine    1
 
-   // 修复走路逻辑
-   #define     PD_Player_Walk_Key                 1
-
    // 解决失去道具后获得道具导致背包光标前移一项的问题
    #define     PD_Del_Item_Menu_Cursor_Move_Prev  1
 
@@ -134,7 +131,7 @@
          // 显示场景号
          #define     PD_Scene_ShowSceneID         1
          // 显示方向参考值
-         #define     PD_Scene_ShowDirValue        1
+         #define     PD_Scene_ShowDirValue        0
          // 显示驱魔香或者十里香数值
          #define     PD_Scene_ShowQuMoXiangTime   1
          // 显示灵葫值

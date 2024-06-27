@@ -2863,8 +2863,11 @@ PAL_New_SaveErrorStatus(
 
       if (wPlayerRole >= MAX_PLAYER_ROLES || fCompleted[wPlayerRole]) continue;
 
-      for (j = 0; j < kStatusAll; j++)
+      for (j = kStatusConfused; j <= kStatusSilence; j++)
       {
+         //
+         // Only objects with negative buffs should be allocated incorrectly.
+         //
          gpGlobals->rgPlayerStatusError[i][j] = gpGlobals->rgPlayerStatus[wPlayerRole][j];
       }
 

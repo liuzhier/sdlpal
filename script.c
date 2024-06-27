@@ -2164,9 +2164,9 @@ PAL_InterpretInstruction(
       // Set the player party
       //
 #if PD_Player_Status_Index_error
-   //
-   // Using incorrect logic to save the status information of a role.
-   //
+      //
+      // Using incorrect logic to save the status information of a role.
+      //
       PAL_New_SaveErrorStatus();
 #endif
       gpGlobals->wMaxPartyMemberIndex = 0;
