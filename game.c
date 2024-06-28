@@ -21,6 +21,73 @@
 
 #include "main.h"
 
+#if PD_MODInformation
+VOID
+PAL_New_MODInformation(
+   VOID
+)
+/*++
+  Purpose:
+
+   Show the additional credits.
+
+  Parameters:
+
+   None.
+
+  Return value:
+
+   None.
+
+--*/
+{
+   LPCWSTR rgszStrings[] = {
+      L"                作者的话",
+      L"WIN-95 版 竞速 MOD Ver"PD_ProgramVersion,
+      L"作者：仪拓诗、风羽かざば_Official",
+      L"              (本MOD完全免费，严禁售卖)",
+      L"第一次为大家制作竞速版本，不足之处还望 ",
+      L"大家不吝赐教～本程序目前仍有许多地方与 ",
+      L"原版不同，待完善，感谢大家测试和反馈～ ",
+      L"",
+      L"特别感谢∶(排名不分先后)",
+      L"Palalex(圆梦MOD程序代码供参考)",
+      L"白昼寒露、-皮皮叶-、Houou",
+      L"                    按 Enter 继续......",
+   };
+
+   int        i = 0;
+
+   PAL_DrawOpeningMenuBackground();
+   PAL_SetPalette(0, FALSE);
+   AUDIO_PlayMusic(RIX_NUM_OPENINGMENU, TRUE, 1);
+
+   for (i = 0; i < 12; i++)
+   {
+      WCHAR buffer[48];
+      PAL_swprintf(buffer, sizeof(buffer) / sizeof(WCHAR), rgszStrings[i]);
+      PAL_DrawText(buffer, PAL_XY(0, 2 + i * 16), DESCTEXT_COLOR, TRUE, FALSE, FALSE);
+   }
+
+   //
+   // Wait for input
+   //
+   PAL_ClearKeyState();
+
+   while (TRUE)
+   {
+      VIDEO_UpdateScreen(NULL);
+
+      UTIL_Delay(1);
+
+      if (g_InputState.dwKeyPress & (kKeyMenu | kKeySearch))
+      {
+         break;
+      }
+   }
+}
+#endif
+
 VOID
 PAL_GameMain(
    VOID
@@ -41,6 +108,10 @@ PAL_GameMain(
 --*/
 {
    DWORD       dwTime;
+
+#if PD_MODInformation
+   PAL_New_MODInformation();
+#endif
 
    //
    // Show the opening menu.

@@ -78,8 +78,8 @@ PAL_Init(
       TerminateOnError("Could not initialize Video: %d.\n", e);
    }
 
-#if PD_GameFont_Win95
-   VIDEO_SetWindowTitle(UTIL_va(UTIL_GlobalBuffer(0), PAL_GLOBAL_BUFFER_SIZE, "Pal Windows 95"));
+#if PD_MODInformation
+   VIDEO_SetWindowTitle(UTIL_va(UTIL_GlobalBuffer(0), PAL_GLOBAL_BUFFER_SIZE, "仙剑奇侠传 WIN-95 版 竞速 MOD Ver∶%ls", PD_ProgramVersion));
 #else
    VIDEO_SetWindowTitle("Loading...");
 #endif
@@ -107,7 +107,7 @@ PAL_Init(
    AUDIO_OpenDevice();
    PAL_AVIInit();
 
-#if !PD_GameFont_Win95
+#if !PD_MODInformation
    VIDEO_SetWindowTitle(UTIL_va(UTIL_GlobalBuffer(0), PAL_GLOBAL_BUFFER_SIZE,
 	   "Pal %s%s%s%s",
 	   gConfig.fIsWIN95 ? "Win95" : "DOS",

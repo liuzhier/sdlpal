@@ -318,12 +318,16 @@ PAL_GameUseItem(
          //
          // Select the player to use the item on
          //
+#if PD_Menu_NoSaveItemCursor
+         WORD     wPlayer = -1;
+#else
          WORD     wPlayer = 0;
+#endif // PD_Menu_NoSaveItemCursor
 
          while (TRUE)
          {
 #if PD_Menu_NoSaveItemCursor
-            wPlayer = PAL_ItemUseMenu(wObject, !wPlayer);
+            wPlayer = PAL_ItemUseMenu(wObject, wPlayer == -1);
 #else
             wPlayer = PAL_ItemUseMenu(wObject);
 #endif // PD_Menu_NoSaveItemCursor
@@ -438,6 +442,10 @@ PAL_GameEquipItem(
 --*/
 {
    WORD      wObject;
+
+#if PD_Menu_CancelMakeScene
+   VIDEO_BackupScreen(gpScreen);
+#endif
 
    while (TRUE)
    {

@@ -505,7 +505,9 @@ PAL_ItemSelectMenu(
    {
       if (lpfnMenuItemChanged == NULL)
       {
-#if !PD_Menu_CancelMakeScene
+#if PD_Menu_CancelMakeScene
+         VIDEO_RestoreScreen(gpScreen);
+#else
          PAL_MakeScene();
 #endif
       }
