@@ -327,7 +327,7 @@ PAL_GameUseItem(
          while (TRUE)
          {
 #if PD_Menu_NoSaveItemCursor
-            wPlayer = PAL_ItemUseMenu(wObject, wPlayer == -1);
+            wPlayer = PAL_ItemUseMenu(wObject, (SHORT)wPlayer == -1);
 #else
             wPlayer = PAL_ItemUseMenu(wObject);
 #endif // PD_Menu_NoSaveItemCursor
@@ -733,7 +733,9 @@ PAL_StartFrame(
    }
 #endif // PD_Can_Penetrate_Walls
 
+#if PD_Scene_ShowEventCheckBlock
    if (gpGlobals->fShowEventMessages) PAL_Search();
+#endif // PD_Can_Penetrate_Walls
 }
 
 static inline VOID
