@@ -28,7 +28,7 @@
 #if PAL_BUG
 
    // 前置身位（黑屏时允许玩家提前走一步）
-   #define     PD_Scene_BlackScreenOneStep         1
+   #define     PD_Scene_BlackScreenOneStep         0
 
    // 允许战外阵亡的队员使用仙术
    #define     PD_Scene_DeadPlayerRoleCanUseMagic  1
@@ -131,6 +131,9 @@
 
    // 酒神特效替换
    #define     PD_Wine_God_Effects                 0
+
+   // 自定义级别的 DEBUG
+   #define     PD_DEBUG_Level                      1
 
    // 场景显示额外信息开关
    #define     PD_Scene_ShowMoreMessages           1

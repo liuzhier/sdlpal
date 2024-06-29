@@ -157,6 +157,8 @@ PAL_GameMain(
       //
       dwTime = SDL_GetTicks() + FRAME_TIME;
 
+      //UTIL_LogOutput(LOGLEVEL_NEW, "延迟：%d\n", dwTime - SDL_GetTicks());
+
       //
       // Run the main frame routine.
       //
