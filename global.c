@@ -1685,6 +1685,17 @@ PAL_IsPlayerPoisonedByLevel(
    for (i = 0; i < MAX_POISONS; i++)
    {
       w = gpGlobals->rgPoisonStatus[i][index].wPoisonID;
+
+#if PD_Fix_Poison_Level
+      if (w == 0)
+      {
+         //
+         // Skip empty PoisonID
+         //
+         continue;
+      }
+#endif // PD_Fix_Poison_Level
+
       w = gpGlobals->g.rgObject[w].poison.wPoisonLevel;
 
       if (w >= 99)

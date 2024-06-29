@@ -51,8 +51,8 @@
 
 #if     PAL_FIXBUG
 
-   // 驱魔香应该在剧情时间内流逝......
-   #define     PD_Item_QuMoXiang_ShowTimeNoPass    1
+   // 修复九阴散 bug
+   #define     PD_Fix_Poison_Level                 1
 
    // 战斗中的快捷键 R 应该按需向前向后寻目标
    // （当前逻辑仍然错误，缺乏测试总结--）
