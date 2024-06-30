@@ -1405,7 +1405,7 @@ PAL_DialogWaitForKeyWithMaximumSeconds(
 
    PAL_ClearKeyState();
 
-#ifdef PD_Auto_Talk
+#if PD_Auto_Talk
    while (FALSE)
 #else
    while (TRUE)
@@ -1481,7 +1481,7 @@ TEXT_DisplayTextWithShadow(
 )
 #endif
 {
-#ifdef PD_Auto_Talk
+#if PD_Auto_Talk
    //
    // direct skip the dialog
    //
@@ -1626,7 +1626,7 @@ TEXT_DisplayTextWithShadow(
             if (!isDialog && !g_TextLib.fUserSkip)
             {
                PAL_ClearKeyState();
-#ifndef PD_Auto_Talk
+#if !PD_Auto_Talk
                UTIL_Delay(g_TextLib.iDelayTime * 8);
 #endif
                

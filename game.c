@@ -59,8 +59,6 @@ PAL_New_MODInformation(
    int        i = 0;
 
    PAL_DrawOpeningMenuBackground();
-   PAL_SetPalette(0, FALSE);
-   AUDIO_PlayMusic(RIX_NUM_OPENINGMENU, TRUE, 1);
 
    for (i = 0; i < 12; i++)
    {
@@ -68,6 +66,9 @@ PAL_New_MODInformation(
       PAL_swprintf(buffer, sizeof(buffer) / sizeof(WCHAR), rgszStrings[i]);
       PAL_DrawText(buffer, PAL_XY(0, 2 + i * 16), DESCTEXT_COLOR, TRUE, FALSE, FALSE);
    }
+
+   PAL_SetPalette(0, FALSE);
+   AUDIO_PlayMusic(RIX_NUM_OPENINGMENU, TRUE, 1);
 
    //
    // Wait for input

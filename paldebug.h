@@ -121,7 +121,7 @@
 #if PAL_DEBUG
 
    // 自动对话
-   #define     PD_Auto_Talk                        1
+   #define     PD_Auto_Talk                        0
 
    // 跳过战斗
    #define     PD_Pass_Battle                      1

@@ -147,6 +147,12 @@ PAL_ItemSelectMenuUpdate(
    tagEnd:
 
 #else
+   //if (gpGlobals->iCurInvMenuItem + item_delta < 0)
+   //   gpGlobals->iCurInvMenuItem = 0;
+   //else if (gpGlobals->iCurInvMenuItem + item_delta >= g_iNumInventory)
+   //   gpGlobals->iCurInvMenuItem = g_iNumInventory - 1;
+   //else
+   //   gpGlobals->iCurInvMenuItem += item_delta;
    if ((*iCurMenuItem) + item_delta < 0)
       (*iCurMenuItem) = 0;
    else if ((*iCurMenuItem) + item_delta >= g_iNumInventory)
