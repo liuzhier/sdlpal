@@ -295,6 +295,15 @@ PAL_SceneDrawSprites(
          if (iFrame == 2)
          {
             iFrame = 0;
+
+#if PD_QuMoXiang_CarouselImage
+            if (!gpGlobals->wChaseRange)
+            {
+               lpEvtObj->wDirection++;
+
+               if (lpEvtObj->wDirection > 3) lpEvtObj->wDirection = 0;
+            }
+#endif
          }
 
          if (iFrame == 3)
