@@ -159,9 +159,7 @@ PAL_GameMain(
 
       //UTIL_LogOutput(LOGLEVEL_NEW, "延迟：%d\n", dwTime - SDL_GetTicks());
 
-      //
-      // Run the main frame routine.
-      //
+      
       PAL_StartFrame();
    }
 }
