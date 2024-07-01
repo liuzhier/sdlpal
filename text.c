@@ -668,7 +668,9 @@ PAL_InitText(
    g_TextLib.fUseISOFont = TRUE;
    g_TextLib.iFontFlavor = kFontFlavorUnifont;
 
+#if !PALMOD_BULK_DATA_SSS
    if (gConfig.pszMsgFile)
+#endif // !PALMOD_BULK_DATA_SSS
    {
 	   //
 	   // Open the message, index and word data files.
@@ -704,6 +706,7 @@ PAL_InitText(
 		   }
 	   }
    }
+#if !PALMOD_BULK_DATA_SSS
    else
    {
 	   FILE       *fpMsg, *fpWord;
@@ -877,6 +880,7 @@ PAL_InitText(
 
        g_TextLib.iFontFlavor = kFontFlavorAuto;
    }
+#endif // !PALMOD_BULK_DATA_SSS
 
    g_TextLib.bCurrentFontColor = FONT_COLOR_DEFAULT;
    g_TextLib.bIcon = 0;

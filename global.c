@@ -47,6 +47,7 @@ CONFIGURATION gConfig;
       DO_BYTESWAP(buf, size);                                    \
    } while(0)
 
+#if !PALMOD_Version_DOS
 BOOL
 PAL_IsWINVersion(
 	BOOL *pfIsWIN95
@@ -134,6 +135,7 @@ PAL_IsWINVersion_Exit:
 
 	return result;
 }
+#endif // !PALMOD_Version_DOS
 
 CODEPAGE
 PAL_DetectCodePage(
@@ -202,23 +204,31 @@ PAL_InitGlobals(
    gpGlobals->f.fpFBP = UTIL_OpenRequiredFile("fbp.mkf");
    gpGlobals->f.fpMGO = UTIL_OpenRequiredFile("mgo.mkf");
    gpGlobals->f.fpBALL = UTIL_OpenRequiredFile("ball.mkf");
+#if PALMOD_BULK_DATA_SSS
+   gpGlobals->f.fpDATA = UTIL_OpenRequiredFile("ui.mkf");
+#else
    gpGlobals->f.fpDATA = UTIL_OpenRequiredFile("data.mkf");
+#endif // !PALMOD_BULK_DATA_SSS
    gpGlobals->f.fpF = UTIL_OpenRequiredFile("f.mkf");
    gpGlobals->f.fpFIRE = UTIL_OpenRequiredFile("fire.mkf");
    gpGlobals->f.fpRGM = UTIL_OpenRequiredFile("rgm.mkf");
+#if !PALMOD_BULK_DATA_SSS
    gpGlobals->f.fpSSS = UTIL_OpenRequiredFile("sss.mkf");
+#endif // !PALMOD_BULK_DATA_SSS
 
    //
    // Retrieve game resource version
    //
+#if PALMOD_Version_DOS
+   gConfig.fIsWIN95 = FALSE;
+#else
    if (!PAL_IsWINVersion(&gConfig.fIsWIN95)) return -1;
+#endif // PALMOD_Version_DOS
 
    //
    // Enable AVI playing only when the resource is WIN95
    //
-#if PALMOD_CLASSIC
-   gConfig.fEnableAviPlay = gConfig.fEnableAviPlay;
-#else
+#if !PALMOD_CLASSIC
    gConfig.fEnableAviPlay = gConfig.fEnableAviPlay && gConfig.fIsWIN95;
 #endif
 
@@ -230,9 +240,15 @@ PAL_InitGlobals(
    //
    // Set decompress function
    //
+#if PALMOD_Version_DOS
+   Decompress = YJ1_Decompress;
+
+   gpGlobals->lpObjectDesc = PAL_LoadObjectDesc("desc.dat");
+#else
    Decompress = gConfig.fIsWIN95 ? YJ2_Decompress : YJ1_Decompress;
 
    gpGlobals->lpObjectDesc = gConfig.fIsWIN95 ? NULL : PAL_LoadObjectDesc("desc.dat");
+#endif // PALMOD_Version_DOS
    gpGlobals->bCurrentSaveSlot = 1;
 
    return 0;
@@ -267,7 +283,9 @@ PAL_FreeGlobals(
    UTIL_CloseFile(gpGlobals->f.fpF);
    UTIL_CloseFile(gpGlobals->f.fpFIRE);
    UTIL_CloseFile(gpGlobals->f.fpRGM);
+#if !PALMOD_BULK_DATA_SSS
    UTIL_CloseFile(gpGlobals->f.fpSSS);
+#endif // !PALMOD_BULK_DATA_SSS
 
    //
    // Free the game data
@@ -295,7 +313,7 @@ PAL_FreeGlobals(
    PAL_FreeConfig();
 }
 
-
+#if !PALMOD_BULK_DATA_SSS
 static VOID
 PAL_ReadGlobalGameData(
    VOID
@@ -338,6 +356,46 @@ PAL_ReadGlobalGameData(
       14, gpGlobals->f.fpDATA);
    DO_BYTESWAP(p->rgLevelUpExp, sizeof(p->rgLevelUpExp));
 }
+#else
+   #define LOAD_DATA_GL(filename, type, lptype, ptr, n)                             \
+      {                                                                             \
+         INT len;                                                                   \
+         FILE *fpTmp = UTIL_OpenRequiredFile(filename);                             \
+         fseek(fpTmp, 0, SEEK_END);                                                 \
+         len = ftell(fpTmp);                                                        \
+         ptr = (lptype)malloc(len);                                                 \
+         n = len / sizeof(type);                                                    \
+         fseek(fpTmp, 0, SEEK_SET);                                                 \
+         if (ptr != NULL)                                                           \
+         {                                                                          \
+            PAL_fread(ptr, len, 1, fpTmp);                                          \
+         }                                                                          \
+         UTIL_CloseFile(fpTmp);                                                     \
+         if (ptr == NULL)                                                           \
+         {                                                                          \
+            TerminateOnError("PAL_InitGlobalGameData(): Memory allocation error!"); \
+         }                                                                          \
+      }                                                                             \
+
+   #define LOAD_DATA_GLR(filename, ptr)                                             \
+      {                                                                             \
+         INT len;                                                                   \
+         FILE *fpTmp = UTIL_OpenRequiredFile(filename);                             \
+         fseek(fpTmp, 0, SEEK_END);                                                 \
+         len = ftell(fpTmp);                                                        \
+         fseek(fpTmp, 0, SEEK_SET);                                                 \
+         if (ptr != NULL)                                                           \
+         {                                                                          \
+            PAL_fread(ptr, len, 1, fpTmp);                                          \
+         }                                                                          \
+         UTIL_CloseFile(fpTmp);                                                     \
+         if (ptr == NULL)                                                           \
+         {                                                                          \
+            TerminateOnError("PAL_InitGlobalGameData(): Memory allocation error!"); \
+         }                                                                          \
+      }                                                                             \
+
+#endif // !PALMOD_BULK_DATA_SSS
 
 static VOID
 PAL_InitGlobalGameData(
@@ -357,6 +415,7 @@ PAL_InitGlobalGameData(
     None.
 
 --*/
+#if !PALMOD_BULK_DATA_SSS
 {
    int        len;
 
@@ -404,6 +463,32 @@ PAL_InitGlobalGameData(
    }
 #undef PAL_DOALLOCATE
 }
+#else
+{
+   int        len;
+   FILE      *fp;
+
+   //
+   // If the memory has not been allocated, allocate first.
+   //
+   if (gpGlobals->g.lprgEventObject == NULL)
+   {
+      LOAD_DATA_GL(PALMOD_MainData_PATH "SCRIPTENTRY", SCRIPTENTRY, LPSCRIPTENTRY, gpGlobals->g.lprgScriptEntry, gpGlobals->g.nScriptEntry);
+
+      LOAD_DATA_GL(PALMOD_CoreData_PATH "STORE", STORE, LPSTORE, gpGlobals->g.lprgStore, gpGlobals->g.nStore);
+
+      LOAD_DATA_GL(PALMOD_CoreData_PATH "ENEMY", ENEMY, LPENEMY, gpGlobals->g.lprgEnemy, gpGlobals->g.nEnemy);
+
+      LOAD_DATA_GL(PALMOD_CoreData_PATH "ENEMYTEAM", ENEMYTEAM, LPENEMYTEAM, gpGlobals->g.lprgEnemyTeam, gpGlobals->g.nEnemyTeam);
+
+      LOAD_DATA_GL(PALMOD_CoreData_PATH "MAGIC", MAGIC, LPMAGIC, gpGlobals->g.lprgMagic, gpGlobals->g.nMagic);
+
+      LOAD_DATA_GL(PALMOD_CoreData_PATH "BATTLEFIELD", BATTLEFIELD, LPBATTLEFIELD, gpGlobals->g.lprgBattleField, gpGlobals->g.nBattleField);
+
+      LOAD_DATA_GL(PALMOD_CoreData_PATH "LEVELUPMAGIC", LEVELUPMAGIC_ALL, LPLEVELUPMAGIC_ALL, gpGlobals->g.lprgLevelUpMagic, gpGlobals->g.nLevelUpMagic);
+   }
+}
+#endif
 
 static VOID
 PAL_LoadDefaultGame(
@@ -430,19 +515,31 @@ PAL_LoadDefaultGame(
    //
    // Load the default data from the game data files.
    //
+#if !PALMOD_BULK_DATA_SSS
    LOAD_DATA(p->lprgEventObject, p->nEventObject * sizeof(EVENTOBJECT),
       0, gpGlobals->f.fpSSS);
    PAL_MKFReadChunk((LPBYTE)(p->rgScene), sizeof(p->rgScene), 1, gpGlobals->f.fpSSS);
+#else
+   LOAD_DATA_GL(PALMOD_MainData_PATH "EVENTOBJECT", EVENTOBJECT, LPEVENTOBJECT, p->lprgEventObject, p->nEventObject);
+
+   LOAD_DATA_GLR(PALMOD_MainData_PATH "SCENE", p->rgScene);
+#endif // !PALMOD_BULK_DATA_SSS
    DO_BYTESWAP(p->rgScene, sizeof(p->rgScene));
+#if !PALMOD_BULK_DATA_SSS
    if (gConfig.fIsWIN95)
    {
       PAL_MKFReadChunk((LPBYTE)(p->rgObject), sizeof(p->rgObject), 2, gpGlobals->f.fpSSS);
       DO_BYTESWAP(p->rgObject, sizeof(p->rgObject));
    }
    else
+#endif // !PALMOD_BULK_DATA_SSS
    {
       OBJECT_DOS objects[MAX_OBJECTS];
+#if !PALMOD_BULK_DATA_SSS
 	  PAL_MKFReadChunk((LPBYTE)(objects), sizeof(objects), 2, gpGlobals->f.fpSSS);
+#else
+      LOAD_DATA_GLR(PALMOD_MainData_PATH "OBJECT", &objects);
+#endif // !PALMOD_BULK_DATA_SSS
 	  DO_BYTESWAP(objects, sizeof(objects));
       //
       // Convert the DOS-style data structure to WIN-style data structure
@@ -455,8 +552,12 @@ PAL_LoadDefaultGame(
       }
    }
 
+#if !PALMOD_BULK_DATA_SSS
    PAL_MKFReadChunk((LPBYTE)(&(p->PlayerRoles)), sizeof(PLAYERROLES),
       3, gpGlobals->f.fpDATA);
+#else
+   LOAD_DATA_GLR(PALMOD_CoreData_PATH "PlayerRoles", &p->PlayerRoles);
+#endif // !PALMOD_BULK_DATA_SSS
    DO_BYTESWAP(&(p->PlayerRoles), sizeof(PLAYERROLES));
 
    //
@@ -770,7 +871,7 @@ PAL_SaveGame_Common(
 	size_t             size
 )
 {
-	FILE *fp;
+	FILE *fp, *fpEvent;
 	size_t i;
 
 	s->wSavedTimes = wSavedTimes;
@@ -824,7 +925,14 @@ PAL_SaveGame_Common(
 		return;
 	}
 
+#if !PALMOD_BULK_DATA_SSS
 	i = PAL_MKFGetChunkSize(0, gpGlobals->f.fpSSS);
+#else
+   fpEvent = UTIL_OpenRequiredFile(PALMOD_MainData_PATH "Event");
+   fseek(fpEvent, 0, SEEK_END);
+   i = ftell(fpEvent);
+   UTIL_CloseFile(fpEvent);
+#endif // !PALMOD_BULK_DATA_SSS
 	i += size - sizeof(EVENTOBJECT) * MAX_EVENT_OBJECTS;
 
 	fwrite(s, i, 1, fp);

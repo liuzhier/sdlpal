@@ -453,7 +453,9 @@ typedef struct tagFILES
    FILE            *fpF;        // player sprites during battle
    FILE            *fpFIRE;     // fire effect sprites
    FILE            *fpRGM;      // character face bitmaps
+#if !PALMOD_BULK_DATA_SSS
    FILE            *fpSSS;      // script data
+#endif // !PALMOD_BULK_DATA_SSS
 } FILES, *LPFILES;
 
 // player party
@@ -577,10 +579,12 @@ PAL_C_LINKAGE_BEGIN
 
 extern GLOBALVARS * const gpGlobals;
 
+#if !PALMOD_Version_DOS
 BOOL
 PAL_IsWINVersion(
    BOOL *pfIsWIN95
 );
+#endif // !PALMOD_Version_DOS
 
 CODEPAGE
 PAL_DetectCodePage(

@@ -758,7 +758,6 @@ UTIL_CheckResourceFiles(
 #if PALMOD_CLASSIC && PALMOD_BULK_MAP
 	common_files[size++] = "abc.mkf";
 	common_files[size++] = "ball.mkf";
-	common_files[size++] = "data.mkf";
 	common_files[size++] = "f.mkf";
 	common_files[size++] = "fbp.mkf";
 	common_files[size++] = "fire.mkf";
@@ -766,12 +765,16 @@ UTIL_CheckResourceFiles(
 	common_files[size++] = "pat.mkf";
 	common_files[size++] = "rgm.mkf";
 	common_files[size++] = "rng.mkf";
-	common_files[size++] = "sss.mkf";
+
+#if !PALMOD_BULK_DATA_SSS
+   common_files[size++] = "data.mkf";
+   common_files[size++] = "sss.mkf";
+#endif // !PALMOD_BULK_DATA_SSS
 
 	for (int i = 0; i < size; i++)
 #else
 	for (int i = 0; i < sizeof(common_files) / sizeof(common_files[0]); i++)
-#endif
+#endif // PALMOD_CLASSIC && PALMOD_BULK_MAP
 	{
 		if (!UTIL_GetFullPathName(INTERNAL_BUFFER_SIZE_ARGS, path, common_files[i]))
 		{

@@ -51,7 +51,16 @@
          #define PALMOD_GOP_PATH                   PALMOD_PATH "GOP/"
       #endif // PALMOD_BULK_MAP
 
+   // PALMOD: 取消版本判断，直接默认为 DOS 版
+   #define PALMOD_Version_DOS                      1
+
    // PALMOD: 直接读取 Demkf.py 解包的 smkf 序列
+   #define PALMOD_BULK_DATA_SSS                    1
+      #if PALMOD_BULK_DATA_SSS
+         // PALMOD: 目录
+         #define PALMOD_CoreData_PATH              PALMOD_PATH "CoreData/"
+         #define PALMOD_MainData_PATH              PALMOD_PATH "MainData/"
+      #endif // PALMOD_BULK_DATA_SSS
 
    // PALMOD: 游戏提速
    #define PALMOD_SpeedUp                          1
