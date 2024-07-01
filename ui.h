@@ -42,7 +42,11 @@
 
 #define DESCTEXT_COLOR                     0x3C
 
+#if !PALMOD_CLASSIC
 #define MAINMENU_BACKGROUND_FBPNUM         (gConfig.fIsWIN95 ? 2 :60)
+#else
+#define MAINMENU_BACKGROUND_FBPNUM         27
+#endif
 
 #define RIX_NUM_OPENINGMENU                4
 #define MAINMENU_LABEL_NEWGAME             7
@@ -272,6 +276,13 @@ INT
 PAL_WordWidth(
    INT            nWordIndex
 );
+
+#if PD_MODInformation
+INT
+PAL_New_WordWidth(
+   LPCWSTR        itemText
+);
+#endif // PD_MODInformation
 
 LPOBJECTDESC
 PAL_LoadObjectDesc(

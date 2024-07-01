@@ -22,6 +22,44 @@
 #ifndef _PALDEBUG_H
 #define _PALDEBUG_H
 
+
+#ifdef _UNICODE
+#define _T(x) L ## x
+#else
+#define _T(x) x
+#endif // _UNICODE
+
+
+
+// PALMOD: 梦幻版-毒门篇
+#define PALMOD_CLASSIC 1
+
+#if PALMOD_CLASSIC
+
+   // PALMOD: 目录
+   #define PALMOD_PATH                             "PALMOD/"
+
+   // PALMOD: AVI过场动画目录
+   #define PALMOD_Movies_PATH                      PALMOD_PATH "Movies/"
+
+   // PALMOD: 直接读取 MapEditor 解包的 map 序列
+   #define PALMOD_BULK_MAP                         1
+      #if PALMOD_BULK_MAP
+         // PALMOD: MAP目录
+         #define PALMOD_MAP_PATH                   PALMOD_PATH "MAP/"
+         // PALMOD: GOP目录
+         #define PALMOD_GOP_PATH                   PALMOD_PATH "GOP/"
+      #endif // PALMOD_BULK_MAP
+
+   // PALMOD: 直接读取 Demkf.py 解包的 smkf 序列
+
+   // PALMOD: 游戏提速
+   #define PALMOD_SpeedUp                          1
+
+#endif // PALMOD_CLASSIC
+
+
+
 // 启用原游戏中存在的 bug
 #define     PAL_BUG                                1
 
@@ -50,6 +88,9 @@
 #define     PAL_FIXBUG                             1
 
 #if     PAL_FIXBUG
+
+   // 存档菜单字体是黑色的
+   #define     PD_SaveMenu_FontColor_Block         1
 
    // 驱魔香使 NPC 原地轮播图像
    #define     PD_QuMoXiang_CarouselImage          1
@@ -110,10 +151,11 @@
 
 
 // MOD 制作者信息
-#define     PD_MODInformation                   1
+#define     PD_MODInformation                      1
 
 #if PD_MODInformation
-   #define     PD_ProgramVersion                L"1.0 (" WIDETEXT(__DATE__) L")"
+   #define     PD_MODTitle                         "DOS版 MOD 梦幻版-毒门篇 "
+   #define     PD_ProgramVersion                   "Ver1.0"
 #endif
 
 
@@ -153,6 +195,8 @@
          #define     PD_Scene_ShowLingHuValue      1
          // 显示所有事件的名称和编号
          #define     PD_Scene_ShowEventMessages    1
+         // 显示场景入口和隐藏道具
+         #define     PD_Scene_ShowEvent_GetItem    1
          // 显示事件触发范围
          #define     PD_Scene_ShowEventCheckBlock  0
       #endif // PD_Scene_ShowMoreMessages

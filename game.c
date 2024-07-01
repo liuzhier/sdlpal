@@ -41,28 +41,30 @@ PAL_New_MODInformation(
 
 --*/
 {
-   LPCWSTR rgszStrings[] = {
-      L"                作者的话",
-      L"WIN-95 版 竞速 MOD Ver"PD_ProgramVersion,
-      L"作者：仪拓诗、风羽かざば_Official",
-      L"              (本MOD完全免费，严禁售卖)",
-      L"第一次为大家制作竞速版本，不足之处还望 ",
-      L"大家不吝赐教～本程序目前仍有许多地方与 ",
-      L"原版不同，待完善，感谢大家测试和反馈～ ",
+   int            i;
+   WCHAR          buffer[48];
+   LPCWSTR        rgszStrings[] = {
+      L"作者的话(" WIDETEXT(__DATE__) L")",
+      L"" WIDETEXT(PD_MODTitle PD_ProgramVersion),
+      L"策划∶齐小伙 ",
+      L"本 MOD 为 外塞之雾 梦幻Ver2.11b 的续改 ",
+      L"特别感谢∶Palalex  圆梦MOD源代码供参考 ",
       L"",
-      L"特别感谢∶(排名不分先后)",
-      L"Palalex(圆梦MOD程序代码供参考)",
-      L"白昼寒露、-皮皮叶-、Houou",
-      L"                    按 Enter 继续......",
+      L"转载请注明作者：仪拓诗 (PalPoetry)",
+      L"严禁用于商业用途，否则后果自负         ",
+      L"如果您是花钱买到本游戏，那么您被骗了   ",
+      L"作者不承担任何后果                     ",
+      L"" ,
+      L"                   按 Enter 继续...... ",
    };
-
-   int        i = 0;
 
    PAL_DrawOpeningMenuBackground();
 
-   for (i = 0; i < 12; i++)
+   PAL_swprintf(buffer, sizeof(buffer) / sizeof(WCHAR), rgszStrings[0]);
+   PAL_DrawText(buffer, PAL_XY((320 - PAL_TextWidth(rgszStrings[0])) / 2, 2), DESCTEXT_COLOR, TRUE, FALSE, FALSE);
+
+   for (i = 1; i < 12; i++)
    {
-      WCHAR buffer[48];
       PAL_swprintf(buffer, sizeof(buffer) / sizeof(WCHAR), rgszStrings[i]);
       PAL_DrawText(buffer, PAL_XY(0, 2 + i * 16), DESCTEXT_COLOR, TRUE, FALSE, FALSE);
    }

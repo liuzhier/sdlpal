@@ -281,10 +281,12 @@ PAL_SceneDrawSprites(
       // Get the sprite
       //
       lpSprite = PAL_GetEventObjectSprite((WORD)i + 1);
+#if !PD_Scene_ShowEvent_GetItem
       if (lpSprite == NULL)
       {
          continue;
       }
+#endif // !PD_Scene_ShowEvent_GetItem
 
       iFrame = lpEvtObj->wCurrentFrameNum;
       if (lpEvtObj->nSpriteFrames == 3)
@@ -315,10 +317,12 @@ PAL_SceneDrawSprites(
       lpFrame = PAL_SpriteGetFrame(lpSprite,
          lpEvtObj->wDirection * lpEvtObj->nSpriteFrames + iFrame);
 
+#if !PD_Scene_ShowEvent_GetItem
       if (lpFrame == NULL)
       {
          continue;
       }
+#endif // !PD_Scene_ShowEvent_GetItem
 
       //
       // Calculate the coordinate and check if outside the screen
@@ -800,6 +804,9 @@ PAL_New_GetTreasureBoxItemID(
          goto end;
 
       case 0x001F:
+         //
+         // 获得道具
+         //
          fEnded = TRUE;
 
          fJumpResults = TRUE;

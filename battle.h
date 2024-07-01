@@ -25,7 +25,11 @@
 #include "global.h"
 #include "uibattle.h"
 
+#if PALMOD_SpeedUp
+#define       BATTLE_FPS               36
+#else
 #define       BATTLE_FPS               25
+#endif // PALMOD_SpeedUp
 #define       BATTLE_FRAME_TIME        (1000 / BATTLE_FPS)
 
 typedef enum tagBATTLERESULT

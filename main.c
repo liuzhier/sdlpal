@@ -79,10 +79,10 @@ PAL_Init(
    }
 
 #if PD_MODInformation
-   VIDEO_SetWindowTitle(UTIL_va(UTIL_GlobalBuffer(0), PAL_GLOBAL_BUFFER_SIZE, "仙剑奇侠传 WIN-95 版 竞速 MOD Ver∶%ls", PD_ProgramVersion));
+   VIDEO_SetWindowTitle(UTIL_va(UTIL_GlobalBuffer(0), PAL_GLOBAL_BUFFER_SIZE, "仙剑奇侠传 %s%s", PD_MODTitle, PD_ProgramVersion));
 #else
    VIDEO_SetWindowTitle("Loading...");
-#endif
+#endif // PD_MODInformation
 
    e = PAL_InitUI();
    if (e != 0)
@@ -190,7 +190,11 @@ PAL_TrademarkScreen(
 
 --*/
 {
+#if PALMOD_CLASSIC
+   if (PAL_PlayAVI(PALMOD_Movies_PATH "1.avi")) return;
+#else
    if (PAL_PlayAVI("1.avi")) return;
+#endif
 
    PAL_SetPalette(3, FALSE);
    PAL_RNGPlay(6, 0, -1, 25);
@@ -228,7 +232,11 @@ PAL_SplashScreen(
    DWORD          dwTime, dwBeginTime;
    BOOL           fUseCD = TRUE;
 
+#if PALMOD_CLASSIC
+   if (PAL_PlayAVI(PALMOD_Movies_PATH "2.avi")) return;
+#else
    if (PAL_PlayAVI("2.avi")) return;
+#endif
 
    if (palette == NULL)
    {
@@ -537,6 +545,7 @@ main(
    // Show the trademark screen and splash screen
    //
    PAL_TrademarkScreen();
+
    PAL_SplashScreen();
 
    //

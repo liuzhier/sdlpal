@@ -159,7 +159,11 @@ PAL_OpeningMenu(
 
    if (wItemSelected == 0)
    {
+#if PALMOD_CLASSIC
+      PAL_PlayAVI(PALMOD_Movies_PATH "3.avi");
+#else
       PAL_PlayAVI("3.avi");
+#endif
    }
 
    return (INT)wItemSelected;

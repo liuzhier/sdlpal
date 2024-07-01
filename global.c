@@ -52,12 +52,29 @@ PAL_IsWINVersion(
 	BOOL *pfIsWIN95
 )
 {
+#if !PALMOD_BULK_MAP
 	FILE *fps[] = { UTIL_OpenRequiredFile("abc.mkf"), UTIL_OpenRequiredFile("map.mkf"), gpGlobals->f.fpF, gpGlobals->f.fpFBP, gpGlobals->f.fpFIRE, gpGlobals->f.fpMGO };
+#else
+   FILE*    fps[6];
+   int      i, size = 0;
+#endif // !PALMOD_BULK_MAP
+
 	uint8_t *data = NULL;
 	int data_size = 0, dos_score = 0, win_score = 0;
 	BOOL result = FALSE;
 
+#if !PALMOD_BULK_MAP
 	for (int i = 0; i < sizeof(fps) / sizeof(FILE *); i++)
+#else
+   fps[size++] = UTIL_OpenRequiredFile("abc.mkf");
+   if (!PALMOD_CLASSIC || !PALMOD_BULK_MAP) fps[size++] = UTIL_OpenRequiredFile("map.mkf");
+   fps[size++] = gpGlobals->f.fpF;
+   fps[size++] = gpGlobals->f.fpFBP;
+   fps[size++] = gpGlobals->f.fpFIRE;
+   fps[size++] = gpGlobals->f.fpMGO;
+
+	for (i = 0; i < size; i++)
+#endif // !PALMOD_BULK_MAP
 	{
 		//
 		// Find the first non-empty sub-file
@@ -96,13 +113,23 @@ PAL_IsWINVersion(
 	if (data_size % sizeof(OBJECT) == 0 && data_size % sizeof(OBJECT_DOS) != 0 && dos_score > 0) goto PAL_IsWINVersion_Exit;
 	if (data_size % sizeof(OBJECT_DOS) == 0 && data_size % sizeof(OBJECT) != 0 && win_score > 0) goto PAL_IsWINVersion_Exit;
 
+#if !PALMOD_BULK_MAP
 	if (pfIsWIN95) *pfIsWIN95 = (win_score == sizeof(fps) / sizeof(FILE *)) ? TRUE : FALSE;
+#else
+   if (pfIsWIN95) *pfIsWIN95 = (win_score == size) ? TRUE : FALSE;
+#endif // !PALMOD_BULK_MAP
 
 	result = TRUE;
 
 PAL_IsWINVersion_Exit:
 	free(data);
+
+#if !PALMOD_BULK_MAP
 	fclose(fps[1]);
+#else
+   if (!PALMOD_CLASSIC || !PALMOD_BULK_MAP) fclose(fps[1]);
+#endif // !PALMOD_BULK_MAP
+
 	fclose(fps[0]);
 
 	return result;
@@ -189,7 +216,11 @@ PAL_InitGlobals(
    //
    // Enable AVI playing only when the resource is WIN95
    //
+#if PALMOD_CLASSIC
+   gConfig.fEnableAviPlay = gConfig.fEnableAviPlay;
+#else
    gConfig.fEnableAviPlay = gConfig.fEnableAviPlay && gConfig.fIsWIN95;
+#endif
 
    //
    // Detect game language only when no message file specified

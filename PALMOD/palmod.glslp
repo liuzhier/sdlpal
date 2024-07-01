@@ -1,0 +1,36 @@
+shaders = 6
+
+shader0 = shaders/color.glsl
+filter_linear0 = false
+scale_type0 = source
+scale0 = 1.0
+
+shader1 = shaders/stock.glsl
+filter_linear1 = false
+scale_type1 = source
+scale_x1 = 2.0
+scale_y1 = 2.0
+
+shader2 = shaders/xbrz-freescale.glsl
+filter_linear2 = false
+scale_type2 = source
+scale_x2 = 2.0
+scale_y2 = 2.0
+
+shader3 = shaders/mame_bloom.glsl
+alias3 = BloomPass
+filter_linear3 = true
+scale_type3 = source
+mipmap_input3 = true
+
+shader4 = shaders/stock.glsl
+filter_linear4 = true
+
+shader5 = shaders/dotmask.glsl
+filter_linear5 = true
+scale_type5 = viewport
+scale5 = 1.0
+
+parameters = "maskDark; maskLight"
+maskDark  = 0.9
+maskLight = 0.5

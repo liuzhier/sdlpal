@@ -24,10 +24,22 @@
 
 #include "common.h"
 
+#if PALMOD_SpeedUp
+#define    FPS             12
+#else
 #define    FPS             10
+#endif // PALMOD_SpeedUp
 #define    FRAME_TIME      (1000 / FPS)
 
 PAL_C_LINKAGE
+
+#if PD_MODInformation
+VOID
+PAL_New_MODInformation(
+   VOID
+);
+#endif
+
 VOID
 PAL_GameMain(
    VOID

@@ -22,6 +22,7 @@
 #include "palcommon.h"
 #include "map.h"
 
+#if !PALMOD_CLASSIC || !PALMOD_BULK_MAP
 LPPALMAP
 PAL_LoadMap(
    INT               iMapNum,
@@ -152,6 +153,131 @@ PAL_LoadMap(
 
    return map;
 }
+#else
+LPPALMAP
+PALMOD_LoadMap(
+   INT               iMapNum
+)
+/*++
+
+  Purpose:
+
+    Load the specified map from the MKF file, as well as the tile bitmaps.
+
+  Parameters:
+
+    [IN]  iMapNum - Number of the map to load.
+
+  Return value:
+
+    Pointer to the loaded map. NULL if failed.
+
+--*/
+{
+   INT                        size, i, j;
+   LPPALMAP                   map;
+   LPCSTR                     lpszFileName;
+   FILE                      *fpThisMap;
+
+   //
+   // Check for invalid map number.
+   //
+   if (iMapNum <= 0)
+   {
+      return NULL;
+   }
+
+   //
+   // MAP 子文件长度
+   //
+   size = sizeof(map->Tiles);
+
+   //
+   // Create the map instance.
+   //
+   map = (LPPALMAP)malloc(sizeof(PALMAP));
+   if (map == NULL)
+   {
+      return NULL;
+   }
+
+   //
+   // 格式化拼接文件名:map0000, map0001, ......, map0299
+   //
+   lpszFileName = PAL_va(1, "%smap%04d", PALMOD_MAP_PATH, iMapNum);
+
+   //
+   // 读取地图
+   //
+   fpThisMap = UTIL_OpenRequiredFile(lpszFileName);
+
+   //
+   // 将地图文件内容读入缓冲区
+   //
+   fread(map->Tiles, 1, size, fpThisMap);
+
+   //
+   // 关闭地图文件
+   //
+   UTIL_CloseFile(fpThisMap);
+
+   //
+   // Adjust the endianness of the decompressed data.
+   //
+   for (i = 0; i < 128; i++)
+   {
+      for (j = 0; j < 64; j++)
+      {
+         map->Tiles[i][j][0] = SDL_SwapLE32(map->Tiles[i][j][0]);
+         map->Tiles[i][j][1] = SDL_SwapLE32(map->Tiles[i][j][1]);
+      }
+   }
+
+   //
+   // 格式化拼接文件名:gop0000, gop0001, ......, gop0299
+   //
+   lpszFileName = PAL_va(1, "%sgop%04d", PALMOD_GOP_PATH, iMapNum);
+
+   //
+   // 读取地图图块
+   //
+   fpThisMap = UTIL_OpenRequiredFile(lpszFileName);
+
+   //
+   // GOP 子文件长度
+   //
+   fseek(fpThisMap, 0, SEEK_END);
+   size = ftell(fpThisMap) - sizeof(INT); // 去掉开头的 MFK 头部索引占用的大写，数据为 INT 类型
+   fseek(fpThisMap, sizeof(INT), SEEK_SET); // 跳过开头的 MFK 头部索引，数据为 INT 类型
+
+   //
+   // Load the tile bitmaps.
+   //
+   map->pTileSprite = (LPSPRITE)malloc(size);
+   if (map->pTileSprite == NULL)
+   {
+      free(map);
+      return NULL;
+   }
+
+   //
+   // 将地图图块文件内容读入缓冲区
+   //
+   fread(map->pTileSprite, 1, size, fpThisMap);
+
+   //
+   // 关闭地图图块文件
+   //
+   UTIL_CloseFile(fpThisMap);
+
+   //
+   // Done.
+   //
+   map->iMapNum = iMapNum;
+
+   return map;
+}
+#endif // !PALMOD_CLASSIC || !PALMOD_BULK_MAP
 
 VOID
 PAL_FreeMap(

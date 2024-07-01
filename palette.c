@@ -48,7 +48,11 @@ PAL_GetPalette(
    INT                   i;
    FILE                 *fp;
 
+#ifdef PALMOD_PATH
+   fp = UTIL_OpenRequiredFile("palette.mkf");
+#else
    fp = UTIL_OpenRequiredFile("pat.mkf");
+#endif // PALMOD_PATH
 
    //
    // Read the palette data from the pat.mkf file

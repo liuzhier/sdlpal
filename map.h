@@ -56,6 +56,10 @@
 //  d & 0x2000
 //
 
+#if PALMOD_CLASSIC
+   #include "util.h"
+#endif // PALMOD_CLASSIC
+
 typedef struct tagPALMAP
 {
    DWORD          Tiles[128][64][2];
@@ -67,12 +71,19 @@ typedef const PALMAP *LPCPALMAP;
 
 PAL_C_LINKAGE_BEGIN
 
+#if !PALMOD_CLASSIC || !PALMOD_BULK_MAP
 LPPALMAP
 PAL_LoadMap(
    INT               iMapNum,
    FILE             *fpMapMKF,
    FILE             *fpGopMKF
 );
+#else
+LPPALMAP
+PALMOD_LoadMap(
+   INT               iMapNum
+);
+#endif // !PALMOD_CLASSIC || !PALMOD_BULK_MAP
 
 VOID
 PAL_FreeMap(

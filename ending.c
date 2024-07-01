@@ -415,9 +415,15 @@ PAL_EndingScreen(
     // Use AVI & WIN95's music if we can
 	// Otherwise, simulate the ending of DOS version
 	//
-	BOOL avi_played = PAL_PlayAVI("4.avi");
+#if PALMOD_CLASSIC
+   BOOL avi_played = PAL_PlayAVI(PALMOD_Movies_PATH "4.avi");
+
+   if (!(avi_played = PAL_PlayAVI(PALMOD_Movies_PATH "5.avi")))
+#else
+   BOOL avi_played = PAL_PlayAVI("4.avi");
 
 	if (!(avi_played = PAL_PlayAVI("5.avi")))
+#endif
 	{
 		BOOL win_music = AUDIO_PlayCDTrack(12);
 
@@ -482,7 +488,11 @@ PAL_EndingScreen(
 		UTIL_Delay(500);
 	}
 
+#if PALMOD_CLASSIC
+	if (!PAL_PlayAVI(PALMOD_Movies_PATH "6.avi"))
+#else
 	if (!PAL_PlayAVI("6.avi"))
+#endif
 	{
 		if (avi_played)
 		{
