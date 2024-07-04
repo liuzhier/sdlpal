@@ -317,8 +317,13 @@ typedef struct tagPLAYERROLES
    PLAYERS            rgwFleeRate;           // chance of successful fleeing
    PLAYERS            rgwPoisonResistance;   // resistance to poison
    WORD               rgwElementalResistance[NUM_MAGIC_ELEMENTAL][MAX_PLAYER_ROLES]; // resistance to elemental magics
+#if PALMOD_CLASSIC
+   PLAYERS            rgwSorceryResistance;  // resistance to sorcery
+   PLAYERS            rgwPhysicalResistance; // resistance to physical
+#else
    PLAYERS            rgwUnknown2;           // FIXME: ???
    PLAYERS            rgwUnknown3;           // FIXME: ???
+#endif
    PLAYERS            rgwUnknown4;           // FIXME: ???
    PLAYERS            rgwCoveredBy;          // who will cover me when I am low of HP or not sane
    WORD               rgwMagic[MAX_PLAYER_MAGICS][MAX_PLAYER_ROLES]; // magics
@@ -846,6 +851,11 @@ PAL_New_GetEnemyElementalResistance(
 WORD
 PAL_New_GetPlayerID(
    WORD		wPlayerIndex
+);
+
+SHORT
+PAL_New_GetPlayerPhysicalResistance(
+   WORD			wPlayerRole
 );
 #endif
 

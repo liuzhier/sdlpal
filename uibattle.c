@@ -1272,6 +1272,13 @@ PAL_BattleUIUpdate(
                //
                g_Battle.fShowDataInBattle = PAL_SwitchMenu(g_Battle.fShowDataInBattle);
             }
+            else if (g_InputState.dwKeyPress & kKeyBattleDataD)
+            {
+               //
+               // 透视数据页切换
+               //
+               g_Battle.byDataID = !g_Battle.byDataID;
+            }
             else if (g_InputState.dwKeyPress & kKeyEnemyStatus)
             {
                //
@@ -1878,14 +1885,12 @@ PAL_New_BattleUIShowData(
    VOID
 )
 {
-   int              i, j;
+   int              i, j, startPos;
    WORD             wPlayerRole, w;
    SHORT            sValue;
    BYTE             wNum, wNumAlign;
    SHORT            sHealth;
    BATTLEENEMY      be;
-
-   int startPos = 320 - 20 * (gpGlobals->wMaxPartyMemberIndex + 1);
 
    // 显示敌人血量（三分之一血时可化尸换成特殊颜色）、负面buff回合数
    for (i = 0; i <= g_Battle.wMaxEnemyIndex; i++)
@@ -1946,25 +1951,54 @@ PAL_New_BattleUIShowData(
       PAL_DrawNumber(sValue, 2, PAL_XY(0, 52 + i * 10), wNum, kNumAlignRight);
    }
 
-   // 显示我方有益状态的剩余轮次
-   for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+   startPos = 320 - 20 * (gpGlobals->wMaxPartyMemberIndex + 1) + 8;
+
+   if (g_Battle.byDataID)
    {
-      wPlayerRole = gpGlobals->rgParty[i].wPlayerRole;
-      for (j = 0; j < kStatusAll - kStatusPuppet; j++)
+      //显示我方的对各属性仙术的抗性
+      for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
       {
-         w = gpGlobals->rgPlayerStatus[wPlayerRole][kStatusPuppet + j];
-         PAL_DrawNumber(min(99, w), 3, PAL_XY(startPos + 20 * i, 8 * j), kNumColorYellow, kNumAlignRight);
+         wPlayerRole = gpGlobals->rgParty[i].wPlayerRole;
+         for (j = 0; j < NUM_MAGIC_ELEMENTAL; j++)
+         {
+            w = PAL_GetPlayerElementalResistance(wPlayerRole, j);
+            PAL_DrawNumber(min(99, w), 2, PAL_XY(startPos + 20 * i, 8 * j), kNumColorYellow, kNumAlignRight);
+         }
+
+         w = PAL_GetPlayerPoisonResistance(wPlayerRole);
+         PAL_DrawNumber(min(99, w), 2, PAL_XY(startPos + 20 * i, 9 * j), kNumColorYellow, kNumAlignRight);
+
+         j++;
+         w = PAL_New_GetPlayerPhysicalResistance(wPlayerRole);
+         PAL_DrawNumber(min(99, w), 2, PAL_XY(startPos + 20 * i, 9 * j), kNumColorYellow, kNumAlignRight);
+
+         j++;
+         w = PAL_New_GetPlayerSorceryResistance(wPlayerRole);
+         PAL_DrawNumber(min(99, w), 2, PAL_XY(startPos + 20 * i, 9 * j), kNumColorYellow, kNumAlignRight);
       }
    }
-
-   // 显示我方负面状态的剩余轮次
-   for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+   else
    {
-      wPlayerRole = gpGlobals->rgParty[i].wPlayerRole;
-      for (j = 0; j < kStatusPuppet; j++)
+      // 显示我方有益状态的剩余轮次
+      for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
       {
-         w = gpGlobals->rgPlayerStatus[wPlayerRole][j];
-         PAL_DrawNumber(min(99, w), 3, PAL_XY(startPos + 20 * i, 40 + 8 * j), kNumColorYellow, kNumAlignRight);
+         wPlayerRole = gpGlobals->rgParty[i].wPlayerRole;
+         for (j = 0; j < kStatusAll - kStatusPuppet; j++)
+         {
+            w = gpGlobals->rgPlayerStatus[wPlayerRole][kStatusPuppet + j];
+            PAL_DrawNumber(min(99, w), 2, PAL_XY(startPos + 20 * i, 8 * j), kNumColorYellow, kNumAlignRight);
+         }
+      }
+
+      // 显示我方负面状态的剩余轮次
+      for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+      {
+         wPlayerRole = gpGlobals->rgParty[i].wPlayerRole;
+         for (j = 0; j < kStatusPuppet; j++)
+         {
+            w = gpGlobals->rgPlayerStatus[wPlayerRole][j];
+            PAL_DrawNumber(min(99, w), 2, PAL_XY(startPos + 20 * i, 44 + 8 * j), kNumColorYellow, kNumAlignRight);
+         }
       }
    }
 

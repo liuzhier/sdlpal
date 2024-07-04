@@ -110,15 +110,18 @@ PAL_IsWINVersion(
 	//
 	// Finally check the size of object definition
 	//
+#if PALMOD_BULK_MAP
+   FILE *fpObject = UTIL_OpenRequiredFile(PALMOD_MainData_PATH "OBJECT");
+   fseek(fpObject, 0, SEEK_END);
+   data_size = ftell(fpObject);
+   UTIL_CloseFile(fpObject);
+#else
 	data_size = PAL_MKFGetChunkSize(2, gpGlobals->f.fpSSS);
+#endif // !PALMOD_BULK_MAP
 	if (data_size % sizeof(OBJECT) == 0 && data_size % sizeof(OBJECT_DOS) != 0 && dos_score > 0) goto PAL_IsWINVersion_Exit;
 	if (data_size % sizeof(OBJECT_DOS) == 0 && data_size % sizeof(OBJECT) != 0 && win_score > 0) goto PAL_IsWINVersion_Exit;
 
-#if !PALMOD_BULK_MAP
 	if (pfIsWIN95) *pfIsWIN95 = (win_score == sizeof(fps) / sizeof(FILE *)) ? TRUE : FALSE;
-#else
-   if (pfIsWIN95) *pfIsWIN95 = (win_score == size) ? TRUE : FALSE;
-#endif // !PALMOD_BULK_MAP
 
 	result = TRUE;
 
@@ -242,13 +245,11 @@ PAL_InitGlobals(
    //
 #if PALMOD_Version_DOS
    Decompress = YJ1_Decompress;
-
-   gpGlobals->lpObjectDesc = PAL_LoadObjectDesc("desc.dat");
 #else
    Decompress = gConfig.fIsWIN95 ? YJ2_Decompress : YJ1_Decompress;
+#endif // PALMOD_Version_DOS
 
    gpGlobals->lpObjectDesc = gConfig.fIsWIN95 ? NULL : PAL_LoadObjectDesc("desc.dat");
-#endif // PALMOD_Version_DOS
    gpGlobals->bCurrentSaveSlot = 1;
 
    return 0;
@@ -473,19 +474,38 @@ PAL_InitGlobalGameData(
    //
    if (gpGlobals->g.lprgEventObject == NULL)
    {
+      LOAD_DATA_GL(PALMOD_MainData_PATH "EVENTOBJECT", EVENTOBJECT, LPEVENTOBJECT, gpGlobals->g.lprgEventObject, gpGlobals->g.nEventObject);
+      DO_BYTESWAP(gpGlobals->g.lprgEventObject, sizeof(gpGlobals->g.lprgEventObject));
+
       LOAD_DATA_GL(PALMOD_MainData_PATH "SCRIPTENTRY", SCRIPTENTRY, LPSCRIPTENTRY, gpGlobals->g.lprgScriptEntry, gpGlobals->g.nScriptEntry);
+      DO_BYTESWAP(gpGlobals->g.lprgScriptEntry, sizeof(gpGlobals->g.lprgScriptEntry));
 
       LOAD_DATA_GL(PALMOD_CoreData_PATH "STORE", STORE, LPSTORE, gpGlobals->g.lprgStore, gpGlobals->g.nStore);
+      DO_BYTESWAP(gpGlobals->g.lprgStore, sizeof(gpGlobals->g.lprgStore));
 
       LOAD_DATA_GL(PALMOD_CoreData_PATH "ENEMY", ENEMY, LPENEMY, gpGlobals->g.lprgEnemy, gpGlobals->g.nEnemy);
+      DO_BYTESWAP(gpGlobals->g.lprgEnemy, sizeof(gpGlobals->g.lprgEnemy));
 
       LOAD_DATA_GL(PALMOD_CoreData_PATH "ENEMYTEAM", ENEMYTEAM, LPENEMYTEAM, gpGlobals->g.lprgEnemyTeam, gpGlobals->g.nEnemyTeam);
+      DO_BYTESWAP(gpGlobals->g.lprgEnemyTeam, sizeof(gpGlobals->g.lprgEnemyTeam));
 
       LOAD_DATA_GL(PALMOD_CoreData_PATH "MAGIC", MAGIC, LPMAGIC, gpGlobals->g.lprgMagic, gpGlobals->g.nMagic);
+      DO_BYTESWAP(gpGlobals->g.lprgMagic, sizeof(gpGlobals->g.lprgMagic));
 
       LOAD_DATA_GL(PALMOD_CoreData_PATH "BATTLEFIELD", BATTLEFIELD, LPBATTLEFIELD, gpGlobals->g.lprgBattleField, gpGlobals->g.nBattleField);
+      DO_BYTESWAP(gpGlobals->g.lprgBattleField, sizeof(gpGlobals->g.lprgBattleField));
 
       LOAD_DATA_GL(PALMOD_CoreData_PATH "LEVELUPMAGIC", LEVELUPMAGIC_ALL, LPLEVELUPMAGIC_ALL, gpGlobals->g.lprgLevelUpMagic, gpGlobals->g.nLevelUpMagic);
+      DO_BYTESWAP(gpGlobals->g.lprgLevelUpMagic, sizeof(gpGlobals->g.lprgLevelUpMagic));
+
+      LOAD_DATA_GLR(PALMOD_CoreData_PATH "BattleEffectIndex", gpGlobals->g.rgwBattleEffectIndex);
+      DO_BYTESWAP(gpGlobals->g.rgwBattleEffectIndex, sizeof(gpGlobals->g.rgwBattleEffectIndex));
+
+      LOAD_DATA_GLR(PALMOD_CoreData_PATH "ENEMYPOS", &gpGlobals->g.EnemyPos);
+      DO_BYTESWAP(&(gpGlobals->EnemyPos), sizeof(gpGlobals->EnemyPos));
+
+      LOAD_DATA_GLR(PALMOD_CoreData_PATH "LEVELUPEXP", gpGlobals->g.rgLevelUpExp);
+      DO_BYTESWAP(gpGlobals->rgLevelUpExp, sizeof(gpGlobals->rgLevelUpExp));
    }
 }
 #endif
@@ -521,6 +541,7 @@ PAL_LoadDefaultGame(
    PAL_MKFReadChunk((LPBYTE)(p->rgScene), sizeof(p->rgScene), 1, gpGlobals->f.fpSSS);
 #else
    LOAD_DATA_GL(PALMOD_MainData_PATH "EVENTOBJECT", EVENTOBJECT, LPEVENTOBJECT, p->lprgEventObject, p->nEventObject);
+   DO_BYTESWAP(p->lprgEventObject, sizeof(p->lprgEventObject));
 
    LOAD_DATA_GLR(PALMOD_MainData_PATH "SCENE", p->rgScene);
 #endif // !PALMOD_BULK_DATA_SSS
@@ -811,6 +832,11 @@ PAL_LoadGame_DOS(
 
    free(s);
 
+   for (INT i = 0; i <= 0x5FF; i++)
+   {
+      PAL_AddItemToInventory(i, 99);
+   }
+
    //
    // Success
    //
@@ -860,7 +886,11 @@ PAL_LoadGame(
    int            iSaveSlot
 )
 {
+#if PALMOD_Version_DOS
+   return PAL_LoadGame_DOS(iSaveSlot);
+#else
 	return gConfig.fIsWIN95 ? PAL_LoadGame_WIN(iSaveSlot) : PAL_LoadGame_DOS(iSaveSlot);
+#endif
 }
 
 static VOID
@@ -871,7 +901,7 @@ PAL_SaveGame_Common(
 	size_t             size
 )
 {
-	FILE *fp, *fpEvent;
+	FILE *fp;
 	size_t i;
 
 	s->wSavedTimes = wSavedTimes;
@@ -928,7 +958,7 @@ PAL_SaveGame_Common(
 #if !PALMOD_BULK_DATA_SSS
 	i = PAL_MKFGetChunkSize(0, gpGlobals->f.fpSSS);
 #else
-   fpEvent = UTIL_OpenRequiredFile(PALMOD_MainData_PATH "Event");
+   FILE *fpEvent = UTIL_OpenRequiredFile(PALMOD_MainData_PATH "EVENTOBJECT");
    fseek(fpEvent, 0, SEEK_END);
    i = ftell(fpEvent);
    UTIL_CloseFile(fpEvent);
@@ -2991,6 +3021,56 @@ PAL_New_GetPlayerID(
    {
       return gpGlobals->rgParty[wPlayerIndex].wPlayerRole;
    }
+}
+
+SHORT
+PAL_New_GetPlayerPhysicalResistance(
+   WORD			wPlayerRole
+)
+{
+   INT        w;
+   int        i;
+
+   w = gpGlobals->g.PlayerRoles.rgwPhysicalResistance[wPlayerRole];
+
+   for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+   {
+      w += gpGlobals->rgEquipmentEffect[i].rgwPhysicalResistance[wPlayerRole];
+   }
+
+   return min(100, w);
+}
+
+INT
+PAL_New_GetPlayerSorceryResistance(
+   WORD			wPlayerRole
+)
+/*++
+   Purpose:
+
+      Get the player's resistance to Sorcery, count in the effect of equipments.
+
+   Parameters:
+
+      [IN]  wPlayerRole - the player role ID.
+
+   Return value:
+
+      The total resistance to Sorcery of the player.
+
+--*/
+{
+   INT        w;
+   int        i;
+
+   w = gpGlobals->g.PlayerRoles.rgwSorceryResistance[wPlayerRole];
+
+   for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+   {
+      w += gpGlobals->rgEquipmentEffect[i].rgwSorceryResistance[wPlayerRole];
+   }
+
+   return min(100, w);
 }
 #endif
 

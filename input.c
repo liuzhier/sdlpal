@@ -91,6 +91,7 @@ static const int g_KeyMap[][2] = {
 
 #if PD_Battle_ShowMoreData
    { SDLK_1,         kKeyBattleData },
+   { SDLK_4,         kKeyBattleDataD },
 #endif // PD_Battle_ShowMoreData
 
 #if PD_Battle_ShowEnemyStatus

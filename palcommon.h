@@ -52,7 +52,11 @@ typedef DWORD           PAL_POS;
 #define     MAX_PLAYABLE_PLAYER_ROLES    5
 
 // maximum entries of inventory
+#if PALMOD_CLASSIC
+#define     MAX_INVENTORY                999
+#else
 #define     MAX_INVENTORY                256
+#endif // PALMOD_CLASSIC
 
 // maximum items in a store
 #define     MAX_STORE_ITEM               9

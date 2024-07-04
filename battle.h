@@ -239,6 +239,7 @@ typedef struct tagBATTLE
 
 #if PD_Battle_ShowMoreData
    BOOL             fShowDataInBattle;
+   BYTE             byDataID;
    WORD             wCurrentAllRrounds;
 #endif
 

@@ -61,22 +61,23 @@ enum PALKEY
 
 #if PD_Battle_ShowMoreData
    kKeyBattleData  = (1 << 18),
+   kKeyBattleDataD = (1 << 19),
 #endif // PD_Battle_ShowMoreData
 
 #if PD_Battle_ShowEnemyStatus
-   kKeyEnemyStatus = (1 << 19),
+   kKeyEnemyStatus = (1 << 20),
 #endif // PD_Battle_ShowEnemyStatus
 
 #if PD_Battle_ShowPlayerLevelmagic
-   kKeyMagicList   = (1 << 20),
+   kKeyMagicList   = (1 << 21),
 #endif // PD_Battle_ShowPlayerLevelmagic
 
 #if PD_Scene_ShowEventMessages
-   kKeyEventMessage = (1 << 21),
+   kKeyEventMessage = (1 << 22),
 #endif // PD_Scene_ShowEventMessages
 
 #if PD_Can_Penetrate_Walls
-   kKeyPenetrateWalls = (1 << 22),
+   kKeyPenetrateWalls = (1 << 23),
 #endif // PD_Can_Penetrate_Walls
 };
 

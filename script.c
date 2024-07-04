@@ -1650,7 +1650,11 @@ PAL_InterpretInstruction(
       // Ride the event object to the specified position, at the normal speed
       //
       PAL_PartyRideEventObject(wEventObjectID, pScript->rgwOperand[0], pScript->rgwOperand[1],
+#if PALMOD_SpeedUp
+         pScript->rgwOperand[2], 20);
+#else
          pScript->rgwOperand[2], 4);
+#endif
       break;
 
    case 0x0045:
@@ -2257,7 +2261,11 @@ PAL_InterpretInstruction(
       //
       // Walk the party to the specified position, at a higher speed
       //
+#if PALMOD_SpeedUp
+      PAL_PartyWalkTo(pScript->rgwOperand[0], pScript->rgwOperand[1], pScript->rgwOperand[2], 8);
+#else
       PAL_PartyWalkTo(pScript->rgwOperand[0], pScript->rgwOperand[1], pScript->rgwOperand[2], 4);
+#endif
       break;
 
    case 0x007B:
@@ -3085,6 +3093,35 @@ PAL_InterpretInstruction(
       //
       VIDEO_BackupScreen(gpScreen);
       break;
+
+#if PALMOD_CLASSIC
+   case 0x0072:
+      //
+      // Set event object sprite
+      //
+      {
+         LPEVENTOBJECT          pEvtObjThis;
+
+         pEvtObjThis = &gpGlobals->g.lprgEventObject[pScript->rgwOperand[0]];
+
+         pEvtObjThis->wSpriteNum = pScript->rgwOperand[1];
+      }
+      break;
+
+   case 0x0F00:
+      //
+      // Set event object location
+      //
+      {
+         LPEVENTOBJECT          pEvtObjThis;
+
+         pEvtObjThis = &gpGlobals->g.lprgEventObject[pScript->rgwOperand[0]];
+
+         pEvtObjThis->x = pScript->rgwOperand[1];
+         pEvtObjThis->y = pScript->rgwOperand[2];
+      }
+      break;
+#endif
 
    default:
       TerminateOnError("SCRIPT: Invalid Instruction at %4x: (%4x - %4x, %4x, %4x)",
