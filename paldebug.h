@@ -23,13 +23,6 @@
 #define _PALDEBUG_H
 
 
-#ifdef _UNICODE
-#define _T(x) L ## x
-#else
-#define _T(x) x
-#endif // _UNICODE
-
-
 
 // PALMOD: 梦幻版-毒门篇
 #define PALMOD_CLASSIC 1
@@ -75,7 +68,7 @@
 #if PAL_BUG
 
    // 前置身位（黑屏时允许玩家提前走一步）
-   #define     PD_Scene_BlackScreenOneStep         0
+   #define     PD_Scene_BlackScreenOneStep         1
 
    // 允许战外阵亡的队员使用仙术
    #define     PD_Scene_DeadPlayerRoleCanUseMagic  1

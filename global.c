@@ -832,11 +832,6 @@ PAL_LoadGame_DOS(
 
    free(s);
 
-   for (INT i = 0; i <= 0x5FF; i++)
-   {
-      PAL_AddItemToInventory(i, 99);
-   }
-
    //
    // Success
    //

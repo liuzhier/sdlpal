@@ -3099,28 +3099,28 @@ PAL_InterpretInstruction(
       //
       // Set event object sprite
       //
+      pCurrent->wSpriteNum    = pScript->rgwOperand[1];
+      pCurrent->nSpriteFrames = pScript->rgwOperand[2];
+      if (pScript->rgwOperand[2])
       {
-         LPEVENTOBJECT          pEvtObjThis;
-
-         pEvtObjThis = &gpGlobals->g.lprgEventObject[pScript->rgwOperand[0]];
-
-         pEvtObjThis->wSpriteNum = pScript->rgwOperand[1];
+         PAL_SetLoadFlags(kLoadScene);
+         PAL_LoadResources();
       }
       break;
 
-   case 0x0F00:
+   case 0x0F01:
       //
-      // Set event object location
+      // Set event object state and trigger script
       //
-      {
-         LPEVENTOBJECT          pEvtObjThis;
+   {
+      LPEVENTOBJECT          pEvtObjThis;
 
-         pEvtObjThis = &gpGlobals->g.lprgEventObject[pScript->rgwOperand[0]];
+      pEvtObjThis = &gpGlobals->g.lprgEventObject[pScript->rgwOperand[0] - 1];
 
-         pEvtObjThis->x = pScript->rgwOperand[1];
-         pEvtObjThis->y = pScript->rgwOperand[2];
-      }
-      break;
+      pEvtObjThis->sState = pScript->rgwOperand[1];
+      pEvtObjThis->wTriggerScript = pScript->rgwOperand[2];
+   }
+   break;
 #endif
 
    default:

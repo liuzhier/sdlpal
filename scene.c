@@ -635,7 +635,7 @@ PAL_New_ShowMoreMapMessages(
          {
             lpEvtObj = (gpGlobals->g.lprgEventObject[p->wSpriteNum]);
 
-            PAL_swprintf(s, sizeof(s) / sizeof(WCHAR), L"%1d", p->wSpriteNum);
+            PAL_swprintf(s, sizeof(s) / sizeof(WCHAR), L"%1d", p->wSpriteNum + 1);
 
             posXText = PAL_X(p->pos) + PAL_RLEGetWidth(p->lpSpriteFrame) / 2 - PAL_TextWidth(s) / 2;
             posYText = PAL_Y(p->pos);
