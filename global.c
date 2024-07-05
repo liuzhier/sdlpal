@@ -2853,6 +2853,56 @@ PAL_New_GetPlayerID(
       return gpGlobals->rgParty[wPlayerIndex].wPlayerRole;
    }
 }
+
+SHORT
+PAL_New_GetPlayerPhysicalResistance(
+   WORD			wPlayerRole
+)
+{
+   INT        w;
+   int        i;
+
+   w = gpGlobals->g.PlayerRoles.rgwPhysicalResistance[wPlayerRole];
+
+   for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+   {
+      w += gpGlobals->rgEquipmentEffect[i].rgwPhysicalResistance[wPlayerRole];
+   }
+
+   return min(100, w);
+}
+
+INT
+PAL_New_GetPlayerSorceryResistance(
+   WORD			wPlayerRole
+)
+/*++
+   Purpose:
+
+      Get the player's resistance to Sorcery, count in the effect of equipments.
+
+   Parameters:
+
+      [IN]  wPlayerRole - the player role ID.
+
+   Return value:
+
+      The total resistance to Sorcery of the player.
+
+--*/
+{
+   INT        w;
+   int        i;
+
+   w = gpGlobals->g.PlayerRoles.rgwSorceryResistance[wPlayerRole];
+
+   for (i = 0; i <= MAX_PLAYER_EQUIPMENTS; i++)
+   {
+      w += gpGlobals->rgEquipmentEffect[i].rgwSorceryResistance[wPlayerRole];
+   }
+
+   return min(100, w);
+}
 #endif
 
 #if PD_Player_Status_Index_error
@@ -2904,7 +2954,7 @@ PAL_New_LoadErrorStatus(
 
       if (wPlayerRole >= MAX_PLAYER_ROLES || fCompleted[wPlayerRole]) continue;
 
-      for (j = 0; j < kStatusAll; j++)
+      for (j = kStatusConfused; j <= kStatusSilence; j++)
       {
          gpGlobals->rgPlayerStatus[wPlayerRole][j] = gpGlobals->rgPlayerStatusError[i][j];
       }
