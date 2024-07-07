@@ -80,21 +80,12 @@ PAL_BattleSelectAutoTarget(
    VOID
 )
 {
-#if PD_Battle_ShortcutKey_R_AutoTarget
-   return PAL_BattleSelectAutoTargetFrom(0, kBattleFindTargetBackwards);
-#else
    return PAL_BattleSelectAutoTargetFrom(0);
-#endif
 }
 
 INT
 PAL_BattleSelectAutoTargetFrom(
-#if PD_Battle_ShortcutKey_R_AutoTarget
-   INT              begin,
-   BATTLEFINDTARGET bFindingMethods
-#else
    INT begin
-#endif
 )
 /*++
   Purpose:
@@ -111,11 +102,7 @@ PAL_BattleSelectAutoTargetFrom(
 
 --*/
 {
-#if PD_Battle_ShortcutKey_R_AutoTarget
-   int          i, start;
-#else
    int          i;
-#endif
    int          count;
 
    i = g_Battle.UI.iPrevEnemyTarget;
@@ -128,36 +115,39 @@ PAL_BattleSelectAutoTargetFrom(
    }
 
 #if PD_Battle_ShortcutKey_R_AutoTarget
-   switch (bFindingMethods)
-   {
-   case kBattleFindTargetForward:
-      {
-         start = MAX_ENEMIES_IN_TEAM - 1;
-         for (count = start, i = (begin <= start ? begin : start); count >= 0; count--)
-         {
-            if (g_Battle.rgEnemy[i].wObjectID != 0 &&
-               g_Battle.rgEnemy[i].e.wHealth > 0)
-            {
-               return i;
-            }
-            i = (MAX_ENEMIES_IN_TEAM + i - 1) % MAX_ENEMIES_IN_TEAM;
-         }
-      }
-      break;
+   if (begin < 0) begin = 0;
 
-   case kBattleFindTargetBackwards:
+   if (g_Battle.rgEnemy[begin].wObjectID == 0xFFFF)
+   {
+      //
+      // Forward search
+      //
+      for (i = begin; i >= 0; i--)
       {
-         for (count = 0, i = (begin >= 0 ? begin : 0); count < MAX_ENEMIES_IN_TEAM; count++)
+         if (g_Battle.rgEnemy[i].wObjectID != 0xFFFF &&
+            g_Battle.rgEnemy[i].wObjectID != 0 &&
+            g_Battle.rgEnemy[i].e.wHealth > 0)
          {
-            if (g_Battle.rgEnemy[i].wObjectID != 0 &&
-               g_Battle.rgEnemy[i].e.wHealth > 0)
-            {
-               return i;
-            }
-            i = (i + 1) % MAX_ENEMIES_IN_TEAM;
+            return i;
          }
+}
+   }
+   else
+   {
+      //
+      // Find Backward
+      //
+      for (count = 0, i = begin; count < MAX_ENEMIES_IN_TEAM; count++)
+      {
+         if (g_Battle.rgEnemy[i].wObjectID != 0xFFFF &&
+            g_Battle.rgEnemy[i].wObjectID != 0 &&
+            g_Battle.rgEnemy[i].e.wHealth > 0)
+         {
+            return i;
+         }
+
+         i = (i + 1) % MAX_ENEMIES_IN_TEAM;
       }
-      break;
    }
 #else
    for (count = 0, i = (begin >= 0 ? begin : 0); count < MAX_ENEMIES_IN_TEAM; count++)
@@ -169,7 +159,7 @@ PAL_BattleSelectAutoTargetFrom(
       }
       i = ( i + 1 ) % MAX_ENEMIES_IN_TEAM;
    }
-#endif
+#endif // PD_Battle_ShortcutKey_R_AutoTarget
 
    return -1;
 }
@@ -1938,18 +1928,10 @@ PAL_BattleCommitAction(
    }
    else
    {
-#if PD_Battle_ShortcutKey_R_AutoTarget
-      g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action =
-         g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].prevAction;
-
-      g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action.sTarget =
-         PAL_BattleSelectAutoTargetFrom(g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action.sTarget, kBattleFindTargetForward);
-#else
       SHORT target = g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action.sTarget;
       g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action =
          g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].prevAction;
       g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action.sTarget = target;
-#endif
 
       if (g_Battle.rgPlayer[g_Battle.UI.wCurPlayerIndex].action.ActionType == kBattleActionPass)
       {
@@ -3473,11 +3455,7 @@ PAL_BattlePlayerValidateAction(
          }
          else if (sTarget == -1)
          {
-#if PD_Battle_ShortcutKey_R_AutoTarget
-            g_Battle.rgPlayer[wPlayerIndex].action.sTarget = PAL_BattleSelectAutoTargetFrom(g_Battle.rgPlayer[wPlayerIndex].action.sTarget, kBattleFindTargetBackwards);
-#else
             g_Battle.rgPlayer[wPlayerIndex].action.sTarget = PAL_BattleSelectAutoTargetFrom(g_Battle.rgPlayer[wPlayerIndex].action.sTarget);
-#endif
          }
 
          fToEnemy = TRUE;
@@ -3545,11 +3523,7 @@ PAL_BattlePlayerValidateAction(
          }
          else if (sTarget == -1)
          {
-#if PD_Battle_ShortcutKey_R_AutoTarget
-            g_Battle.rgPlayer[wPlayerIndex].action.sTarget = PAL_BattleSelectAutoTargetFrom(g_Battle.rgPlayer[wPlayerIndex].action.sTarget, kBattleFindTargetBackwards);
-#else
             g_Battle.rgPlayer[wPlayerIndex].action.sTarget = PAL_BattleSelectAutoTargetFrom(g_Battle.rgPlayer[wPlayerIndex].action.sTarget);
-#endif
          }
       }
       break;
@@ -3571,11 +3545,7 @@ PAL_BattlePlayerValidateAction(
       }
       else if (g_Battle.rgPlayer[wPlayerIndex].action.sTarget == -1)
       {
-#if PD_Battle_ShortcutKey_R_AutoTarget
-         g_Battle.rgPlayer[wPlayerIndex].action.sTarget = PAL_BattleSelectAutoTargetFrom(g_Battle.rgPlayer[wPlayerIndex].action.sTarget, kBattleFindTargetBackwards);
-#else
          g_Battle.rgPlayer[wPlayerIndex].action.sTarget = PAL_BattleSelectAutoTargetFrom(g_Battle.rgPlayer[wPlayerIndex].action.sTarget);
-#endif
       }
       break;
 
@@ -3637,11 +3607,7 @@ PAL_BattlePlayerValidateAction(
       {
          if (!PAL_PlayerCanAttackAll(wPlayerRole))
          {
-#if PD_Battle_ShortcutKey_R_AutoTarget
-            g_Battle.rgPlayer[wPlayerIndex].action.sTarget = PAL_BattleSelectAutoTargetFrom(g_Battle.rgPlayer[wPlayerIndex].action.sTarget, kBattleFindTargetBackwards);
-#else
             g_Battle.rgPlayer[wPlayerIndex].action.sTarget = PAL_BattleSelectAutoTargetFrom(g_Battle.rgPlayer[wPlayerIndex].action.sTarget);
-#endif
          }
       }
       else if (PAL_PlayerCanAttackAll(wPlayerRole))
@@ -3652,13 +3618,14 @@ PAL_BattlePlayerValidateAction(
 
    if (fToEnemy && g_Battle.rgPlayer[wPlayerIndex].action.sTarget >= 0)
    {
-      if (g_Battle.rgEnemy[g_Battle.rgPlayer[wPlayerIndex].action.sTarget].wObjectID == 0)
-      {
 #if PD_Battle_ShortcutKey_R_AutoTarget
-         g_Battle.rgPlayer[wPlayerIndex].action.sTarget = PAL_BattleSelectAutoTargetFrom(g_Battle.rgPlayer[wPlayerIndex].action.sTarget, kBattleFindTargetBackwards);
+      if (g_Battle.rgEnemy[g_Battle.rgPlayer[wPlayerIndex].action.sTarget].wObjectID == 0
+         || g_Battle.rgEnemy[g_Battle.rgPlayer[wPlayerIndex].action.sTarget].wObjectID == 0xFFFF)
 #else
+      if (g_Battle.rgEnemy[g_Battle.rgPlayer[wPlayerIndex].action.sTarget].wObjectID == 0)
+#endif // PD_Battle_ShortcutKey_R_AutoTarget
+      {
          g_Battle.rgPlayer[wPlayerIndex].action.sTarget = PAL_BattleSelectAutoTargetFrom(g_Battle.rgPlayer[wPlayerIndex].action.sTarget);
-#endif
          assert(g_Battle.rgPlayer[wPlayerIndex].action.sTarget >= 0);
       }
    }
@@ -5539,11 +5506,7 @@ PAL_BattleSimulateMagic(
    }
    else if (sTarget == -1)
    {
-#if PD_Battle_ShortcutKey_R_AutoTarget
-      sTarget = PAL_BattleSelectAutoTargetFrom(sTarget, kBattleFindTargetBackwards);
-#else
       sTarget = PAL_BattleSelectAutoTargetFrom(sTarget);
-#endif
    }
 
    //
