@@ -741,11 +741,19 @@ UTIL_CheckResourceFiles(
 		"sss.mkf"
 	};
 	const char *msg_files[][2] = {
+#if PD_Read_Path30
+      { msgfile, PD_Read_Path30_MSG },
+#else
 		{ msgfile, "m.msg"    },
+#endif // PD_Read_Path30
 		{ msgfile, "word.dat" }
 	};
 	const char *sound_files[2] = { "voc.mkf", "sounds.mkf" };
+#if PD_Read_Path30
+   const char* music_files[2] = { "midi.mkf", PD_Read_Path30_MUS };
+#else
 	const char *music_files[2] = { "midi.mkf", "mus.mkf" };
+#endif // PD_Read_Path30
 	int msgidx = !(msgfile && *msgfile);
 	PALFILE retval = (PALFILE)0;
 

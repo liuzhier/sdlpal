@@ -51,6 +51,14 @@
 
 #if     PAL_FIXBUG
 
+   // 直接读取 3.0 补丁
+   #define     PD_Read_Path30                      1
+      #if PD_Read_Path30
+         #define     PD_Read_Path30_SSS            "SSS.MKF.FIXED"
+         #define     PD_Read_Path30_MUS            "MUS.MKF.FIXED"
+         #define     PD_Read_Path30_MSG            "M.MSG.FIXED"
+      #endif // PD_Read_Path30
+
    // log 输出游戏进度
    #define     PD_GameLog_Save                     1
 

@@ -169,6 +169,10 @@ PAL_InitGlobals(
 
 --*/
 {
+#if PD_Read_Path30
+   PAL_New_Path30ExtractFile();
+#endif // PD_Read_Path30
+
    //
    // Open files
    //
@@ -179,7 +183,12 @@ PAL_InitGlobals(
    gpGlobals->f.fpF = UTIL_OpenRequiredFile("f.mkf");
    gpGlobals->f.fpFIRE = UTIL_OpenRequiredFile("fire.mkf");
    gpGlobals->f.fpRGM = UTIL_OpenRequiredFile("rgm.mkf");
+
+#if PD_Read_Path30
+   gpGlobals->f.fpSSS = UTIL_OpenRequiredFile(PD_Read_Path30_SSS);
+#else
    gpGlobals->f.fpSSS = UTIL_OpenRequiredFile("sss.mkf");
+#endif // PD_Read_Path30
 
    //
    // Retrieve game resource version
@@ -237,6 +246,13 @@ PAL_FreeGlobals(
    UTIL_CloseFile(gpGlobals->f.fpFIRE);
    UTIL_CloseFile(gpGlobals->f.fpRGM);
    UTIL_CloseFile(gpGlobals->f.fpSSS);
+
+#if PD_Read_Path30
+   //
+   // Delete patch 3.0 files
+   //
+   PAL_New_Path30RemoveFile();
+#endif // PD_Read_Path30
 
    //
    // Free the game data
@@ -485,7 +501,12 @@ typedef struct tagSAVEDGAME_COMMON
 	WORD             wChaseRange;
 	WORD             wChasespeedChangeCycles;
 	WORD             nFollower;
+#if PD_GameLog_Save
+   USHORT           wGameProgressSavedTimes; // game progress saved times
+   DWORD            dwGameProgress;          // game progress
+#else
 	WORD             rgwReserved2[3];         // unused
+#endif // PD_GameLog_Save
 	DWORD            dwCash;                  // amount of cash
 	PARTY            rgParty[MAX_PLAYABLE_PLAYER_ROLES];       // player party
 	TRAIL            rgTrail[MAX_PLAYABLE_PLAYER_ROLES];       // player trail
@@ -635,6 +656,15 @@ PAL_LoadGame_Common(
 
 	PAL_CompressInventory();
 
+#if PD_GameLog_Save
+   gpGlobals->rgGameProgressKey.wGameProgressSavedTimes = s->wGameProgressSavedTimes;
+   gpGlobals->rgGameProgressKey.dwGameProgress = s->dwGameProgress;
+
+   PAL_New_GameLog_ItemCount();
+   PAL_New_GameLog_Save();
+#endif // PD_GameLog_Save
+
+
 	return TRUE;
 }
 
@@ -758,6 +788,12 @@ PAL_SaveGame_Common(
 	s->wChaseRange = gpGlobals->wChaseRange;
 	s->wChasespeedChangeCycles = gpGlobals->wChasespeedChangeCycles;
 	s->nFollower = gpGlobals->nFollower;
+
+#if PD_GameLog_Save
+   s->wGameProgressSavedTimes = gpGlobals->rgGameProgressKey.wGameProgressSavedTimes;
+   s->dwGameProgress = gpGlobals->rgGameProgressKey.dwGameProgress;
+#endif // PD_GameLog_Save
+
 	s->dwCash = gpGlobals->dwCash;
 #ifndef PAL_CLASSIC
 	s->wBattleSpeed = gpGlobals->bBattleSpeed;
@@ -1115,10 +1151,6 @@ PAL_AddItemToInventory(
 
    index = 0;
    fFound = FALSE;
-
-#if PD_GameLog_Save
-   PAL_GameLog_ItemCount(wObjectID, iNum);
-#endif // PD_GameLog_Save
 
    //
    // Search for the specified item in the inventory
@@ -2968,107 +3000,420 @@ PAL_New_LoadErrorStatus(
 }
 #endif // PD_Player_Status_Index_error
 
-#if PD_GameLog_Save
+#if PD_Read_Path30
 VOID
-PAL_GameLog_ItemCount(
-   WORD           wObjectID
-)
-{
-   INT         i, *n = NULL;
-   INVENTORY   thisInventory;
-
-   switch (wObjectID)
-   {
-   case 115: // 蜂巢
-   case 131: // 蜂王蜜
-   case 143: // 火蚕蛊
-   case 162: // 血玲珑
-   case 212: // 夜行衣
-   case 184: // 龙泉剑
-      for (i = 0; i < MAX_INVENTORY; i ++)
-      {
-         thisInventory = gpGlobals->rgInventory[i];
-
-         switch (thisInventory.wItem)
-         {
-         case 115:
-            //
-            // 蜂巢
-            //
-            n = &gpGlobals->rgGameProgressKey.nBeeHive;
-            break;
-
-         case 131:
-            //
-            // 蜂王蜜
-            //
-            n = &gpGlobals->rgGameProgressKey.nHoney;
-            break;
-
-         case 143:
-            //
-            // 火蚕蛊
-            //
-            n = &gpGlobals->rgGameProgressKey.nFireBug;
-            break;
-
-         case 162:
-            //
-            // 血玲珑
-            //
-            n = &gpGlobals->rgGameProgressKey.nBloodBall;
-            break;
-
-         case 212:
-            //
-            // 夜行衣
-            //
-            n = &gpGlobals->rgGameProgressKey.nNightTight;
-            break;
-
-         case 184:
-            //
-            // 龙泉剑
-            //
-            n = &gpGlobals->rgGameProgressKey.nLQSword;
-         break;
-
-         default:
-            break;
-         }
-
-         if (n != NULL) *n = thisInventory.nAmount;
-      }
-
-      PAL_GameLog_Save();
-      break;
-
-   default:
-      break;
-   }
-}
-
-VOID
-PAL_GameLog_Save(
+PAL_New_Path30ExtractFile(
    VOID
 )
 {
-   FILE        *fp;
+#define READ_PATH30(path30, offset, filename, datalen)                                                      \
+   if (!datalen)                                                                                            \
+   {                                                                                                        \
+      fseek(path30, offset, SEEK_SET);                                                                      \
+      fread(&datalen, sizeof(UINT), 1, path30);                                                             \
+      fseek(path30, offset + datalen - sizeof(UINT), SEEK_SET);                                             \
+      fread(&datalen, sizeof(UINT), 1, path30);                                                             \
+      fseek(path30, offset, SEEK_SET);                                                                      \
+   }                                                                                                        \
+   lpBuffer = (LPBYTE)UTIL_malloc(datalen);                                                                 \
+   fread(lpBuffer, 1, datalen, path30);                                                                     \
+   if ((fpTmp = UTIL_OpenFileAtPathForMode(gConfig.pszGamePath, PAL_va(1, "%s", filename), "wb")) == NULL)  \
+   {                                                                                                        \
+      TerminateOnError("PAL_InitGlobals(): Failed to read file PAL.DLL!");                                  \
+   }                                                                                                        \
+   fwrite(lpBuffer, datalen, 1, fpTmp);                                                                     \
+   datalen = 0;                                                                                             \
+   fclose(fpTmp);                                                                                           \
+
+   FILE* fpPath30, * fpTmp;
+   LPBYTE      lpBuffer;
+   UINT        uiDataLen = 0;
+
+   fpPath30 = UTIL_OpenRequiredFile("PAL.DLL");
+
+   PAL_New_Path30RemoveFile();
+   READ_PATH30(fpPath30, 0x001F14C0, PD_Read_Path30_SSS, uiDataLen);
+   READ_PATH30(fpPath30, 0x0027DB50, PD_Read_Path30_MUS, uiDataLen);
+
+   uiDataLen = 0x0031565E - 0x002DE998;
+   READ_PATH30(fpPath30, 0x002DE998, PD_Read_Path30_MSG, uiDataLen);
+
+   UTIL_CloseFile(fpPath30);
+}
+
+VOID
+PAL_New_Path30RemoveFile(
+   VOID
+)
+{
+   remove(PAL_va(1, "%s%s", gConfig.pszGamePath, PD_Read_Path30_SSS));
+   remove(PAL_va(1, "%s%s", gConfig.pszGamePath, PD_Read_Path30_MUS));
+   remove(PAL_va(1, "%s%s", gConfig.pszGamePath, PD_Read_Path30_MSG));
+}
+#endif // PD_Read_Path30
+
+#if PD_GameLog_Save
+VOID
+PAL_New_GameLog_Save(
+   VOID
+)
+{
+   FILE                *fp;
+   INT                  i;
+   LPGAMEPROGRESSKEY    lpGPK = &gpGlobals->rgGameProgressKey;
+   LPCSTR               lpcszProgressName[] = {
+      "空",
+      "游戏开始",
+      "见石碑",
+      "学功夫",
+      "上船",
+      "出林家堡",
+      "出隐龙窟",
+      "生化危机",
+      "过鬼将军",
+      "过赤鬼王",
+      "进扬州",
+      "出扬州",
+      "出麻烦洞",
+      "进京城",
+      "过彩依",
+      "进锁妖塔",
+      "剑柱",
+      "拆塔",
+      "香蕉树",
+      "过凤凰",
+      "进十年前",
+      "水灵珠",
+      "祈雨",
+      "通关",
+   };
+
+   remove(PAL_va(1, "%s/%s", gConfig.pszGamePath, gConfig.pszLogFile));
 
    //
    // Try writing to file
    //
-   if ((fp = UTIL_OpenFileAtPathForMode(gConfig.pszGamePath, PAL_va(1, "GameProgress.key"), "wb")) == NULL)
+   if ((fp = UTIL_OpenFileAtPathForMode(gConfig.pszGamePath, "GameProgress.key", "wb")) == NULL)
    {
       return;
    }
 
+   for (i = 1; i <= 23; i++)
+   {
+      UTIL_LogOutput(LOGLEVEL_NEW, "%s: %s\n", lpcszProgressName[i], (lpGPK->dwGameProgress & (1 << i)) ? "通过" : "进行中......");
+   }
+
+   UTIL_LogOutput(LOGLEVEL_NEW, "蜂%d 蜜%d 火%d 血%d 夜%d 剑%d",
+      lpGPK->nBeeHive, lpGPK->nHoney, lpGPK->nFireBug, lpGPK->nBloodBall, lpGPK->nNightTight, lpGPK->nLQSword);
+
    //
    // Increase the number of progress storage times
    //
-   gpGlobals->rgGameProgressKey.wSavedTimes++;
+   lpGPK->wGameProgressSavedTimes++;
 
    fwrite(&gpGlobals->rgGameProgressKey, sizeof(GAMEPROGRESSKEY), 1, fp);
    fclose(fp);
+}
+
+VOID
+PAL_New_GameLog_ItemCount(
+   VOID
+)
+{
+   INT         i, * n;
+   INVENTORY   thisInventory;
+
+   for (i = 0; i < MAX_INVENTORY; i++)
+   {
+      n = NULL;
+      thisInventory = gpGlobals->rgInventory[i];
+
+      switch (thisInventory.wItem)
+      {
+      case 115:
+         n = &gpGlobals->rgGameProgressKey.nBeeHive;
+         break;
+
+      case 131:
+         n = &gpGlobals->rgGameProgressKey.nHoney;
+         break;
+
+      case 143:
+         n = &gpGlobals->rgGameProgressKey.nFireBug;
+         break;
+
+      case 162:
+         n = &gpGlobals->rgGameProgressKey.nBloodBall;
+         break;
+
+      case 212:
+         n = &gpGlobals->rgGameProgressKey.nNightTight;
+         break;
+
+      case 184:
+         n = &gpGlobals->rgGameProgressKey.nLQSword;
+         break;
+
+      default:
+         break;
+      }
+
+      if (n != NULL) *n = thisInventory.nAmount;
+   }
+
+   PAL_New_GameLog_Save();
+}
+
+VOID
+PAL_New_GameProgressCheckWithScript(
+   WORD           wScriptEntry
+)
+{
+   GAMEPROGRESS      emGameProgress = kGAMEPROGRESS_NULL;
+
+   switch (wScriptEntry)
+   {
+   case 0x0004:
+      //
+      // Li Xiaoyao lies in the darkness
+      // Scene entry script
+      //
+      emGameProgress = kGAMEPROGRESS_GAME_START;
+      break;
+
+   case 0x143E:
+      //
+      //
+      // Dialogue Script
+      //
+      emGameProgress = kGAMEPROGRESS_SEE_STONE_TABLET;
+      break;
+
+   case 0x08BB:
+      //
+      //
+      // RNG static animation playback script
+      //
+      emGameProgress = kGAMEPROGRESS_LEARN_KUNG_FU;
+      break;
+
+   case 0x0DB5:
+      //
+      //
+      // Automatic navigation script for ships
+      //
+      emGameProgress = kGAMEPROGRESS_BORADING_THE_SHIP;
+      break;
+
+   case 0x24C2:
+      //
+      //
+      // Scene switching script
+      //
+      emGameProgress = kGAMEPROGRESS_GO_OUT_FROM_THE_LIN_FAMILY;
+      break;
+
+   case 0x24BE:
+      //
+      //
+      // Scene switching script
+      //
+      emGameProgress = kGAMEPROGRESS_EXITING_THE_DRAGON_CAVE;
+      break;
+
+   case 0x25F4:
+      //
+      //
+      // Scene switching script
+      //
+      emGameProgress = kGAMEPROGRESS_RESIDENT_EVIL;
+      break;
+
+/*++
+   case 0x2F83:
+      //
+      //
+      // Return to the map after battle
+      //
+      emGameProgress = kGAMEPROGRESS_DEFEAT_THE_GUI_GENERAL;
+      break;
+
+   case 0x3078:
+      //
+      //
+      // Obtain the "Earth Jewel" after the battle
+      //
+      emGameProgress = kGAMEPROGRESS_DEFEAT_THE_RED_GHOST_KING;
+      break;
+--*/
+
+   case 0x329E:
+      //
+      //
+      // Scene switching script
+      //
+      emGameProgress = kGAMEPROGRESS_ENTER_YANGZHOU;
+      break;
+
+   case 0x3C63:
+      //
+      //
+      // Scene switching script
+      //
+      emGameProgress = kGAMEPROGRESS_GO_OUT_FROM_THE_YANGZHOU;
+      break;
+
+   case 0x52AE:
+      //
+      //
+      // Scene switching script
+      //
+      emGameProgress = kGAMEPROGRESS_GO_OUT_FROM_THE_TROUBLE_CAVE;
+      break;
+
+   case 0x45A4:
+      //
+      //
+      // Scene entry script
+      //
+      emGameProgress = kGAMEPROGRESS_ENTER_THE_CAPITAL;
+      break;
+
+   case 0xA062:
+      //
+      //
+      // Enemy Escape......
+      //
+      emGameProgress = kGAMEPROGRESS_DEFEAT_THE_CAIYI;
+      break;
+
+   case 0x5883:
+      //
+      //
+      // Scene switching script
+      //
+      emGameProgress = kGAMEPROGRESS_ENTER_THE_DEMON_PRISON_TOWER;
+      break;
+
+   case 0x584B:
+      //
+      //
+      // Scene switching script
+      //
+      emGameProgress = kGAMEPROGRESS_SWORD_PILLARS;
+      break;
+
+/*++
+   case 0x60ED:
+      //
+      //
+      // Return to the map after battle
+      //
+      emGameProgress = kGAMEPROGRESS_DESTROY_THE_TOWER;
+      break;
+--*/
+
+   case 0x657C:
+      //
+      //
+      //Obtain "Banana"
+      //
+      emGameProgress = kGAMEPROGRESS_THE_BANANA_TREE;
+      break;
+
+/*++
+   case 0x665C:
+      //
+      //
+      // Obtain the "Wind Jewel" after the battle
+      //
+      emGameProgress = kGAMEPROGRESS_DEFEAT_THE_PHOENIX;
+      break;
+--*/
+
+   case 0x7EC7:
+      //
+      //
+      // Scene entry script
+      //
+      emGameProgress = kGAMEPROGRESS_BACK_TEN_YEARS_AGO;
+      break;
+
+   case 0x886F:
+      //
+      //
+      // Obtain the "Water Jewel"
+      //
+      emGameProgress = kGAMEPROGRESS_WATER_JEWEL;
+      break;
+
+   case 0x7D26:
+      //
+      //
+      // Scene entry script
+      //
+      emGameProgress = kGAMEPROGRESS_PRAY_FOR_RAIN;
+      break;
+
+/*++
+   case 0x8AF6:
+      //
+      //
+      // Return to the map after battle
+      //
+      emGameProgress = kGAMEPROGRESS_GAME_END;
+      break;
+--*/
+
+   default:
+      break;
+   }
+
+   if (!(gpGlobals->rgGameProgressKey.dwGameProgress & emGameProgress))
+   {
+      gpGlobals->rgGameProgressKey.dwGameProgress |= emGameProgress;
+      PAL_New_GameLog_Save();
+   }
+}
+
+VOID
+PAL_New_GameProgressCheckWithEnemy(
+   WORD           wEnemyObjectID
+)
+{
+   GAMEPROGRESS      emGameProgress = kGAMEPROGRESS_NULL;
+
+   switch (wEnemyObjectID)
+   {
+   case 472:
+      emGameProgress = kGAMEPROGRESS_DEFEAT_THE_GUI_GENERAL;
+      break;
+
+   case 473:
+      emGameProgress = kGAMEPROGRESS_DEFEAT_THE_RED_GHOST_KING;
+      break;
+
+   case 468:
+      emGameProgress = kGAMEPROGRESS_DEFEAT_THE_CAIYI;
+      break;
+
+   case 542:
+      emGameProgress = kGAMEPROGRESS_DESTROY_THE_TOWER;
+      break;
+
+   case 464:
+      emGameProgress = kGAMEPROGRESS_DEFEAT_THE_PHOENIX;
+      break;
+
+   case 546:
+      emGameProgress = kGAMEPROGRESS_GAME_END;
+      break;
+   }
+
+   if (!gpGlobals->rgGameProgressKey.dwGameProgress & emGameProgress)
+   {
+      gpGlobals->rgGameProgressKey.dwGameProgress |= emGameProgress;
+      PAL_New_GameLog_Save();
+   }
 }
 #endif // PD_GameLog_Save

@@ -813,37 +813,9 @@ PAL_BattlePostActionCheck(
          // This enemy is KO'ed
          //
 #if PD_GameLog_Save
-         GAMEPROGRESS      emGameProgress = kGAMEPROGRESS_空;
-
-         switch (g_Battle.rgEnemy[i].wObjectID)
-         {
-         case 472:
-            emGameProgress = kGAMEPROGRESS_过鬼将军;
-            break;
-
-         case 473:
-            emGameProgress = kGAMEPROGRESS_过赤鬼王;
-            break;
-
-         case 468:
-            emGameProgress = kGAMEPROGRESS_过彩依;
-            break;
-
-         case 464:
-            emGameProgress = kGAMEPROGRESS_过凤凰;
-            break;
-
-         case 546:
-            emGameProgress = kGAMEPROGRESS_通关;
-            break;
-         }
-
-         if (!gpGlobals->rgGameProgressKey.dwGameProgress & emGameProgress)
-         {
-            gpGlobals->rgGameProgressKey.dwGameProgress |= emGameProgress;
-            PAL_GameLog_Save();
-         }
+         PAL_New_GameProgressCheckWithEnemy(g_Battle.rgEnemy[i].wObjectID);
 #endif // PD_GameLog_Save
+
 #if PD_Battle_ShowMoreData || PD_Battle_ShowEnemyStatus
          g_Battle.rgEnemy[i].sMaxHealth = 0;
 #endif

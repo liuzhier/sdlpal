@@ -506,43 +506,42 @@ typedef struct tagPOISONSTATUS
 #if PD_GameLog_Save
 typedef enum tagGAMEPROGRESS
 {
-   kGAMEPROGRESS_空                     = (1 << 0),
-   kGAMEPROGRESS_游戏开始               = (1 << 1),
-   kGAMEPROGRESS_见石碑                 = (1 << 2),
-   kGAMEPROGRESS_学功夫                 = (1 << 3),
-   kGAMEPROGRESS_上船                   = (1 << 4),
-   kGAMEPROGRESS_出林家堡               = (1 << 5),
-   kGAMEPROGRESS_出隐龙窟               = (1 << 6),
-   kGAMEPROGRESS_生化危机               = (1 << 7),
-   kGAMEPROGRESS_过鬼将军               = (1 << 8),
-   kGAMEPROGRESS_过赤鬼王               = (1 << 9),
-   kGAMEPROGRESS_进扬州                 = (1 << 10),
-   kGAMEPROGRESS_出扬州                 = (1 << 11),
-   kGAMEPROGRESS_出麻烦洞               = (1 << 12),
-   kGAMEPROGRESS_进京城                 = (1 << 13),
-   kGAMEPROGRESS_过彩依                 = (1 << 14),
-   kGAMEPROGRESS_进锁妖塔               = (1 << 15),
-   kGAMEPROGRESS_剑柱                   = (1 << 16),
-   kGAMEPROGRESS_拆塔                   = (1 << 17),
-   kGAMEPROGRESS_过凤凰                 = (1 << 18),
-   kGAMEPROGRESS_进十年前               = (1 << 19),
-   kGAMEPROGRESS_水灵珠                 = (1 << 20),
-   kGAMEPROGRESS_祈雨                   = (1 << 21),
-   kGAMEPROGRESS_通关                   = (1 << 22),
-   
-   kGAMEPROGRESS_香蕉树                 = (1 << 31),
+   kGAMEPROGRESS_NULL                           = (1 << 0),
+   kGAMEPROGRESS_GAME_START                     = (1 << 1),
+   kGAMEPROGRESS_SEE_STONE_TABLET               = (1 << 2),
+   kGAMEPROGRESS_LEARN_KUNG_FU                  = (1 << 3),
+   kGAMEPROGRESS_BORADING_THE_SHIP              = (1 << 4),
+   kGAMEPROGRESS_GO_OUT_FROM_THE_LIN_FAMILY     = (1 << 5),
+   kGAMEPROGRESS_EXITING_THE_DRAGON_CAVE        = (1 << 6),
+   kGAMEPROGRESS_RESIDENT_EVIL                  = (1 << 7),
+   kGAMEPROGRESS_DEFEAT_THE_GUI_GENERAL         = (1 << 8),
+   kGAMEPROGRESS_DEFEAT_THE_RED_GHOST_KING      = (1 << 9),
+   kGAMEPROGRESS_ENTER_YANGZHOU                 = (1 << 10),
+   kGAMEPROGRESS_GO_OUT_FROM_THE_YANGZHOU       = (1 << 11),
+   kGAMEPROGRESS_GO_OUT_FROM_THE_TROUBLE_CAVE   = (1 << 12),
+   kGAMEPROGRESS_ENTER_THE_CAPITAL              = (1 << 13),
+   kGAMEPROGRESS_DEFEAT_THE_CAIYI               = (1 << 14),
+   kGAMEPROGRESS_ENTER_THE_DEMON_PRISON_TOWER   = (1 << 15),
+   kGAMEPROGRESS_SWORD_PILLARS                  = (1 << 16),
+   kGAMEPROGRESS_DESTROY_THE_TOWER              = (1 << 17),
+   kGAMEPROGRESS_THE_BANANA_TREE                = (1 << 18),
+   kGAMEPROGRESS_DEFEAT_THE_PHOENIX             = (1 << 19),
+   kGAMEPROGRESS_BACK_TEN_YEARS_AGO             = (1 << 20),
+   kGAMEPROGRESS_WATER_JEWEL                    = (1 << 21),
+   kGAMEPROGRESS_PRAY_FOR_RAIN                  = (1 << 22),
+   kGAMEPROGRESS_GAME_END                       = (1 << 23),
 } GAMEPROGRESS;
 
 typedef struct tagGAMEPROGRESSKEY
 {
-   USHORT         wSavedTimes;         // 存储次数
-   DWORD          dwGameProgress;      // 通关进度
-   USHORT         nBeeHive;            // 蜂巢计数
-   USHORT         nHoney;              // 蜂蜜计数
-   USHORT         nFireBug;            // 火蚕蛊计数
-   USHORT         nBloodBall;          // 血玲珑计数
-   USHORT         nNightTight;         // 夜行衣计数
-   USHORT         nLQSword;            // 龙泉剑计数
+   USHORT         wGameProgressSavedTimes;   // 存储次数
+   DWORD          dwGameProgress;            // 通关进度
+   USHORT         nBeeHive;                  // 蜂巢计数
+   USHORT         nHoney;                    // 蜂蜜计数
+   USHORT         nFireBug;                  // 火蚕蛊计数
+   USHORT         nBloodBall;                // 血玲珑计数
+   USHORT         nNightTight;               // 夜行衣计数
+   USHORT         nLQSword;                  // 龙泉剑计数
 } GAMEPROGRESSKEY, *LPGAMEPROGRESSKEY;
 #endif // PD_GameLog_Save
 
@@ -919,16 +918,37 @@ PAL_New_LoadErrorStatus(
 );
 #endif // PD_Player_Status_Index_error
 
-#if PD_GameLog_Save
+#if PD_Read_Path30
 VOID
-PAL_GameLog_ItemCount(
-   WORD           wObjectID,
-   SHORT          sCount
+PAL_New_Path30ExtractFile(
+   VOID
 );
 
 VOID
-PAL_GameLog_Save(
+PAL_New_Path30RemoveFile(
    VOID
+);
+#endif // PD_Read_Path30
+
+#if PD_GameLog_Save
+VOID
+PAL_New_GameLog_Save(
+   VOID
+);
+
+VOID
+PAL_New_GameLog_ItemCount(
+   VOID
+);
+
+VOID
+PAL_New_GameProgressCheckWithScript(
+   WORD           wScriptEntry
+);
+
+VOID
+PAL_New_GameProgressCheckWithEnemy(
+   WORD           wEnemyObjectID
 );
 #endif // PD_GameLog_Save
 

@@ -715,7 +715,11 @@ PAL_InitText(
 	   //
 	   // Open the message and word data files.
 	   //
+#if PD_Read_Path30
+      fpMsg = UTIL_OpenRequiredFile(PD_Read_Path30_MSG);
+#else
 	   fpMsg = UTIL_OpenRequiredFile("m.msg");
+#endif // PD_Read_Path30
 	   fpWord = UTIL_OpenRequiredFile("word.dat");
 
 	   //
