@@ -51,6 +51,12 @@
 
 #if     PAL_FIXBUG
 
+   // log 输出游戏进度
+   #define     PD_GameLog_Save                     1
+
+   // 加快对话速度
+   #define     PD_Talk_Speed                       1
+
    // 驱魔香使 NPC 原地轮播图像
    #define     PD_QuMoXiang_CarouselImage          1
 
@@ -59,7 +65,7 @@
 
    // 战斗中的快捷键 R 应该按需向前向后寻目标
    // （当前逻辑仍然错误，缺乏测试总结--）
-   #define     PD_Battle_ShortcutKey_R_AutoTarget  1
+   #define     PD_Battle_ShortcutKey_R_AutoTarget  0
 
    // 使字体更加接近原版 Pal Windows 95
    #define     PD_GameFont_Win95                   1
@@ -153,6 +159,8 @@
          #define     PD_Scene_ShowLingHuValue      1
          // 显示所有事件的名称和编号
          #define     PD_Scene_ShowEventMessages    1
+         // 显示场景入口和隐藏道具
+         #define     PD_Scene_ShowEvent_GetItem    1
          // 显示事件触发范围
          #define     PD_Scene_ShowEventCheckBlock  0
       #endif // PD_Scene_ShowMoreMessages

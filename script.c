@@ -3181,6 +3181,143 @@ PAL_RunTriggerScript(
 
    extern BOOL       g_fUpdatedInBattle; // HACKHACK
 
+#if PD_GameLog_Save
+   GAMEPROGRESS      emGameProgress = kGAMEPROGRESS_空;
+
+   switch (wEventObjectID)
+   {
+   case 0x0004:
+      // 进场脚本
+      emGameProgress = kGAMEPROGRESS_游戏开始;
+      break;
+
+   case 0x143E:
+      // 对话脚本：仙．．灵．．洞天！？
+      emGameProgress = kGAMEPROGRESS_见石碑;
+      break;
+
+   case 0x08BB:
+      // 静态 RNG 动画播放脚本
+      emGameProgress = kGAMEPROGRESS_学功夫;
+      break;
+
+   case 0x0DB5:
+      // 航船自动行驶脚本
+      emGameProgress = kGAMEPROGRESS_上船;
+      break;
+
+   case 0x24C2:
+      // 场景切换脚本
+      emGameProgress = kGAMEPROGRESS_出林家堡;
+      break;
+
+   case 0x24BE:
+      // 场景切换脚本
+      emGameProgress = kGAMEPROGRESS_出隐龙窟;
+      break;
+
+   case 0x25F4:
+      // 场景切换脚本
+      emGameProgress = kGAMEPROGRESS_生化危机;
+      break;
+
+/*++
+   case 0x2F83:
+      // 战斗后返回地图
+      emGameProgress = kGAMEPROGRESS_过鬼将军;
+      break;
+
+   case 0x3078:
+      // 战斗后得到土灵珠
+      emGameProgress = kGAMEPROGRESS_过赤鬼王;
+      break;
+--*/
+
+   case 0x329E:
+      // 场景切换脚本
+      emGameProgress = kGAMEPROGRESS_进扬州;
+      break;
+
+   case 0x3C63:
+      // 场景切换脚本
+      emGameProgress = kGAMEPROGRESS_出扬州;
+      break;
+
+   case 0x52AE:
+      // 场景切换脚本
+      emGameProgress = kGAMEPROGRESS_出麻烦洞;
+      break;
+
+   case 0x45A4:
+      // 场景进场脚本
+      emGameProgress = kGAMEPROGRESS_进京城;
+      break;
+
+   case 0xA062:
+      // 敌人逃跑......
+      emGameProgress = kGAMEPROGRESS_过彩依;
+      break;
+
+   case 0x5883:
+      // 场景切换脚本
+      emGameProgress = kGAMEPROGRESS_进锁妖塔;
+      break;
+
+   case 0x584B:
+      // 场景切换脚本
+      emGameProgress = kGAMEPROGRESS_剑柱;
+      break;
+
+   case 0x60ED:
+      // 战斗后返回地图
+      emGameProgress = kGAMEPROGRESS_拆塔;
+      break;
+
+/*++
+   case 0x665C:
+      // 战斗后得到风灵珠
+      emGameProgress = kGAMEPROGRESS_过凤凰;
+      break;
+--*/
+
+   case 0x7EC7:
+      // 场景进场脚本
+      emGameProgress = kGAMEPROGRESS_进十年前;
+      break;
+
+   case 0x886F:
+      // 得到水灵珠
+      emGameProgress = kGAMEPROGRESS_水灵珠;
+      break;
+
+   case 0x7D26:
+      // 场景进场脚本
+      emGameProgress = kGAMEPROGRESS_祈雨;
+      break;
+
+/*++
+   case 0x8AF6:
+      // 战斗后返回地图
+      emGameProgress = kGAMEPROGRESS_通关;
+      break;
+--*/
+
+   case 0x657C:
+      // 获得香蕉
+      emGameProgress = kGAMEPROGRESS_香蕉树;
+      break;
+
+   default:
+      break;
+   }
+
+   if (!gpGlobals->rgGameProgressKey.dwGameProgress & emGameProgress)
+   {
+      gpGlobals->rgGameProgressKey.dwGameProgress |= emGameProgress;
+      PAL_GameLog_Save();
+   }
+#endif // PD_GameLog_Save
+
    wNextScriptEntry = wScriptEntry;
    fEnded = FALSE;
    g_fUpdatedInBattle = FALSE;

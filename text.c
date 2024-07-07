@@ -1411,7 +1411,19 @@ PAL_DialogWaitForKeyWithMaximumSeconds(
    while (TRUE)
 #endif
    {
+#if !PD_Talk_Speed
       UTIL_Delay(100);
+#else
+      for (int i = 0; i < 10; i++)
+      {
+         UTIL_Delay(10);
+
+         if (g_InputState.dwKeyPress != 0)
+         {
+            goto end;
+         }
+      }
+#endif // !PD_Talk_Speed
 
       if (g_TextLib.bDialogPosition != kDialogCenterWindow &&
          g_TextLib.bDialogPosition != kDialogCenter)
@@ -1434,11 +1446,17 @@ PAL_DialogWaitForKeyWithMaximumSeconds(
          break;
       }
 
+#if !PD_Talk_Speed
       if (g_InputState.dwKeyPress != 0)
       {
          break;
       }
+#endif // !PD_Talk_Speed
    }
+
+#if PD_Talk_Speed
+end:
+#endif // PD_Talk_Speed
 
    if (g_TextLib.bDialogPosition != kDialogCenterWindow &&
       g_TextLib.bDialogPosition != kDialogCenter)

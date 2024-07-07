@@ -701,7 +701,7 @@ PAL_New_GetTreasureBoxItemID(
 	WORD             wScriptEntry,
 	BOOL             fJumpScript
 );
-#endif
+#endif // PD_Scene_ShowEventMessages
 
 BOOL
 PAL_CheckObstacleWithRange(

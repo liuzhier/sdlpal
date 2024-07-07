@@ -1116,6 +1116,10 @@ PAL_AddItemToInventory(
    index = 0;
    fFound = FALSE;
 
+#if PD_GameLog_Save
+   PAL_GameLog_ItemCount(wObjectID, iNum);
+#endif // PD_GameLog_Save
+
    //
    // Search for the specified item in the inventory
    //
@@ -2836,7 +2840,7 @@ PAL_New_GetEnemyElementalResistance(
 
    return min(w, 100);
 }
-#endif
+#endif // PD_Battle_ShowEnemyStatus
 
 #if PD_Scene_ShowEventMessages
 WORD
@@ -2903,7 +2907,7 @@ PAL_New_GetPlayerSorceryResistance(
 
    return min(100, w);
 }
-#endif
+#endif // PD_Scene_ShowEventMessages
 
 #if PD_Player_Status_Index_error
 VOID
@@ -2962,4 +2966,109 @@ PAL_New_LoadErrorStatus(
       fCompleted[wPlayerRole] = TRUE;
    }
 }
-#endif
+#endif // PD_Player_Status_Index_error
+
+#if PD_GameLog_Save
+VOID
+PAL_GameLog_ItemCount(
+   WORD           wObjectID
+)
+{
+   INT         i, *n = NULL;
+   INVENTORY   thisInventory;
+
+   switch (wObjectID)
+   {
+   case 115: // 蜂巢
+   case 131: // 蜂王蜜
+   case 143: // 火蚕蛊
+   case 162: // 血玲珑
+   case 212: // 夜行衣
+   case 184: // 龙泉剑
+      for (i = 0; i < MAX_INVENTORY; i ++)
+      {
+         thisInventory = gpGlobals->rgInventory[i];
+
+         switch (thisInventory.wItem)
+         {
+         case 115:
+            //
+            // 蜂巢
+            //
+            n = &gpGlobals->rgGameProgressKey.nBeeHive;
+            break;
+
+         case 131:
+            //
+            // 蜂王蜜
+            //
+            n = &gpGlobals->rgGameProgressKey.nHoney;
+            break;
+
+         case 143:
+            //
+            // 火蚕蛊
+            //
+            n = &gpGlobals->rgGameProgressKey.nFireBug;
+            break;
+
+         case 162:
+            //
+            // 血玲珑
+            //
+            n = &gpGlobals->rgGameProgressKey.nBloodBall;
+            break;
+
+         case 212:
+            //
+            // 夜行衣
+            //
+            n = &gpGlobals->rgGameProgressKey.nNightTight;
+            break;
+
+         case 184:
+            //
+            // 龙泉剑
+            //
+            n = &gpGlobals->rgGameProgressKey.nLQSword;
+         break;
+
+         default:
+            break;
+         }
+
+         if (n != NULL) *n = thisInventory.nAmount;
+      }
+
+      PAL_GameLog_Save();
+      break;
+
+   default:
+      break;
+   }
+}
+
+VOID
+PAL_GameLog_Save(
+   VOID
+)
+{
+   FILE        *fp;
+
+   //
+   // Try writing to file
+   //
+   if ((fp = UTIL_OpenFileAtPathForMode(gConfig.pszGamePath, PAL_va(1, "GameProgress.key"), "wb")) == NULL)
+   {
+      return;
+   }
+
+   //
+   // Increase the number of progress storage times
+   //
+   gpGlobals->rgGameProgressKey.wSavedTimes++;
+
+   fwrite(&gpGlobals->rgGameProgressKey, sizeof(GAMEPROGRESSKEY), 1, fp);
+   fclose(fp);
+}
+#endif // PD_GameLog_Save
