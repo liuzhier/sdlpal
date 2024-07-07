@@ -63,14 +63,6 @@ typedef enum tagBATTLEACTIONTYPE
    kBattleActionAttackMate,    // attack teammate (confused only)
 } BATTLEACTIONTYPE;
 
-#if PD_Battle_ShortcutKey_R_AutoTarget
-typedef enum tagBATTLEFINDTARGET
-{
-   kBattleFindTargetForward,
-   kBattleFindTargetBackwards,
-} BATTLEFINDTARGET;
-#endif
-
 #if PD_Role_Repeat_Not_Display_HP_Loss
 typedef enum tagBATTLECHANGEHPMP
 {

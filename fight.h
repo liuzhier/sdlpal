@@ -28,12 +28,7 @@ PAL_C_LINKAGE_BEGIN
 
 INT
 PAL_BattleSelectAutoTargetFrom(
-#if PD_Battle_ShortcutKey_R_AutoTarget
-   INT              begin,
-   BATTLEFINDTARGET bFindingMethods
-#else
    INT begin
-#endif
 );
 
 BOOL
