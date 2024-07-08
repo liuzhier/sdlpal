@@ -116,41 +116,12 @@ PAL_BattleSelectAutoTargetFrom(
 
 #if PD_Battle_ShortcutKey_R_AutoTarget
    if (begin < 0) begin = 0;
+   if (begin > g_Battle.wMaxEnemyEffectiveIndex) begin = g_Battle.wMaxEnemyEffectiveIndex;
 
-   if (g_Battle.rgEnemy[begin].wObjectID == 0xFFFF)
-   {
-      //
-      // Forward search
-      //
-      for (i = begin; i >= 0; i--)
-      {
-         if (g_Battle.rgEnemy[i].wObjectID != 0xFFFF &&
-            g_Battle.rgEnemy[i].wObjectID != 0 &&
-            g_Battle.rgEnemy[i].e.wHealth > 0)
-         {
-            return i;
-         }
-}
-   }
-   else
-   {
-      //
-      // Find Backward
-      //
-      for (count = 0, i = begin; count < MAX_ENEMIES_IN_TEAM; count++)
-      {
-         if (g_Battle.rgEnemy[i].wObjectID != 0xFFFF &&
-            g_Battle.rgEnemy[i].wObjectID != 0 &&
-            g_Battle.rgEnemy[i].e.wHealth > 0)
-         {
-            return i;
-         }
-
-         i = (i + 1) % MAX_ENEMIES_IN_TEAM;
-      }
-   }
+   for (count = 0, i = begin; count < MAX_ENEMIES_IN_TEAM; count++)
 #else
    for (count = 0, i = (begin >= 0 ? begin : 0); count < MAX_ENEMIES_IN_TEAM; count++)
+#endif // PD_Battle_ShortcutKey_R_AutoTarget
    {
       if (g_Battle.rgEnemy[i].wObjectID != 0 &&
          g_Battle.rgEnemy[i].e.wHealth > 0)
@@ -159,7 +130,6 @@ PAL_BattleSelectAutoTargetFrom(
       }
       i = ( i + 1 ) % MAX_ENEMIES_IN_TEAM;
    }
-#endif // PD_Battle_ShortcutKey_R_AutoTarget
 
    return -1;
 }
@@ -803,7 +773,7 @@ PAL_BattlePostActionCheck(
          // This enemy is KO'ed
          //
 #if PD_GameLog_Save
-         PAL_New_GameProgressCheckWithEnemy(g_Battle.rgEnemy[i].wObjectID);
+         PAL_New_GameProgressCheckWithEnemy(g_Battle.rgEnemy[i].wObjectID, TRUE);
 #endif // PD_GameLog_Save
 
 #if PD_Battle_ShowMoreData || PD_Battle_ShowEnemyStatus
@@ -1838,6 +1808,19 @@ PAL_BattleStartFrame(
             g_Battle.wMovingPlayerIndex = i;
             PAL_BattlePlayerPerformAction(i);
          }
+
+#if PD_Battle_ShortcutKey_R_AutoTarget
+         //
+         // Going back to the previous action, prevent target errors
+         //
+         for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+         {
+            if (g_Battle.rgPlayer[i].prevAction.ActionType)
+            {
+               g_Battle.rgPlayer[i].action = g_Battle.rgPlayer[i].prevAction;
+            }
+         }
+#endif // PD_Battle_ShortcutKey_R_AutoTarget
 
          g_Battle.iCurAction++;
       }
@@ -3618,12 +3601,7 @@ PAL_BattlePlayerValidateAction(
 
    if (fToEnemy && g_Battle.rgPlayer[wPlayerIndex].action.sTarget >= 0)
    {
-#if PD_Battle_ShortcutKey_R_AutoTarget
-      if (g_Battle.rgEnemy[g_Battle.rgPlayer[wPlayerIndex].action.sTarget].wObjectID == 0
-         || g_Battle.rgEnemy[g_Battle.rgPlayer[wPlayerIndex].action.sTarget].wObjectID == 0xFFFF)
-#else
       if (g_Battle.rgEnemy[g_Battle.rgPlayer[wPlayerIndex].action.sTarget].wObjectID == 0)
-#endif // PD_Battle_ShortcutKey_R_AutoTarget
       {
          g_Battle.rgPlayer[wPlayerIndex].action.sTarget = PAL_BattleSelectAutoTargetFrom(g_Battle.rgPlayer[wPlayerIndex].action.sTarget);
          assert(g_Battle.rgPlayer[wPlayerIndex].action.sTarget >= 0);

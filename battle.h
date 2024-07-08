@@ -191,6 +191,10 @@ typedef struct tagBATTLE
    BATTLEENEMY      rgEnemy[MAX_ENEMIES_IN_TEAM];
 
    WORD             wMaxEnemyIndex;
+#if PD_Battle_ShortcutKey_R_AutoTarget
+   WORD             wMaxEnemyEffectiveIndex;
+   BOOL             fEnemyTeam[MAX_ENEMIES_IN_TEAM];
+#endif
 
    SDL_Surface     *lpSceneBuf;
    SDL_Surface     *lpBackground;

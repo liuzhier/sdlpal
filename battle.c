@@ -927,12 +927,7 @@ PAL_LoadBattleSprites(
    //
    for (i = 0; i < MAX_ENEMIES_IN_TEAM; i++)
    {
-#if PD_Battle_ShortcutKey_R_AutoTarget
-      if (g_Battle.rgEnemy[i].wObjectID == 0
-         || g_Battle.rgEnemy[i].wObjectID == 0xFFFF)
-#else
       if (g_Battle.rgEnemy[i].wObjectID == 0)
-#endif // PD_Battle_ShortcutKey_R_AutoTarget
       {
          continue;
       }
@@ -1621,13 +1616,19 @@ PAL_StartBattle(
    // Store all enemies
    //
 #if PD_Battle_ShortcutKey_R_AutoTarget
+   g_Battle.wMaxEnemyEffectiveIndex = 0xFFFF;
+
    for (i = 0, j = 0; j < MAX_ENEMIES_IN_TEAM; j++)
    {
       memset(&(g_Battle.rgEnemy[j]), 0, sizeof(BATTLEENEMY));
       w = gpGlobals->g.lprgEnemyTeam[wEnemyTeam].rgwEnemy[j];
-      g_Battle.rgEnemy[j].wObjectID = 0xFFFF;
 
-      if (w != 0xFFFF)
+      if (w == 0xFFFF)
+      {
+         g_Battle.wMaxEnemyEffectiveIndex = j - 1;
+         continue;
+      }
+
 #else
    for (i = 0; i < MAX_ENEMIES_IN_TEAM; i++)
    {
@@ -1639,11 +1640,10 @@ PAL_StartBattle(
          break;
       }
 
-      if (w != 0)
 #endif // PD_Battle_ShortcutKey_R_AutoTarget
+      if (w != 0)
       {
          g_Battle.rgEnemy[i].e = gpGlobals->g.lprgEnemy[gpGlobals->g.rgObject[w].enemy.wEnemyID];
-         g_Battle.rgEnemy[i].wObjectID = w;
          g_Battle.rgEnemy[i].state = kFighterWait;
          g_Battle.rgEnemy[i].wScriptOnTurnStart = gpGlobals->g.rgObject[w].enemy.wScriptOnTurnStart;
          g_Battle.rgEnemy[i].wScriptOnBattleEnd = gpGlobals->g.rgObject[w].enemy.wScriptOnBattleEnd;
@@ -1652,7 +1652,7 @@ PAL_StartBattle(
 
 #if PD_Battle_ShowMoreData || PD_Battle_ShowEnemyStatus
          g_Battle.rgEnemy[i].sMaxHealth = g_Battle.rgEnemy[i].e.wHealth;
-#endif
+#endif // PD_Battle_ShowMoreData || PD_Battle_ShowEnemyStatus
 
 #ifndef PAL_CLASSIC
          g_Battle.rgEnemy[i].flTimeMeter = 50;
@@ -1750,10 +1750,11 @@ PAL_StartBattle(
             g_Battle.rgEnemy[i].e.wDexterity += 50; // for Black Spider
          }
 #endif
-#if PD_Battle_ShortcutKey_R_AutoTarget
-         i++;
-#endif // PD_Battle_ShortcutKey_R_AutoTarget
       }
+
+#if PD_Battle_ShortcutKey_R_AutoTarget
+      g_Battle.rgEnemy[i++].wObjectID = w;
+#endif // PD_Battle_ShortcutKey_R_AutoTarget
    }
 
    g_Battle.wMaxEnemyIndex = i - 1;
