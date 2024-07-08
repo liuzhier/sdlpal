@@ -649,7 +649,11 @@ PAL_PlayAVI(
 	//
 	// Open the file
 	//
-	FILE *fp = UTIL_OpenFile(lpszPath);
+#if PD_Read_Path30
+   FILE* fp = UTIL_OpenFile(PAL_va(1, "%s%s%s", PD_Read_Path30_AVI, PAL_NATIVE_PATH_SEPARATOR, lpszPath));
+#else
+   FILE *fp = UTIL_OpenFile(lpszPath);
+#endif // PD_Read_Path30
 	if (fp == NULL)
 	{
 		UTIL_LogOutput(LOGLEVEL_WARNING, "Cannot open AVI file: %s!\n", lpszPath);

@@ -610,7 +610,11 @@ AUDIO_PlayCDTrack(
    {
 	   if (iNumTrack != -1)
 	   {
-		   ret = gAudioDevice.pCDPlayer->Play(gAudioDevice.pCDPlayer, PAL_CDTRACK_BASE + iNumTrack, TRUE, 0);
+#if PD_Read_Path30
+         ret = gAudioDevice.pCDPlayer->Play(gAudioDevice.pCDPlayer, iNumTrack, TRUE, 0);
+#else
+         ret = gAudioDevice.pCDPlayer->Play(gAudioDevice.pCDPlayer, PAL_CDTRACK_BASE + iNumTrack, TRUE, 0);
+#endif // PD_Read_Path30
 	   }
 	   else
 	   {

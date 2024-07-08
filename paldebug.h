@@ -54,6 +54,7 @@
    // 直接读取 3.0 补丁
    #define     PD_Read_Path30                      1
       #if PD_Read_Path30
+         #define     PD_Read_Path30_AVI            "AVI.FIXED"
          #define     PD_Read_Path30_SSS            "SSS.MKF.FIXED"
          #define     PD_Read_Path30_MUS            "MUS.MKF.FIXED"
          #define     PD_Read_Path30_MSG            "M.MSG.FIXED"

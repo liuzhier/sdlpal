@@ -435,7 +435,12 @@ OGG_Play(
 		return TRUE;
 	}
 
-	player->fp = UTIL_OpenFile(PAL_va(0, "ogg%s%.2d.ogg", PAL_NATIVE_PATH_SEPARATOR, iNum));
+#if PD_Read_Path30
+   player->fp = UTIL_OpenFile(PAL_va(0, "Musics%sTRACK%.2d.ogg", PAL_NATIVE_PATH_SEPARATOR, iNum));
+#else
+   player->fp = UTIL_OpenFile(PAL_va(0, "ogg%s%.2d.ogg", PAL_NATIVE_PATH_SEPARATOR, iNum));
+#endif // PD_Read_Path30
+
 	if (player->fp == NULL)
 	{
 		return FALSE;

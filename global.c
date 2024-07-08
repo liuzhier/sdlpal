@@ -3013,8 +3013,8 @@ PAL_New_Path30ExtractFile(
       fread(&datalen, sizeof(UINT), 1, path30);                                                             \
       fseek(path30, offset + datalen - sizeof(UINT), SEEK_SET);                                             \
       fread(&datalen, sizeof(UINT), 1, path30);                                                             \
-      fseek(path30, offset, SEEK_SET);                                                                      \
    }                                                                                                        \
+   fseek(path30, offset, SEEK_SET);                                                                         \
    lpBuffer = (LPBYTE)UTIL_malloc(datalen);                                                                 \
    fread(lpBuffer, 1, datalen, path30);                                                                     \
    if ((fpTmp = UTIL_OpenFileAtPathForMode(gConfig.pszGamePath, PAL_va(1, "%s", filename), "wb")) == NULL)  \
@@ -3098,13 +3098,14 @@ PAL_New_GameLog_Save(
       return;
    }
 
+   /*++
    for (i = 1; i <= 23; i++)
    {
       UTIL_LogOutput(LOGLEVEL_NEW, "%s: %s\n", lpcszProgressName[i], (lpGPK->dwGameProgress & (1 << i)) ? "通过" : "进行中......");
    }
 
-   UTIL_LogOutput(LOGLEVEL_NEW, "蜂%d 蜜%d 火%d 血%d 夜%d 剑%d",
-      lpGPK->nBeeHive, lpGPK->nHoney, lpGPK->nFireBug, lpGPK->nBloodBall, lpGPK->nNightTight, lpGPK->nLQSword);
+   UTIL_LogOutput(LOGLEVEL_NEW, "蜂%d 蜜%d 火%d 血%d 夜%d 剑%d", lpGPK->nBeeHive, lpGPK->nHoney, lpGPK->nFireBug, lpGPK->nBloodBall, lpGPK->nNightTight, lpGPK->nLQSword);
+   --*/
 
    //
    // Increase the number of progress storage times
