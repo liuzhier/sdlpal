@@ -495,7 +495,11 @@ typedef struct tagSAVEDGAME_COMMON
 	WORD             wNumBattleMusic;         // battle music number
 	WORD             wNumBattleField;         // battle field number
 	WORD             wScreenWave;             // level of screen waving
+#if PD_GameLog_Save
+   WORD             wGameProgressCheckout;   // game progress
+#else
 	WORD             wBattleSpeed;            // battle speed
+#endif // PD_GameLog_Save
 	WORD             wCollectValue;           // value of "collected" items
 	WORD             wLayer;
 	WORD             wChaseRange;
@@ -657,8 +661,11 @@ PAL_LoadGame_Common(
 	PAL_CompressInventory();
 
 #if PD_GameLog_Save
+   memset(&gpGlobals->rgGameProgressKey, 0, sizeof(GAMEPROGRESSKEY));
+
    gpGlobals->rgGameProgressKey.wGameProgressSavedTimes = s->wGameProgressSavedTimes;
    gpGlobals->rgGameProgressKey.dwGameProgress = s->dwGameProgress;
+   gpGlobals->rgGameProgressKey.wGameProgressCheck = s->wGameProgressCheckout;
 
    PAL_New_GameLog_ItemCount();
    PAL_New_GameLog_Save();
@@ -788,18 +795,19 @@ PAL_SaveGame_Common(
 	s->wChaseRange = gpGlobals->wChaseRange;
 	s->wChasespeedChangeCycles = gpGlobals->wChasespeedChangeCycles;
 	s->nFollower = gpGlobals->nFollower;
+	s->dwCash = gpGlobals->dwCash;
 
 #if PD_GameLog_Save
    s->wGameProgressSavedTimes = gpGlobals->rgGameProgressKey.wGameProgressSavedTimes;
    s->dwGameProgress = gpGlobals->rgGameProgressKey.dwGameProgress;
-#endif // PD_GameLog_Save
-
-	s->dwCash = gpGlobals->dwCash;
+   s->wGameProgressCheckout = gpGlobals->rgGameProgressKey.wGameProgressCheck;
+#else
 #ifndef PAL_CLASSIC
 	s->wBattleSpeed = gpGlobals->bBattleSpeed;
 #else
 	s->wBattleSpeed = 2;
 #endif
+#endif // PD_GameLog_Save
 
 	memcpy(s->rgParty, gpGlobals->rgParty, sizeof(gpGlobals->rgParty));
 	memcpy(s->rgTrail, gpGlobals->rgTrail, sizeof(gpGlobals->rgTrail));
@@ -3049,6 +3057,14 @@ PAL_New_Path30RemoveFile(
    remove(PAL_va(1, "%s%s", gConfig.pszGamePath, PD_Read_Path30_SSS));
    remove(PAL_va(1, "%s%s", gConfig.pszGamePath, PD_Read_Path30_MUS));
    remove(PAL_va(1, "%s%s", gConfig.pszGamePath, PD_Read_Path30_MSG));
+
+   memset(&gpGlobals->rgGameProgressKey, 0, sizeof(GAMEPROGRESSKEY));
+   PAL_New_GameLog_Save();
+   remove(PAL_va(1, "%s%s", gConfig.pszGamePath, PD_Read_Path30_KEY));
+
+#if PD_GameLog_Save && _DEBUG
+   remove(PAL_va(1, "%s/%s", gConfig.pszGamePath, gConfig.pszLogFile));
+#endif // 
 }
 #endif // PD_Read_Path30
 
@@ -3080,7 +3096,6 @@ PAL_New_GameLog_Save(
       "进锁妖塔",
       "剑柱",
       "拆塔",
-      "香蕉树",
       "过凤凰",
       "进十年前",
       "水灵珠",
@@ -3088,29 +3103,51 @@ PAL_New_GameLog_Save(
       "通关",
    };
 
-   remove(PAL_va(1, "%s/%s", gConfig.pszGamePath, gConfig.pszLogFile));
+   LPCSTR               lpcszProgressCheckName[] = {
+      "空",
+      "击败智杖",
+      "击败智修",
+      "进入香蕉树周围",
+   };
 
    //
    // Try writing to file
    //
-   if ((fp = UTIL_OpenFileAtPathForMode(gConfig.pszGamePath, "GameProgress.key", "wb")) == NULL)
+   if ((fp = UTIL_OpenFileAtPathForMode(gConfig.pszGamePath, PD_Read_Path30_KEY, "wb")) == NULL)
    {
       return;
    }
 
-   /*++
-   for (i = 1; i <= 23; i++)
+#if _DEBUG
+   remove(PAL_va(1, "%s/%s", gConfig.pszGamePath, gConfig.pszLogFile));
+
+   for (i = 0; i < sizeof(lpcszProgressName) / sizeof(lpcszProgressName[0]) - 1; i++)
    {
-      UTIL_LogOutput(LOGLEVEL_NEW, "%s: %s\n", lpcszProgressName[i], (lpGPK->dwGameProgress & (1 << i)) ? "通过" : "进行中......");
+      UTIL_LogOutput(LOGLEVEL_NEW, "%s: %s\n", lpcszProgressName[i + 1],
+         (lpGPK->dwGameProgress & (1 << i)) ? "通过" : "进行中......");
    }
 
-   UTIL_LogOutput(LOGLEVEL_NEW, "蜂%d 蜜%d 火%d 血%d 夜%d 剑%d", lpGPK->nBeeHive, lpGPK->nHoney, lpGPK->nFireBug, lpGPK->nBloodBall, lpGPK->nNightTight, lpGPK->nLQSword);
-   --*/
+   UTIL_LogOutput(LOGLEVEL_NEW, "蜂%d 蜜%d 火%d 血%d 夜%d 剑%d\n", lpGPK->nBeeHive, lpGPK->nHoney, lpGPK->nFireBug,
+      lpGPK->nBloodBall,lpGPK->nNightTight, lpGPK->nLQSword);
+
+   UTIL_LogOutput(LOGLEVEL_NEW, "战斗状态: %s\n",
+      (lpGPK->wBossID) ? PAL_va(1, "战斗中，%s", (lpGPK->wBossID == 0xFFFF) ? "普通战" : "BOOS战") : "未战斗");
+
+   UTIL_LogOutput(LOGLEVEL_NEW, "BOSS编号: %d\n", lpGPK->wBossID);
+
+   for (i = 0; i < sizeof(lpcszProgressCheckName) / sizeof(lpcszProgressCheckName[0]) - 1; i++)
+   {
+      UTIL_LogOutput(LOGLEVEL_NEW, "%s: %s\n", lpcszProgressCheckName[i + 1],
+         (lpGPK->wGameProgressCheck & (1 << i)) ? "通过" : "进行中......");
+   }
+
+   UTIL_LogOutput(LOGLEVEL_NEW, "香蕉: %d\n", lpGPK->nBanana);
+#endif // _DEBUG
 
    //
    // Increase the number of progress storage times
    //
-   lpGPK->wGameProgressSavedTimes++;
+   if (lpGPK->dwGameProgress) lpGPK->wGameProgressSavedTimes++;
 
    fwrite(&gpGlobals->rgGameProgressKey, sizeof(GAMEPROGRESSKEY), 1, fp);
    fclose(fp);
@@ -3121,15 +3158,16 @@ PAL_New_GameLog_ItemCount(
    VOID
 )
 {
-   INT         i, * n;
-   INVENTORY   thisInventory;
+   INT         i;
+   USHORT     *n;
+   INVENTORY  *thisInventory;
 
    for (i = 0; i < MAX_INVENTORY; i++)
    {
       n = NULL;
-      thisInventory = gpGlobals->rgInventory[i];
+      thisInventory = &gpGlobals->rgInventory[i];
 
-      switch (thisInventory.wItem)
+      switch (thisInventory->wItem)
       {
       case 115:
          n = &gpGlobals->rgGameProgressKey.nBeeHive;
@@ -3155,11 +3193,15 @@ PAL_New_GameLog_ItemCount(
          n = &gpGlobals->rgGameProgressKey.nLQSword;
          break;
 
+      case 291:
+         n = &gpGlobals->rgGameProgressKey.nBanana;
+         break;
+
       default:
          break;
       }
 
-      if (n != NULL) *n = thisInventory.nAmount;
+      if (n != NULL) *n = thisInventory->nAmount;
    }
 
    PAL_New_GameLog_Save();
@@ -3184,14 +3226,12 @@ PAL_New_GameProgressCheckWithScript(
 
    case 0x143E:
       //
-      //
       // Dialogue Script
       //
       emGameProgress = kGAMEPROGRESS_SEE_STONE_TABLET;
       break;
 
    case 0x08BB:
-      //
       //
       // RNG static animation playback script
       //
@@ -3200,14 +3240,12 @@ PAL_New_GameProgressCheckWithScript(
 
    case 0x0DB5:
       //
-      //
       // Automatic navigation script for ships
       //
       emGameProgress = kGAMEPROGRESS_BORADING_THE_SHIP;
       break;
 
    case 0x24C2:
-      //
       //
       // Scene switching script
       //
@@ -3216,14 +3254,12 @@ PAL_New_GameProgressCheckWithScript(
 
    case 0x24BE:
       //
-      //
       // Scene switching script
       //
       emGameProgress = kGAMEPROGRESS_EXITING_THE_DRAGON_CAVE;
       break;
 
    case 0x25F4:
-      //
       //
       // Scene switching script
       //
@@ -3233,14 +3269,12 @@ PAL_New_GameProgressCheckWithScript(
 /*++
    case 0x2F83:
       //
-      //
       // Return to the map after battle
       //
       emGameProgress = kGAMEPROGRESS_DEFEAT_THE_GUI_GENERAL;
       break;
 
    case 0x3078:
-      //
       //
       // Obtain the "Earth Jewel" after the battle
       //
@@ -3250,14 +3284,12 @@ PAL_New_GameProgressCheckWithScript(
 
    case 0x329E:
       //
-      //
       // Scene switching script
       //
       emGameProgress = kGAMEPROGRESS_ENTER_YANGZHOU;
       break;
 
    case 0x3C63:
-      //
       //
       // Scene switching script
       //
@@ -3266,14 +3298,12 @@ PAL_New_GameProgressCheckWithScript(
 
    case 0x52AE:
       //
-      //
       // Scene switching script
       //
       emGameProgress = kGAMEPROGRESS_GO_OUT_FROM_THE_TROUBLE_CAVE;
       break;
 
    case 0x45A4:
-      //
       //
       // Scene entry script
       //
@@ -3282,14 +3312,16 @@ PAL_New_GameProgressCheckWithScript(
 
    case 0xA062:
       //
-      //
       // Enemy Escape......
+      //
+   case 0x5178:
+      //
+      // Battle failure......
       //
       emGameProgress = kGAMEPROGRESS_DEFEAT_THE_CAIYI;
       break;
 
    case 0x5883:
-      //
       //
       // Scene switching script
       //
@@ -3297,7 +3329,6 @@ PAL_New_GameProgressCheckWithScript(
       break;
 
    case 0x584B:
-      //
       //
       // Scene switching script
       //
@@ -3307,24 +3338,23 @@ PAL_New_GameProgressCheckWithScript(
 /*++
    case 0x60ED:
       //
-      //
       // Return to the map after battle
       //
       emGameProgress = kGAMEPROGRESS_DESTROY_THE_TOWER;
       break;
 --*/
 
+/*++
    case 0x657C:
-      //
       //
       //Obtain "Banana"
       //
       emGameProgress = kGAMEPROGRESS_THE_BANANA_TREE;
       break;
+--*/
 
 /*++
    case 0x665C:
-      //
       //
       // Obtain the "Wind Jewel" after the battle
       //
@@ -3334,14 +3364,12 @@ PAL_New_GameProgressCheckWithScript(
 
    case 0x7EC7:
       //
-      //
       // Scene entry script
       //
       emGameProgress = kGAMEPROGRESS_BACK_TEN_YEARS_AGO;
       break;
 
    case 0x886F:
-      //
       //
       // Obtain the "Water Jewel"
       //
@@ -3350,7 +3378,6 @@ PAL_New_GameProgressCheckWithScript(
 
    case 0x7D26:
       //
-      //
       // Scene entry script
       //
       emGameProgress = kGAMEPROGRESS_PRAY_FOR_RAIN;
@@ -3358,7 +3385,6 @@ PAL_New_GameProgressCheckWithScript(
 
 /*++
    case 0x8AF6:
-      //
       //
       // Return to the map after battle
       //
@@ -3370,7 +3396,8 @@ PAL_New_GameProgressCheckWithScript(
       break;
    }
 
-   if (!(gpGlobals->rgGameProgressKey.dwGameProgress & emGameProgress))
+   if (emGameProgress != kGAMEPROGRESS_NULL &&
+      !(gpGlobals->rgGameProgressKey.dwGameProgress & emGameProgress))
    {
       gpGlobals->rgGameProgressKey.dwGameProgress |= emGameProgress;
       PAL_New_GameLog_Save();
@@ -3379,10 +3406,12 @@ PAL_New_GameProgressCheckWithScript(
 
 VOID
 PAL_New_GameProgressCheckWithEnemy(
-   WORD           wEnemyObjectID
+   WORD           wEnemyObjectID,
+   BOOL           fIsCheckDead
 )
 {
-   GAMEPROGRESS      emGameProgress = kGAMEPROGRESS_NULL;
+   GAMEPROGRESS            emGameProgress       = kGAMEPROGRESS_NULL;
+   GAMEPROGRESSCHECK       emGameProgressCheck  = kGAMEPROGRESSCHECK_NULL;
 
    switch (wEnemyObjectID)
    {
@@ -3409,12 +3438,97 @@ PAL_New_GameProgressCheckWithEnemy(
    case 546:
       emGameProgress = kGAMEPROGRESS_GAME_END;
       break;
+
+   default:
+      switch (wEnemyObjectID)
+      {
+      case 482:
+         emGameProgressCheck = kGAMEPROGRESSCHECK_DEFEAT_THE_ZhiZhang;
+         break;
+
+      case 524:
+         emGameProgressCheck = kGAMEPROGRESSCHECK_DEFEAT_THE_MasterZhiXiu;
+         break;
+
+      default:
+         break;
+      }
+      break;
    }
 
-   if (!gpGlobals->rgGameProgressKey.dwGameProgress & emGameProgress)
+   if (emGameProgress != kGAMEPROGRESS_NULL)
    {
-      gpGlobals->rgGameProgressKey.dwGameProgress |= emGameProgress;
+      if (fIsCheckDead)
+      {
+         if (!(gpGlobals->rgGameProgressKey.dwGameProgress & emGameProgress))
+         {
+            gpGlobals->rgGameProgressKey.dwGameProgress |= emGameProgress;
+         }
+
+         if (gpGlobals->rgGameProgressKey.wBossID == wEnemyObjectID)
+         {
+            gpGlobals->rgGameProgressKey.wBossID = 0xFFFF;
+         }
+      }
+      else
+      {
+         gpGlobals->rgGameProgressKey.wBossID = wEnemyObjectID;
+      }
+
       PAL_New_GameLog_Save();
+   }
+
+   if (emGameProgressCheck != kGAMEPROGRESSCHECK_NULL)
+   {
+      if (fIsCheckDead)
+      {
+         if (!(gpGlobals->rgGameProgressKey.wGameProgressCheck & emGameProgressCheck))
+         {
+            gpGlobals->rgGameProgressKey.wGameProgressCheck |= emGameProgressCheck;
+         }
+
+         if (gpGlobals->rgGameProgressKey.wBossID == wEnemyObjectID)
+         {
+            gpGlobals->rgGameProgressKey.wBossID = 0xFFFF;
+         }
+      }
+      else
+      {
+         gpGlobals->rgGameProgressKey.wBossID = wEnemyObjectID;
+      }
+
+      PAL_New_GameLog_Save();
+   }
+}
+
+VOID
+PAL_New_GameProgressCheckBananaTree(
+   VOID
+)
+{
+   const PAL_POS wCheckBananaTree[9] = {
+                         PAL_XY(1264, 696),
+               PAL_XY(1248, 704), PAL_XY(1280, 704),
+      PAL_XY(1232, 712), PAL_XY(1264, 712), PAL_XY(1296, 712),
+               PAL_XY(1248, 720), PAL_XY(1280, 720),
+                         PAL_XY(1264, 728),
+   };
+
+   for (INT i = 0; i < sizeof(wCheckBananaTree) / sizeof(wCheckBananaTree[0]); i++)
+   {
+      if (PAL_XY(abs(PAL_X(gpGlobals->viewport) + PAL_X(gpGlobals->partyoffset)),
+         abs(PAL_Y(gpGlobals->viewport) + PAL_Y(gpGlobals->partyoffset))) == wCheckBananaTree[i])
+      {
+         LPCWSTR itemText = L"香蕉树";
+         PAL_DrawText(itemText, PAL_XY((320 - PAL_TextWidth(itemText)) / 2, 10),
+            MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
+
+         if (!(gpGlobals->rgGameProgressKey.wGameProgressCheck & kGAMEPROGRESSCHECK_THE_BANANA_TREE))
+         {
+            gpGlobals->rgGameProgressKey.wGameProgressCheck |= kGAMEPROGRESSCHECK_THE_BANANA_TREE;
+            PAL_New_GameLog_Save();
+         }
+      }
    }
 }
 #endif // PD_GameLog_Save

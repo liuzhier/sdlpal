@@ -1755,6 +1755,10 @@ PAL_StartBattle(
 #if PD_Battle_ShortcutKey_R_AutoTarget
       g_Battle.rgEnemy[i++].wObjectID = w;
 #endif // PD_Battle_ShortcutKey_R_AutoTarget
+
+#if PD_GameLog_Save
+      PAL_New_GameProgressCheckWithEnemy(g_Battle.rgEnemy[i - 1].wObjectID, FALSE);
+#endif // PD_GameLog_Save
    }
 
    g_Battle.wMaxEnemyIndex = i - 1;

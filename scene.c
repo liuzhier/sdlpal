@@ -536,8 +536,10 @@ PAL_MakeScene(
 
 #if PD_Scene_ShowPos
    // show player pos
-   PAL_DrawNumber(gpGlobals->rgTrail[0].x, 5, PAL_XY(320 - 66, 0), kNumColorYellow, kNumAlignRight);
-   PAL_DrawNumber(gpGlobals->rgTrail[0].y, 5, PAL_XY(320 - 30, 0), kNumColorCyan, kNumAlignRight);
+   //PAL_DrawNumber(gpGlobals->rgTrail[0].x, 5, PAL_XY(320 - 66, 0), kNumColorYellow, kNumAlignRight);
+   //PAL_DrawNumber(gpGlobals->rgTrail[0].y, 5, PAL_XY(320 - 30, 0), kNumColorCyan, kNumAlignRight);
+   PAL_DrawNumber(abs(PAL_X(gpGlobals->viewport) + PAL_X(gpGlobals->partyoffset)), 5, PAL_XY(320 - 66, 0), kNumColorYellow, kNumAlignRight);
+   PAL_DrawNumber(abs(PAL_Y(gpGlobals->viewport) + PAL_Y(gpGlobals->partyoffset)), 5, PAL_XY(320 - 30, 0), kNumColorCyan, kNumAlignRight);
 #endif
 
 #if PD_Scene_ShowDirValue
@@ -551,6 +553,13 @@ PAL_MakeScene(
    // show sceneID
    PAL_DrawNumber(gpGlobals->wNumScene, 5, PAL_XY(320 - 30, 10), kNumColorBlue, kNumAlignRight);
 #endif
+
+#if PD_GameLog_Save
+   //
+   // Check if the player is by the banana tree
+   //
+   PAL_New_GameProgressCheckBananaTree();
+#endif // PD_GameLog_Save
 
 #if PD_Scene_ShowQuMoXiangTime
    // show QuMoXiang time

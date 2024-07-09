@@ -506,42 +506,52 @@ typedef struct tagPOISONSTATUS
 #if PD_GameLog_Save
 typedef enum tagGAMEPROGRESS
 {
-   kGAMEPROGRESS_NULL                           = (1 << 0),
-   kGAMEPROGRESS_GAME_START                     = (1 << 1),
-   kGAMEPROGRESS_SEE_STONE_TABLET               = (1 << 2),
-   kGAMEPROGRESS_LEARN_KUNG_FU                  = (1 << 3),
-   kGAMEPROGRESS_BORADING_THE_SHIP              = (1 << 4),
-   kGAMEPROGRESS_GO_OUT_FROM_THE_LIN_FAMILY     = (1 << 5),
-   kGAMEPROGRESS_EXITING_THE_DRAGON_CAVE        = (1 << 6),
-   kGAMEPROGRESS_RESIDENT_EVIL                  = (1 << 7),
-   kGAMEPROGRESS_DEFEAT_THE_GUI_GENERAL         = (1 << 8),
-   kGAMEPROGRESS_DEFEAT_THE_RED_GHOST_KING      = (1 << 9),
-   kGAMEPROGRESS_ENTER_YANGZHOU                 = (1 << 10),
-   kGAMEPROGRESS_GO_OUT_FROM_THE_YANGZHOU       = (1 << 11),
-   kGAMEPROGRESS_GO_OUT_FROM_THE_TROUBLE_CAVE   = (1 << 12),
-   kGAMEPROGRESS_ENTER_THE_CAPITAL              = (1 << 13),
-   kGAMEPROGRESS_DEFEAT_THE_CAIYI               = (1 << 14),
-   kGAMEPROGRESS_ENTER_THE_DEMON_PRISON_TOWER   = (1 << 15),
-   kGAMEPROGRESS_SWORD_PILLARS                  = (1 << 16),
-   kGAMEPROGRESS_DESTROY_THE_TOWER              = (1 << 17),
-   kGAMEPROGRESS_THE_BANANA_TREE                = (1 << 18),
-   kGAMEPROGRESS_DEFEAT_THE_PHOENIX             = (1 << 19),
-   kGAMEPROGRESS_BACK_TEN_YEARS_AGO             = (1 << 20),
-   kGAMEPROGRESS_WATER_JEWEL                    = (1 << 21),
-   kGAMEPROGRESS_PRAY_FOR_RAIN                  = (1 << 22),
-   kGAMEPROGRESS_GAME_END                       = (1 << 23),
+   kGAMEPROGRESS_NULL                           = 0,
+   kGAMEPROGRESS_GAME_START                     = (1 << 0),
+   kGAMEPROGRESS_SEE_STONE_TABLET               = (1 << 1),
+   kGAMEPROGRESS_LEARN_KUNG_FU                  = (1 << 2),
+   kGAMEPROGRESS_BORADING_THE_SHIP              = (1 << 3),
+   kGAMEPROGRESS_GO_OUT_FROM_THE_LIN_FAMILY     = (1 << 4),
+   kGAMEPROGRESS_EXITING_THE_DRAGON_CAVE        = (1 << 5),
+   kGAMEPROGRESS_RESIDENT_EVIL                  = (1 << 6),
+   kGAMEPROGRESS_DEFEAT_THE_GUI_GENERAL         = (1 << 7),
+   kGAMEPROGRESS_DEFEAT_THE_RED_GHOST_KING      = (1 << 8),
+   kGAMEPROGRESS_ENTER_YANGZHOU                 = (1 << 9),
+   kGAMEPROGRESS_GO_OUT_FROM_THE_YANGZHOU       = (1 << 10),
+   kGAMEPROGRESS_GO_OUT_FROM_THE_TROUBLE_CAVE   = (1 << 11),
+   kGAMEPROGRESS_ENTER_THE_CAPITAL              = (1 << 12),
+   kGAMEPROGRESS_DEFEAT_THE_CAIYI               = (1 << 13),
+   kGAMEPROGRESS_ENTER_THE_DEMON_PRISON_TOWER   = (1 << 14),
+   kGAMEPROGRESS_SWORD_PILLARS                  = (1 << 15),
+   kGAMEPROGRESS_DESTROY_THE_TOWER              = (1 << 16),
+   kGAMEPROGRESS_DEFEAT_THE_PHOENIX             = (1 << 17),
+   kGAMEPROGRESS_BACK_TEN_YEARS_AGO             = (1 << 18),
+   kGAMEPROGRESS_WATER_JEWEL                    = (1 << 19),
+   kGAMEPROGRESS_PRAY_FOR_RAIN                  = (1 << 20),
+   kGAMEPROGRESS_GAME_END                       = (1 << 21),
 } GAMEPROGRESS;
+
+typedef enum tagGAMEPROGRESSCHECK
+{
+   kGAMEPROGRESSCHECK_NULL                      = 0,
+   kGAMEPROGRESSCHECK_DEFEAT_THE_ZhiZhang       = (1 << 0),
+   kGAMEPROGRESSCHECK_DEFEAT_THE_MasterZhiXiu   = (1 << 1),
+   kGAMEPROGRESSCHECK_THE_BANANA_TREE           = (1 << 2),
+} GAMEPROGRESSCHECK;
 
 typedef struct tagGAMEPROGRESSKEY
 {
-   USHORT         wGameProgressSavedTimes;   // 存储次数
-   DWORD          dwGameProgress;            // 通关进度
-   USHORT         nBeeHive;                  // 蜂巢计数
-   USHORT         nHoney;                    // 蜂蜜计数
-   USHORT         nFireBug;                  // 火蚕蛊计数
-   USHORT         nBloodBall;                // 血玲珑计数
-   USHORT         nNightTight;               // 夜行衣计数
-   USHORT         nLQSword;                  // 龙泉剑计数
+   USHORT                  wGameProgressSavedTimes;   // 存储次数
+   GAMEPROGRESS            dwGameProgress;            // 通关进度
+   WORD                    wGameProgressCheck;        // 通关进度特殊检查
+   WORD                    wBossID;                   // Boss 编号
+   USHORT                  nBeeHive;                  // 蜂巢计数
+   USHORT                  nHoney;                    // 蜂蜜计数
+   USHORT                  nFireBug;                  // 火蚕蛊计数
+   USHORT                  nBloodBall;                // 血玲珑计数
+   USHORT                  nNightTight;               // 夜行衣计数
+   USHORT                  nLQSword;                  // 龙泉剑计数
+   USHORT                  nBanana;                   // 香蕉计数
 } GAMEPROGRESSKEY, *LPGAMEPROGRESSKEY;
 #endif // PD_GameLog_Save
 
@@ -948,7 +958,13 @@ PAL_New_GameProgressCheckWithScript(
 
 VOID
 PAL_New_GameProgressCheckWithEnemy(
-   WORD           wEnemyObjectID
+   WORD           wEnemyObjectID,
+   BOOL           fIsCheckDead
+);
+
+VOID
+PAL_New_GameProgressCheckBananaTree(
+   VOID
 );
 #endif // PD_GameLog_Save
 

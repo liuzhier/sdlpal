@@ -1813,11 +1813,14 @@ PAL_BattleStartFrame(
          //
          // Going back to the previous action, prevent target errors
          //
-         for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+         if (g_Battle.fRepeat)
          {
-            if (g_Battle.rgPlayer[i].prevAction.ActionType)
+            for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
             {
-               g_Battle.rgPlayer[i].action = g_Battle.rgPlayer[i].prevAction;
+               if (g_Battle.rgPlayer[i].prevAction.ActionType)
+               {
+                  g_Battle.rgPlayer[i].action = g_Battle.rgPlayer[i].prevAction;
+               }
             }
          }
 #endif // PD_Battle_ShortcutKey_R_AutoTarget

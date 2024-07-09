@@ -58,6 +58,7 @@
          #define     PD_Read_Path30_SSS            "SSS.MKF.FIXED"
          #define     PD_Read_Path30_MUS            "MUS.MKF.FIXED"
          #define     PD_Read_Path30_MSG            "M.MSG.FIXED"
+         #define     PD_Read_Path30_KEY            "GAMEPROGRESS.KEY"
       #endif // PD_Read_Path30
 
    // log 输出游戏进度

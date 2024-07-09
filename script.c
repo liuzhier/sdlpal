@@ -985,6 +985,7 @@ PAL_InterpretInstruction(
       case 162: // 血玲珑
       case 212: // 夜行衣
       case 184: // 龙泉剑
+      case 291: // 香蕉
          PAL_New_GameLog_ItemCount();
          break;
 
@@ -3360,6 +3361,12 @@ PAL_RunTriggerScript(
             break;
          }
 #endif
+
+#if PD_GameLog_Save
+         gpGlobals->rgGameProgressKey.wBossID = 0xFFFF;
+         PAL_New_GameLog_Save();
+#endif // PD_GameLog_Save
+
          i = PAL_StartBattle(pScript->rgwOperand[0], !pScript->rgwOperand[2]);
 
          if (i == kBattleResultLost && pScript->rgwOperand[1] != 0)
@@ -3375,6 +3382,11 @@ PAL_RunTriggerScript(
             wScriptEntry++;
          }
          gpGlobals->fAutoBattle = FALSE;
+
+#if PD_GameLog_Save
+         gpGlobals->rgGameProgressKey.wBossID = 0x0000;
+         PAL_New_GameLog_Save();
+#endif // PD_GameLog_Save
          break;
 
       case 0x0008:
