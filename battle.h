@@ -192,8 +192,9 @@ typedef struct tagBATTLE
 
    WORD             wMaxEnemyIndex;
 #if PD_Battle_ShortcutKey_R_AutoTarget
-   WORD             wMaxEnemyEffectiveIndex;
-#endif
+   WORD             wMaxEnemyEffectiveIndex; // fake indexes, used for players to automatically select targets
+   BOOL             fRepeatFallbackAction;
+#endif // PD_Battle_ShortcutKey_R_AutoTarget
 
    SDL_Surface     *lpSceneBuf;
    SDL_Surface     *lpBackground;

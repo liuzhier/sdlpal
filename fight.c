@@ -1472,6 +1472,12 @@ PAL_BattleStartFrame(
                   g_Battle.rgPlayer[i].prevAction = g_Battle.rgPlayer[i].action;
                }
             }
+#if PD_Battle_ShortcutKey_R_AutoTarget
+            else
+            {
+               g_Battle.fRepeatFallbackAction = TRUE;
+            }
+#endif // PD_Battle_ShortcutKey_R_AutoTarget
 
             //
             // actions for all players are decided. fill in the action queue.
@@ -1739,9 +1745,27 @@ PAL_BattleStartFrame(
             gpGlobals->rgInventory[i].nAmountInUse = 0;
          }
 
+#if PD_Battle_ShortcutKey_R_AutoTarget
+         //
+         // Going back to the previous action, prevent target errors
+         //
+         if (g_Battle.fRepeatFallbackAction)
+         {
+            for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+            {
+               if (g_Battle.rgPlayer[i].prevAction.ActionType)
+               {
+                  g_Battle.rgPlayer[i].action = g_Battle.rgPlayer[i].prevAction;
+               }
+            }
+
+            g_Battle.fRepeatFallbackAction = FALSE;
+         }
+#endif // PD_Battle_ShortcutKey_R_AutoTarget
+
 #if PD_Battle_ShowMoreData
          g_Battle.wCurrentAllRrounds++;
-#endif
+#endif // PD_Battle_ShowMoreData
 
          //
          // Proceed to next turn...
@@ -1808,22 +1832,6 @@ PAL_BattleStartFrame(
             g_Battle.wMovingPlayerIndex = i;
             PAL_BattlePlayerPerformAction(i);
          }
-
-#if PD_Battle_ShortcutKey_R_AutoTarget
-         //
-         // Going back to the previous action, prevent target errors
-         //
-         if (g_Battle.fRepeat)
-         {
-            for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
-            {
-               if (g_Battle.rgPlayer[i].prevAction.ActionType)
-               {
-                  g_Battle.rgPlayer[i].action = g_Battle.rgPlayer[i].prevAction;
-               }
-            }
-         }
-#endif // PD_Battle_ShortcutKey_R_AutoTarget
 
          g_Battle.iCurAction++;
       }

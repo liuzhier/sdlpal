@@ -1616,15 +1616,20 @@ PAL_StartBattle(
    // Store all enemies
    //
 #if PD_Battle_ShortcutKey_R_AutoTarget
-   g_Battle.wMaxEnemyEffectiveIndex = 0xFFFF;
+   g_Battle.wMaxEnemyEffectiveIndex = MAX_ENEMIES_IN_TEAM - 1;
 
    for (i = 0, j = 0; j < MAX_ENEMIES_IN_TEAM; j++)
    {
       memset(&(g_Battle.rgEnemy[j]), 0, sizeof(BATTLEENEMY));
       w = gpGlobals->g.lprgEnemyTeam[wEnemyTeam].rgwEnemy[j];
+      g_Battle.rgEnemy[j].wObjectID = 0xFFFF;
 
       if (w == 0xFFFF)
       {
+         //
+         // Skip every enemy with wObject ID 0xFFFF,
+         // and record the index of the last enemy with wObject ID 0xFFFF
+         //
          g_Battle.wMaxEnemyEffectiveIndex = j - 1;
          continue;
       }
@@ -1762,6 +1767,32 @@ PAL_StartBattle(
    }
 
    g_Battle.wMaxEnemyIndex = i - 1;
+
+#if PD_Battle_ShortcutKey_R_AutoTarget
+   //
+   // Starting from the last enemy with wObject ID 0xFFFF,
+   // search forward for valid enemies
+   //
+   for (i = g_Battle.wMaxEnemyEffectiveIndex; i >= 0; i--)
+   {
+      if (g_Battle.rgEnemy[i].wObjectID != 0xFFFF)
+      {
+         g_Battle.wMaxEnemyEffectiveIndex = i;
+         break;
+      }
+   }
+
+   //
+   // Replace all enemies with wObject ID 0xFFFF back to 0x0000
+   //
+   for (i = 0; i < MAX_ENEMIES_IN_TEAM; i++)
+   {
+      if (g_Battle.rgEnemy[i].wObjectID == 0xFFFF)
+      {
+         g_Battle.rgEnemy[i].wObjectID = 0;
+      }
+   }
+#endif // PD_Battle_ShortcutKey_R_AutoTarget
 
    //
    // Store all players
