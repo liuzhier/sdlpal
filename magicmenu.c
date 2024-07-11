@@ -61,6 +61,13 @@ PAL_MagicSelectionMenuUpdate(
    const int   iCursorXOffset = gConfig.dwWordLength * 5 / 2;
    const int   iPageLineOffset = iLinesPerPage / 2;
 
+#if PD_Menu_KeyLeftOrRight_NextLine
+   int         iMinPageLastIndex, iPreMaxPageIndex;
+
+   iMinPageLastIndex = iItemsPerLine * iPageLineOffset;
+   item_delta        = 0;
+#endif // PD_Menu_KeyLeftOrRight_NextLine
+
    //
    // Check for inputs
    //
@@ -74,20 +81,58 @@ PAL_MagicSelectionMenuUpdate(
    }
    else if (g_InputState.dwKeyPress & kKeyLeft)
    {
+#if PD_Menu_KeyLeftOrRight_NextLine
+      iPreMaxPageIndex = g_iCurrentItem % 3;
+      if (iPreMaxPageIndex) item_delta = -1;
+#else
       item_delta = -1;
+#endif // PD_Menu_KeyLeftOrRight_NextLine
    }
    else if (g_InputState.dwKeyPress & kKeyRight)
    {
+#if PD_Menu_KeyLeftOrRight_NextLine
+      iPreMaxPageIndex = (g_iCurrentItem + 1) % 3;
+      if (iPreMaxPageIndex) item_delta = 1;
+#else
       item_delta = 1;
+#endif // PD_Menu_KeyLeftOrRight_NextLine
    }
    else if (g_InputState.dwKeyPress & kKeyPgUp)
    {
+#if PD_Menu_KeyLeftOrRight_NextLine
+      iPreMaxPageIndex =  iMinPageLastIndex + iItemsPerLine;
+
+      if ((g_iCurrentItem - iPreMaxPageIndex) >= iItemsPerLine &&
+         g_iCurrentItem > iMinPageLastIndex)
+      {
+         item_delta = -iMinPageLastIndex;
+      }
+      else if ((g_iCurrentItem / iItemsPerLine) >  iPageLineOffset)
+      {
+         item_delta = -iItemsPerLine;
+      }
+#else
       item_delta = -(iItemsPerLine * iLinesPerPage);
+#endif // PD_Menu_KeyLeftOrRight_NextLine
    }
    else if (g_InputState.dwKeyPress & kKeyPgDn)
    {
+#if PD_Menu_KeyLeftOrRight_NextLine
+      iPreMaxPageIndex = (g_iCurrentItem / iItemsPerLine);
+
+      if (iPreMaxPageIndex < iPageLineOffset)
+      {
+         item_delta = (iPageLineOffset - iPreMaxPageIndex + 1) * iItemsPerLine;
+      }
+      else
+      {
+         item_delta = iMinPageLastIndex;
+      }
+#else
       item_delta = iItemsPerLine * iLinesPerPage;
+#endif // PD_Menu_KeyLeftOrRight_NextLine
    }
+#if !PD_Menu_KeyLeftOrRight_NextLine
    else if (g_InputState.dwKeyPress & kKeyHome)
    {
       item_delta = -g_iCurrentItem;
@@ -96,24 +141,33 @@ PAL_MagicSelectionMenuUpdate(
    {
       item_delta = g_iNumMagic - g_iCurrentItem - 1;
    }
+#endif // PD_Menu_KeyLeftOrRight_NextLine
    else if (g_InputState.dwKeyPress & kKeyMenu)
    {
       return 0;
    }
+#if !PD_Menu_KeyLeftOrRight_NextLine
    else
    {
       item_delta = 0;
    }
+#endif // PD_Menu_KeyLeftOrRight_NextLine
 
    //
    // Make sure the current menu item index is in bound
    //
+#if PD_Menu_KeyLeftOrRight_NextLine
+   if (g_iCurrentItem + item_delta >= 0 &&
+      g_iCurrentItem + item_delta < g_iNumMagic)
+      g_iCurrentItem += item_delta;
+#else
    if (g_iCurrentItem + item_delta < 0)
       g_iCurrentItem = 0;
    else if (g_iCurrentItem + item_delta >= g_iNumMagic)
       g_iCurrentItem = g_iNumMagic-1;
    else
       g_iCurrentItem += item_delta;
+#endif // PD_Menu_KeyLeftOrRight_NextLine
 
    //
    // Create the box.

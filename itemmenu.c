@@ -62,6 +62,21 @@ PAL_ItemSelectMenuUpdate(
    const int          iPictureYOffset = (gConfig.ScreenLayout.ExtraItemDescLines > 1) ? (gConfig.ScreenLayout.ExtraItemDescLines - 1) * 16 : 0;
    PAL_POS            cursorPos = PAL_XY(15 + iCursorXOffset, 22);
 
+#if PD_Menu_KeyLeftOrRight_NextLine
+   int         iMinPageLastIndex, iPreMaxPageIndex;
+
+   iMinPageLastIndex = iItemsPerLine * iPageLineOffset;
+   item_delta = 0;
+
+   if (*iCurMenuItem >= g_iNumInventory)
+   {
+      //
+      // Fix the disappearance of cursor when selling
+      //
+      *iCurMenuItem = g_iNumInventory - 1;
+   }
+#endif // PD_Menu_KeyLeftOrRight_NextLine
+
    //
    // Process input
    //
@@ -78,7 +93,7 @@ PAL_ItemSelectMenuUpdate(
          item_delta = iItemsPerLine;
 #else
       item_delta = iItemsPerLine;
-#endif
+#endif // PD_Menu_KeyLeftOrRight_NextLine
    }
    else if (g_InputState.dwKeyPress & kKeyLeft)
    {
@@ -89,7 +104,7 @@ PAL_ItemSelectMenuUpdate(
          item_delta = -1;
 #else
       item_delta = -1;
-#endif
+#endif // PD_Menu_KeyLeftOrRight_NextLine
    }
    else if (g_InputState.dwKeyPress & kKeyRight)
    {
@@ -100,23 +115,44 @@ PAL_ItemSelectMenuUpdate(
          item_delta = 1;
 #else
       item_delta = 1;
-#endif
+#endif // PD_Menu_KeyLeftOrRight_NextLine
    }
    else if (g_InputState.dwKeyPress & kKeyPgUp)
    {
+#if PD_Menu_KeyLeftOrRight_NextLine
+      item_delta = -(iMinPageLastIndex + iItemsPerLine);
+
+      if ((*iCurMenuItem + item_delta) < iMinPageLastIndex && *iCurMenuItem >= iMinPageLastIndex)
+         item_delta = -(*iCurMenuItem - iMinPageLastIndex - (*iCurMenuItem % iItemsPerLine));
+#else
       item_delta = -(iItemsPerLine * iLinesPerPage);
+#endif // PD_Menu_KeyLeftOrRight_NextLine
    }
    else if (g_InputState.dwKeyPress & kKeyPgDn)
    {
+#if PD_Menu_KeyLeftOrRight_NextLine
+      iPreMaxPageIndex = (iItemsPerLine * (iLinesPerPage + 1));
+
+      if (*iCurMenuItem < iMinPageLastIndex)
+         item_delta = iPreMaxPageIndex - *iCurMenuItem + (*iCurMenuItem % iItemsPerLine);
+      else
+         item_delta = iItemsPerLine * (iPageLineOffset + 1);
+
+      if ((((*iCurMenuItem + item_delta) > (g_iNumInventory - 1)) &&
+         ((*iCurMenuItem % iItemsPerLine) == ((g_iNumInventory - 1) % iItemsPerLine))))
+         item_delta = g_iNumInventory - 1 - *iCurMenuItem;
+#else
       item_delta = iItemsPerLine * iLinesPerPage;
+#endif // PD_Menu_KeyLeftOrRight_NextLine
    }
+#if !PD_Menu_KeyLeftOrRight_NextLine
    else if (g_InputState.dwKeyPress & kKeyHome)
    {
 #if PD_Menu_KeyLeftOrRight_NextLine
       item_delta = -(*iCurMenuItem);
 #else
       item_delta = -gpGlobals->iCurInvMenuItem;
-#endif
+#endif // PD_Menu_KeyLeftOrRight_NextLine
    }
    else if (g_InputState.dwKeyPress & kKeyEnd)
    {
@@ -124,25 +160,27 @@ PAL_ItemSelectMenuUpdate(
       item_delta = g_iNumInventory - (*iCurMenuItem) - 1;
 #else
       item_delta = g_iNumInventory - gpGlobals->iCurInvMenuItem - 1;
-#endif
+#endif // !PD_Menu_KeyLeftOrRight_NextLine
    }
+#endif // !PD_Menu_KeyLeftOrRight_NextLine
    else if (g_InputState.dwKeyPress & kKeyMenu)
    {
       return 0;
    }
+#if !PD_Menu_KeyLeftOrRight_NextLine
    else
    {
       item_delta = 0;
    }
+#endif // !PD_Menu_KeyLeftOrRight_NextLine
 
    //
    // Make sure the current menu item index is in bound
    //
 #if PD_Menu_KeyLeftOrRight_NextLine
-   if (  !((*iCurMenuItem) + item_delta < 0)
-      && !((*iCurMenuItem) + item_delta >= g_iNumInventory))
+   if (!((*iCurMenuItem) + item_delta < 0) &&
+      !((*iCurMenuItem) + item_delta >= g_iNumInventory))
       (*iCurMenuItem) += item_delta;
-   else if ((*iCurMenuItem) + item_delta >= g_iNumInventory) (*iCurMenuItem) = g_iNumInventory - 1;
 
    tagEnd:
 
