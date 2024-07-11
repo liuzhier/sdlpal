@@ -67,9 +67,6 @@
    // 加快对话速度
    #define     PD_Talk_Speed                       1
 
-   // 驱魔香使 NPC 原地轮播图像
-   #define     PD_QuMoXiang_CarouselImage          1
-
    // 修复九阴散 bug
    #define     PD_Fix_Poison_Level                 1
 
