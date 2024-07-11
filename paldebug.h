@@ -94,9 +94,6 @@
    // 存档菜单字体是黑色的
    #define     PD_SaveMenu_FontColor_Block         1
 
-   // 驱魔香使 NPC 原地轮播图像
-   #define     PD_QuMoXiang_CarouselImage          1
-
    // 修复九阴散 bug
    #define     PD_Fix_Poison_Level                 1
 
