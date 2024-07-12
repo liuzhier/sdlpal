@@ -59,10 +59,9 @@
          #define     PD_Read_Path30_MUS            "MUS.MKF.FIXED"
          #define     PD_Read_Path30_MSG            "M.MSG.FIXED"
          #define     PD_Read_Path30_KEY            "GAMEPROGRESS.KEY"
+         // log 输出游戏进度
+         #define     PD_GameLog_Save               1
       #endif // PD_Read_Path30
-
-   // log 输出游戏进度
-   #define     PD_GameLog_Save                     1
 
    // 加快对话速度
    #define     PD_Talk_Speed                       1
