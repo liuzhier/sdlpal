@@ -114,14 +114,7 @@ PAL_BattleSelectAutoTargetFrom(
       return i;
    }
 
-#if PD_Battle_ShortcutKey_R_AutoTarget
-   if (begin < 0) begin = 0;
-   if (begin > g_Battle.wMaxEnemyEffectiveIndex) begin = g_Battle.wMaxEnemyEffectiveIndex;
-
-   for (count = 0, i = begin; count < MAX_ENEMIES_IN_TEAM; count++)
-#else
    for (count = 0, i = (begin >= 0 ? begin : 0); count < MAX_ENEMIES_IN_TEAM; count++)
-#endif // PD_Battle_ShortcutKey_R_AutoTarget
    {
       if (g_Battle.rgEnemy[i].wObjectID != 0 &&
          g_Battle.rgEnemy[i].e.wHealth > 0)

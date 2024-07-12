@@ -191,8 +191,8 @@ typedef struct tagBATTLE
    BATTLEENEMY      rgEnemy[MAX_ENEMIES_IN_TEAM];
 
    WORD             wMaxEnemyIndex;
+
 #if PD_Battle_ShortcutKey_R_AutoTarget
-   WORD             wMaxEnemyEffectiveIndex; // fake indexes, used for players to automatically select targets
    BOOL             fRepeatFallbackAction;
 #endif // PD_Battle_ShortcutKey_R_AutoTarget
 
