@@ -121,7 +121,11 @@ PAL_BattleSelectAutoTargetFrom(
       {
          return i;
       }
+#if PD_Battle_ShortcutKey_R_AutoTarget
+      i = (i + 1) % (g_Battle.wMaxEnemyIndex + 1);
+#else
       i = ( i + 1 ) % MAX_ENEMIES_IN_TEAM;
+#endif // PD_Battle_ShortcutKey_R_AutoTarget
    }
 
    return -1;

@@ -3396,6 +3396,24 @@ PAL_RunTriggerScript(
          }
          gpGlobals->fAutoBattle = FALSE;
 
+#if PD_Battle_ShortcutKey_R_AutoTarget
+         //
+         // Going back to the previous action, prevent target errors
+         //
+         if (g_Battle.fRepeatFallbackAction)
+         {
+            for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+            {
+               if (g_Battle.rgPlayer[i].prevAction.ActionType)
+               {
+                  g_Battle.rgPlayer[i].action = g_Battle.rgPlayer[i].prevAction;
+               }
+            }
+
+            g_Battle.fRepeatFallbackAction = FALSE;
+         }
+#endif // PD_Battle_ShortcutKey_R_AutoTarget
+
 #if PD_GameLog_Save
          gpGlobals->rgGameProgressKey.wBossID = 0x0000;
          PAL_New_GameLog_Save();
