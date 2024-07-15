@@ -369,7 +369,7 @@ PAL_ReadGlobalGameData(
          fseek(fpTmp, 0, SEEK_SET);                                                 \
          if (ptr != NULL)                                                           \
          {                                                                          \
-            PAL_fread(ptr, len, 1, fpTmp);                                          \
+            fread(ptr, len, 1, fpTmp);                                              \
          }                                                                          \
          UTIL_CloseFile(fpTmp);                                                     \
          if (ptr == NULL)                                                           \
@@ -387,7 +387,7 @@ PAL_ReadGlobalGameData(
          fseek(fpTmp, 0, SEEK_SET);                                                 \
          if (ptr != NULL)                                                           \
          {                                                                          \
-            PAL_fread(ptr, len, 1, fpTmp);                                          \
+            fread(ptr, len, 1, fpTmp);                                              \
          }                                                                          \
          UTIL_CloseFile(fpTmp);                                                     \
          if (ptr == NULL)                                                           \

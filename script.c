@@ -1894,9 +1894,14 @@ PAL_InterpretInstruction(
          //
          gpGlobals->wNumScene = pScript->rgwOperand[0];
          PAL_SetLoadFlags(kLoadScene);
+#if !PD_Scene_BlackScreenOneStep
          gpGlobals->fEnteringScene = TRUE;
+#endif // !PD_Scene_BlackScreenOneStep
          gpGlobals->wLayer = 0;
       }
+#if PD_Scene_BlackScreenOneStep
+      gpGlobals->fEnteringScene = TRUE;
+#endif // PD_Scene_BlackScreenOneStep
       break;
 
    case 0x005A:
