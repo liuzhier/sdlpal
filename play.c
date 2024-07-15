@@ -647,11 +647,18 @@ PAL_StartFrame(
    //
    // Update the positions and gestures of party members
    //
-   PAL_UpdateParty();
-
-   if (gpGlobals->fEnteringScene)
+   switch (gpGlobals->wNumScene)
    {
-      return;
+   case 93:    // 扬州井下洞天
+   case 187:   // 神木林脚下
+      if (gpGlobals->fEnteringScene) return;
+      PAL_UpdateParty();
+      break;
+
+   default:
+      PAL_UpdateParty();
+      if (gpGlobals->fEnteringScene) return;
+      break;
    }
 #else
    if (gpGlobals->fEnteringScene)
@@ -663,7 +670,7 @@ PAL_StartFrame(
    // Update the positions and gestures of party members
    //
    PAL_UpdateParty();
-#endif
+#endif // PD_Scene_BlackScreenOneStep
 
    //
    // Update the scene
