@@ -54,6 +54,10 @@
 
 #define PAL_HAS_NATIVEMIDI  1
 
+#if PD_Read_Path30
+#define PAL_HAS_NATIVEAVI 1
+#endif // PD_Read_Path30
+
 #define PAL_HAS_CONFIG_PAGE 1
 
 #define PAL_FILESYSTEM_IGNORE_CASE 1

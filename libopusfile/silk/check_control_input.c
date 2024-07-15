@@ -30,7 +30,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #include "silk_main.h"
-#include "control.h"
+#include "control_opus.h"
 #include "errors.h"
 
 /* Check encoder control struct */

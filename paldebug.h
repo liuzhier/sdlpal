@@ -28,7 +28,7 @@
 #if PAL_BUG
 
    // 前置身位（黑屏时允许玩家提前走一步）
-   #define     PD_Scene_BlackScreenOneStep         0
+   #define     PD_Scene_BlackScreenOneStep         1
 
    // 允许战外阵亡的队员使用仙术
    #define     PD_Scene_DeadPlayerRoleCanUseMagic  1
@@ -54,7 +54,6 @@
    // 直接读取 3.0 补丁
    #define     PD_Read_Path30                      1
       #if PD_Read_Path30
-         #define     PD_Read_Path30_AVI            "AVI.FIXED"
          #define     PD_Read_Path30_SSS            "SSS.MKF.FIXED"
          #define     PD_Read_Path30_MUS            "MUS.MKF.FIXED"
          #define     PD_Read_Path30_MSG            "M.MSG.FIXED"
@@ -122,10 +121,10 @@
 
 
 // MOD 制作者信息
-#define     PD_MODInformation                   1
+#define     PD_MODInformation                      1
 
 #if PD_MODInformation
-   #define     PD_ProgramVersion                L"1.0 (" WIDETEXT(__DATE__) L")"
+   #define     PD_ProgramVersion                   L"1.0 (" WIDETEXT(__DATE__) L")"
 #endif
 
 
@@ -135,14 +134,14 @@
 
 #if PAL_DEBUG
 
-   // 战斗中我方只受到脚本伤害
-   #define     INVINCIBLE                          1
+   // 战斗中我方只受到脚本伤害（一般为中毒脚本）
+   #define     INVINCIBLE                          0
 
    // 自动对话
-   #define     PD_Auto_Talk                        1
+   #define     PD_Auto_Talk                        0
 
    // 跳过战斗
-   #define     PD_Pass_Battle                      1
+   #define     PD_Pass_Battle                      0
 
    // 穿墙
    #define     PD_Can_Penetrate_Walls              1

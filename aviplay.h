@@ -38,7 +38,11 @@ PAL_AVIShutdown(
 
 BOOL
 PAL_PlayAVI(
+#if PD_Read_Path30
     const char *lpszPath
+#else
+    LPCSTR     lpszPath
+#endif // PD_Read_Path30
 );
 
 void SDLCALL
@@ -52,6 +56,15 @@ void *
 AVI_GetPlayState(
 	void
 );
+
+#if PD_Read_Path30
+# if PAL_HAS_NATIVEAVI
+BOOL
+PAL_PlayAVI_Native(
+   const char  *lpszPath
+);
+# endif
+#endif // PD_Read_Path30
 
 PAL_C_LINKAGE_END
 

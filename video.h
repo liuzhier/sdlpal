@@ -24,6 +24,10 @@
 
 #include "common.h"
 
+#if PD_Read_Path30
+#include <SDL_syswm.h>
+#endif // PD_Read_Path30
+
 #define TOUCHOVERLAY_ALPHAMOD           120
 
 #define VIDEO_CopySurface(s, sr, t, tr) SDL_BlitSurface((s), (sr), (t), (tr))
@@ -149,6 +153,13 @@ VIDEO_SetupTouchArea(
     int draw_w,
     int draw_h
 );
+
+#if PD_Read_Path30
+BOOL
+VIDEO_GetWindowInfo(
+   SDL_SysWMinfo  *pInfo
+);
+#endif // PD_Read_Path30
 
 PAL_C_LINKAGE_END
 

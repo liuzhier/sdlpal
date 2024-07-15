@@ -30,7 +30,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #endif
 #include "define.h"
 #include "API.h"
-#include "control.h"
+#include "control_opus.h"
 #include "typedef.h"
 #include "stack_alloc.h"
 #include "structs.h"

@@ -28,7 +28,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef SILK_API_H
 #define SILK_API_H
 
-#include "control.h"
+#include "control_opus.h"
 #include "typedef.h"
 #include "errors.h"
 #include "entenc.h"

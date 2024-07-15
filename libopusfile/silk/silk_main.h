@@ -33,7 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "structs.h"
 #include "tables.h"
 #include "PLC.h"
-#include "control.h"
+#include "control_opus.h"
 #include "debug.h"
 #include "entenc.h"
 #include "entdec.h"

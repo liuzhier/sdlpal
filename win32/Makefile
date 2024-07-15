@@ -31,7 +31,7 @@ override CCFLAGS += `$(SDL_CONFIG) --cflags` -I../3rd/mingw-std-threads -g -msse
 CXXFLAGS = $(CCFLAGS) -std=c++11
 CFLAGS = $(CCFLAGS) -std=gnu99
 OPENGL_LIBS = -lopengl32
-LDFLAGS = `$(SDL_CONFIG) --libs` ${OPENGL_LIBS} -lm -lwinmm -lole32 -loleaut32 -limm32 -lcomctl32 -luuid -ldxguid -lversion -lsetupapi -static -static-libgcc -static-libstdc++
+LDFLAGS = `$(SDL_CONFIG) --libs` ${OPENGL_LIBS} -lm -lwinmm -lole32 -loleaut32 -limm32 -lcomctl32 -luuid -ldxguid -lstrmiids -lversion -lsetupapi -static -static-libgcc -static-libstdc++
 TEST_CXXFLAGS += -isystem $(GTEST_DIR)/include -I $(GTEST_DIR) -g -Wall -Wextra -pthread
 
 POSTCOMPILE = @mv -f $*$(INTER).Td $*$(INTER).d && touch $@

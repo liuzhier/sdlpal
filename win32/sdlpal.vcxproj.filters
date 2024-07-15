@@ -1346,7 +1346,7 @@
     <ClInclude Include="..\libopusfile\silk\API.h">
       <Filter>libopusfile</Filter>
     </ClInclude>
-    <ClInclude Include="..\libopusfile\silk\control.h">
+    <ClInclude Include="..\libopusfile\silk\control_opus.h">
       <Filter>libopusfile</Filter>
     </ClInclude>
     <ClInclude Include="..\libopusfile\silk\debug.h">

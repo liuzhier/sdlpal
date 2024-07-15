@@ -294,10 +294,18 @@ PAL_LoadConfig(
 {
 	FILE     *fp;
 	ConfigValue  values[PALCFG_ALL_MAX];
-	MUSICTYPE eMusicType = MUSIC_RIX;
+#if PD_Read_Path30
+   MUSICTYPE eMusicType = MUSIC_MIDI;
+#else
+   MUSICTYPE eMusicType = MUSIC_RIX;
+#endif // PD_Read_Path30
 	MIDISYNTHTYPE eMIDISynthType = SYNTH_NATIVE;
-	CDTYPE eCDType = CD_NONE;
-	OPLCORE_TYPE eOPLCore = OPLCORE_DBFLT;
+#if PD_Read_Path30
+	CDTYPE eCDType = CD_OGG;
+#else
+   CDTYPE eCDType = CD_NONE;
+#endif // PD_Read_Path30
+   OPLCORE_TYPE eOPLCore = OPLCORE_DBFLT;
 	OPLCHIP_TYPE eOPLChip = OPLCHIP_OPL2;
 	static const SCREENLAYOUT screen_layout = {
 		// Equipment Screen
