@@ -3514,6 +3514,8 @@ PAL_New_GameProgressCheckBananaTree(
                          PAL_XY(1264, 728),
    };
 
+   if (gpGlobals->wNumScene != 177) return;
+
    for (INT i = 0; i < sizeof(wCheckBananaTree) / sizeof(wCheckBananaTree[0]); i++)
    {
       if (PAL_XY(abs(PAL_X(gpGlobals->viewport) + PAL_X(gpGlobals->partyoffset)),
