@@ -135,7 +135,7 @@
 #if PAL_DEBUG
 
    // 战斗中我方只受到脚本伤害（一般为中毒脚本）
-   #define     INVINCIBLE                          0
+   //#define     INVINCIBLE
 
    // 自动对话
    #define     PD_Auto_Talk                        0
@@ -144,7 +144,7 @@
    #define     PD_Pass_Battle                      0
 
    // 穿墙
-   #define     PD_Can_Penetrate_Walls              1
+   #define     PD_Can_Penetrate_Walls              0
 
    // 酒神特效替换
    #define     PD_Wine_God_Effects                 0
@@ -159,16 +159,16 @@
          #define     PD_Scene_ShowPos              1
          // 显示场景号
          #define     PD_Scene_ShowSceneID          1
-         // 显示方向参考值
-         #define     PD_Scene_ShowDirValue         0
          // 显示驱魔香或者十里香数值
          #define     PD_Scene_ShowQuMoXiangTime    1
+         // 显示方向参考值
+         #define     PD_Scene_ShowDirValue         0
          // 显示灵葫值
          #define     PD_Scene_ShowLingHuValue      1
          // 显示所有事件的名称和编号
-         #define     PD_Scene_ShowEventMessages    1
+         #define     PD_Scene_ShowEventMessages    0
          // 显示场景入口和隐藏道具
-         #define     PD_Scene_ShowEvent_GetItem    1
+         #define     PD_Scene_ShowEvent_GetItem    0
          // 显示事件触发范围
          #define     PD_Scene_ShowEventCheckBlock  0
       #endif // PD_Scene_ShowMoreMessages

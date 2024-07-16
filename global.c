@@ -2882,7 +2882,7 @@ PAL_New_GetEnemyElementalResistance(
 }
 #endif // PD_Battle_ShowEnemyStatus
 
-#if PD_Scene_ShowEventMessages
+#if PD_Battle_ShowMoreData
 WORD
 PAL_New_GetPlayerID(
    WORD		wPlayerIndex
@@ -2947,7 +2947,7 @@ PAL_New_GetPlayerSorceryResistance(
 
    return min(100, w);
 }
-#endif // PD_Scene_ShowEventMessages
+#endif // PD_Battle_ShowMoreData
 
 #if PD_Player_Status_Index_error
 VOID
@@ -3118,7 +3118,7 @@ PAL_New_GameLog_Save(
       return;
    }
 
-#if _DEBUG
+#if _DEBUG && PD_DEBUG_Level
    remove(PAL_va(1, "%s/%s", gConfig.pszGamePath, gConfig.pszLogFile));
 
    for (i = 0; i < sizeof(lpcszProgressName) / sizeof(lpcszProgressName[0]) - 1; i++)
