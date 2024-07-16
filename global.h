@@ -847,7 +847,7 @@ PAL_New_GetEnemyElementalResistance(
 );
 #endif // PD_Battle_ShowEnemyStatus
 
-#if PD_Scene_ShowEventMessages
+#if PD_Battle_ShowMoreMessages
 WORD
 PAL_New_GetPlayerID(
    WORD		wPlayerIndex
@@ -862,7 +862,7 @@ INT
 PAL_New_GetPlayerSorceryResistance(
    WORD			wPlayerRole
 );
-#endif // PD_Scene_ShowEventMessages
+#endif // PD_Battle_ShowMoreMessages
 
 #if PD_Player_Status_Index_error
 VOID
