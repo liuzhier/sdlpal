@@ -91,8 +91,8 @@
 
 #if     PAL_FIXBUG
 
-   // 存档菜单字体是黑色的
-   #define     PD_SaveMenu_FontColor_Block         1
+   // 加快对话速度
+   #define     PD_Talk_Speed                       1
 
    // 修复九阴散 bug
    #define     PD_Fix_Poison_Level                 1
@@ -197,6 +197,8 @@
          #define     PD_Scene_ShowLingHuValue      1
          // 显示所有事件的名称和编号
          #define     PD_Scene_ShowEventMessages    1
+         // 显示场景入口和隐藏道具
+         #define     PD_Scene_ShowEvent_GetItem    1
          // 显示场景入口和隐藏道具
          #define     PD_Scene_ShowEvent_GetItem    1
          // 显示事件触发范围

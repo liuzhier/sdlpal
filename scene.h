@@ -678,7 +678,7 @@ static const LPCWSTR SpriteID[][2] = {
 	{ L"0x0287", L"不干好事的狼" },
 	{ L"0xFFFF", L"？？？？？？" }
 };
-#endif
+#endif // PD_Scene_ShowEventMessages
 
 VOID
 PAL_ApplyWave(
@@ -701,7 +701,7 @@ PAL_New_GetTreasureBoxItemID(
 	WORD             wScriptEntry,
 	BOOL             fJumpScript
 );
-#endif
+#endif // PD_Scene_ShowEventMessages
 
 BOOL
 PAL_CheckObstacleWithRange(

@@ -832,7 +832,7 @@ end:
 
    return fJumpResults;
 }
-#endif
+#endif // PD_Scene_ShowEventMessages
 
 BOOL
 PAL_CheckObstacle(

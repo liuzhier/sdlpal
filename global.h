@@ -845,7 +845,7 @@ PAL_New_GetEnemyElementalResistance(
    WORD		wEnemyIndex,
    INT		iAttrib
 );
-#endif
+#endif // PD_Battle_ShowEnemyStatus
 
 #if PD_Scene_ShowEventMessages
 WORD
@@ -857,7 +857,12 @@ SHORT
 PAL_New_GetPlayerPhysicalResistance(
    WORD			wPlayerRole
 );
-#endif
+
+INT
+PAL_New_GetPlayerSorceryResistance(
+   WORD			wPlayerRole
+);
+#endif // PD_Scene_ShowEventMessages
 
 #if PD_Player_Status_Index_error
 VOID
@@ -869,7 +874,7 @@ VOID
 PAL_New_LoadErrorStatus(
    VOID
 );
-#endif
+#endif // PD_Player_Status_Index_error
 
 PAL_C_LINKAGE_END
 

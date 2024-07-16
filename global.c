@@ -3000,7 +3000,7 @@ PAL_New_GetEnemyElementalResistance(
 
    return min(w, 100);
 }
-#endif
+#endif // PD_Battle_ShowEnemyStatus
 
 #if PD_Scene_ShowEventMessages
 WORD
@@ -3067,7 +3067,7 @@ PAL_New_GetPlayerSorceryResistance(
 
    return min(100, w);
 }
-#endif
+#endif // PD_Scene_ShowEventMessages
 
 #if PD_Player_Status_Index_error
 VOID
@@ -3126,4 +3126,4 @@ PAL_New_LoadErrorStatus(
       fCompleted[wPlayerRole] = TRUE;
    }
 }
-#endif
+#endif // PD_Player_Status_Index_error
