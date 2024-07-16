@@ -164,6 +164,9 @@
 
 #if PAL_DEBUG
 
+   // 战斗中我方只受到脚本伤害
+   #define     INVINCIBLE                          0
+
    // 自动对话
    #define     PD_Auto_Talk                        0
 

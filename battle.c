@@ -927,12 +927,7 @@ PAL_LoadBattleSprites(
    //
    for (i = 0; i < MAX_ENEMIES_IN_TEAM; i++)
    {
-#if PD_Battle_ShortcutKey_R_AutoTarget
-      if (g_Battle.rgEnemy[i].wObjectID == 0
-         || g_Battle.rgEnemy[i].wObjectID == 0xFFFF)
-#else
       if (g_Battle.rgEnemy[i].wObjectID == 0)
-#endif // PD_Battle_ShortcutKey_R_AutoTarget
       {
          continue;
       }
@@ -1569,11 +1564,7 @@ PAL_StartBattle(
 
 --*/
 {
-#if PD_Battle_ShortcutKey_R_AutoTarget
    int            i, j;
-#else
-   int            i;
-#endif // PD_Battle_ShortcutKey_R_AutoTarget
    WORD           w, wPrevWaveLevel;
    SHORT          sPrevWaveProgression;
 
@@ -1620,30 +1611,14 @@ PAL_StartBattle(
    //
    // Store all enemies
    //
-#if PD_Battle_ShortcutKey_R_AutoTarget
    for (i = 0, j = 0; j < MAX_ENEMIES_IN_TEAM; j++)
    {
       memset(&(g_Battle.rgEnemy[j]), 0, sizeof(BATTLEENEMY));
       w = gpGlobals->g.lprgEnemyTeam[wEnemyTeam].rgwEnemy[j];
-      g_Battle.rgEnemy[j].wObjectID = 0xFFFF;
 
       if (w != 0xFFFF)
-#else
-   for (i = 0; i < MAX_ENEMIES_IN_TEAM; i++)
-   {
-      memset(&(g_Battle.rgEnemy[i]), 0, sizeof(BATTLEENEMY));
-      w = gpGlobals->g.lprgEnemyTeam[wEnemyTeam].rgwEnemy[i];
-
-      if (w == 0xFFFF)
-      {
-         break;
-      }
-
-      if (w != 0)
-#endif // PD_Battle_ShortcutKey_R_AutoTarget
       {
          g_Battle.rgEnemy[i].e = gpGlobals->g.lprgEnemy[gpGlobals->g.rgObject[w].enemy.wEnemyID];
-         g_Battle.rgEnemy[i].wObjectID = w;
          g_Battle.rgEnemy[i].state = kFighterWait;
          g_Battle.rgEnemy[i].wScriptOnTurnStart = gpGlobals->g.rgObject[w].enemy.wScriptOnTurnStart;
          g_Battle.rgEnemy[i].wScriptOnBattleEnd = gpGlobals->g.rgObject[w].enemy.wScriptOnBattleEnd;
@@ -1750,10 +1725,9 @@ PAL_StartBattle(
             g_Battle.rgEnemy[i].e.wDexterity += 50; // for Black Spider
          }
 #endif
-#if PD_Battle_ShortcutKey_R_AutoTarget
-         i++;
-#endif // PD_Battle_ShortcutKey_R_AutoTarget
       }
+
+      g_Battle.rgEnemy[i++].wObjectID = w;
    }
 
    g_Battle.wMaxEnemyIndex = i - 1;

@@ -114,42 +114,6 @@ PAL_BattleSelectAutoTargetFrom(
       return i;
    }
 
-#if PD_Battle_ShortcutKey_R_AutoTarget
-   if (begin < 0) begin = 0;
-
-   if (g_Battle.rgEnemy[begin].wObjectID == 0xFFFF)
-   {
-      //
-      // Forward search
-      //
-      for (i = begin; i >= 0; i--)
-      {
-         if (g_Battle.rgEnemy[i].wObjectID != 0xFFFF &&
-            g_Battle.rgEnemy[i].wObjectID != 0 &&
-            g_Battle.rgEnemy[i].e.wHealth > 0)
-         {
-            return i;
-         }
-}
-   }
-   else
-   {
-      //
-      // Find Backward
-      //
-      for (count = 0, i = begin; count < MAX_ENEMIES_IN_TEAM; count++)
-      {
-         if (g_Battle.rgEnemy[i].wObjectID != 0xFFFF &&
-            g_Battle.rgEnemy[i].wObjectID != 0 &&
-            g_Battle.rgEnemy[i].e.wHealth > 0)
-         {
-            return i;
-         }
-
-         i = (i + 1) % MAX_ENEMIES_IN_TEAM;
-      }
-   }
-#else
    for (count = 0, i = (begin >= 0 ? begin : 0); count < MAX_ENEMIES_IN_TEAM; count++)
    {
       if (g_Battle.rgEnemy[i].wObjectID != 0 &&
@@ -157,9 +121,13 @@ PAL_BattleSelectAutoTargetFrom(
       {
          return i;
       }
+
+#if PD_Battle_ShortcutKey_R_AutoTarget
+      i = (i + 1) % (g_Battle.wMaxEnemyIndex + 1);
+#else
       i = ( i + 1 ) % MAX_ENEMIES_IN_TEAM;
-   }
 #endif // PD_Battle_ShortcutKey_R_AutoTarget
+   }
 
    return -1;
 }
@@ -1498,6 +1466,12 @@ PAL_BattleStartFrame(
                   g_Battle.rgPlayer[i].prevAction = g_Battle.rgPlayer[i].action;
                }
             }
+#if PD_Battle_ShortcutKey_R_AutoTarget
+            else
+            {
+               g_Battle.fRepeatFallbackAction = TRUE;
+            }
+#endif // PD_Battle_ShortcutKey_R_AutoTarget
 
             //
             // actions for all players are decided. fill in the action queue.
@@ -1765,9 +1739,27 @@ PAL_BattleStartFrame(
             gpGlobals->rgInventory[i].nAmountInUse = 0;
          }
 
+#if PD_Battle_ShortcutKey_R_AutoTarget
+         //
+         // Going back to the previous action, prevent target errors
+         //
+         if (g_Battle.fRepeatFallbackAction)
+         {
+            for (i = 0; i <= gpGlobals->wMaxPartyMemberIndex; i++)
+            {
+               if (g_Battle.rgPlayer[i].prevAction.ActionType)
+               {
+                  g_Battle.rgPlayer[i].action = g_Battle.rgPlayer[i].prevAction;
+               }
+            }
+
+            g_Battle.fRepeatFallbackAction = FALSE;
+         }
+#endif // PD_Battle_ShortcutKey_R_AutoTarget
+
 #if PD_Battle_ShowMoreData
          g_Battle.wCurrentAllRrounds++;
-#endif
+#endif // PD_Battle_ShowMoreData
 
          //
          // Proceed to next turn...

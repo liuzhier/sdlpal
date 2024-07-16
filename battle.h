@@ -196,6 +196,10 @@ typedef struct tagBATTLE
 
    WORD             wMaxEnemyIndex;
 
+#if PD_Battle_ShortcutKey_R_AutoTarget
+   BOOL             fRepeatFallbackAction;
+#endif // PD_Battle_ShortcutKey_R_AutoTarget
+
    SDL_Surface     *lpSceneBuf;
    SDL_Surface     *lpBackground;
 
