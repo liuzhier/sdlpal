@@ -59,7 +59,9 @@
          #define     PD_Read_Path30_MSG            "M.MSG.FIXED"
          #define     PD_Read_Path30_KEY            "GAMEPROGRESS.KEY"
          // log 输出游戏进度
-         #define     PD_GameLog_Save               1
+         #define     PD_GameLog_Save               0
+         // 自定义级别的 DEBUG
+         #define     PD_DEBUG_Level                0
       #endif // PD_Read_Path30
 
    // 加快对话速度
@@ -134,6 +136,9 @@
 
 #if PAL_DEBUG
 
+   // 快捷键 ALT + ENTER 全屏功能改为 F12
+   #define     PD_FullScreen_ShortcutKey           1
+
    // 战斗中我方只受到脚本伤害（一般为中毒脚本）
    //#define     INVINCIBLE
 
@@ -148,9 +153,6 @@
 
    // 酒神特效替换
    #define     PD_Wine_God_Effects                 0
-
-   // 自定义级别的 DEBUG
-   #define     PD_DEBUG_Level                      1
 
    // 场景显示额外信息开关
    #define     PD_Scene_ShowMoreMessages           1

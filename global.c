@@ -3058,13 +3058,13 @@ PAL_New_Path30RemoveFile(
    remove(PAL_va(1, "%s%s", gConfig.pszGamePath, PD_Read_Path30_MUS));
    remove(PAL_va(1, "%s%s", gConfig.pszGamePath, PD_Read_Path30_MSG));
 
+#if PD_GameLog_Save && _DEBUG
    memset(&gpGlobals->rgGameProgressKey, 0, sizeof(GAMEPROGRESSKEY));
    PAL_New_GameLog_Save();
    remove(PAL_va(1, "%s%s", gConfig.pszGamePath, PD_Read_Path30_KEY));
 
-#if PD_GameLog_Save && _DEBUG
    remove(PAL_va(1, "%s/%s", gConfig.pszGamePath, gConfig.pszLogFile));
-#endif // 
+#endif // PD_GameLog_Save && _DEBUG
 }
 #endif // PD_Read_Path30
 

@@ -317,6 +317,7 @@ PAL_KeyboardEventFilter(
       //
       if (lpEvent->key.keysym.mod & KMOD_ALT)
       {
+#if !PD_FullScreen_ShortcutKey
          if (lpEvent->key.keysym.sym == SDLK_RETURN)
          {
             //
@@ -326,6 +327,9 @@ PAL_KeyboardEventFilter(
             return;
          }
          else if (lpEvent->key.keysym.sym == SDLK_F4)
+#else
+         if (lpEvent->key.keysym.sym == SDLK_F4)
+#endif // PD_FullScreen_ShortcutKey
          {
             //
             // Pressed Alt+F4 (Exit program)...
@@ -333,10 +337,24 @@ PAL_KeyboardEventFilter(
             PAL_Shutdown(0);
          }
       }
+#if !PD_FullScreen_ShortcutKey
       else if (lpEvent->key.keysym.sym == SDLK_p)
       {
          VIDEO_SaveScreenshot();
       }
+#else
+      else if (lpEvent->key.keysym.sym == SDLK_F12)
+      {
+         //
+         // Pressed Alt+Enter (toggle fullscreen)...
+         //
+         VIDEO_ToggleFullscreen();
+      }
+      else if (lpEvent->key.keysym.sym == SDLK_F11)
+      {
+         VIDEO_SaveScreenshot();
+      }
+#endif // PD_FullScreen_ShortcutKey
 #if PAL_HAS_GLSL
       else if (lpEvent->key.keysym.sym == SDLK_z)
       {

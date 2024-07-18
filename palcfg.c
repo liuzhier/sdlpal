@@ -294,11 +294,7 @@ PAL_LoadConfig(
 {
 	FILE     *fp;
 	ConfigValue  values[PALCFG_ALL_MAX];
-#if PD_Read_Path30
-   MUSICTYPE eMusicType = MUSIC_MIDI;
-#else
    MUSICTYPE eMusicType = MUSIC_RIX;
-#endif // PD_Read_Path30
 	MIDISYNTHTYPE eMIDISynthType = SYNTH_NATIVE;
 #if PD_Read_Path30
 	CDTYPE eCDType = CD_OGG;

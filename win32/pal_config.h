@@ -27,8 +27,13 @@
 #define PAL_PREFIX            "./"
 #define PAL_SAVE_PREFIX       "./"
 
+#if PD_Read_Path30
+#define PAL_DEFAULT_WINDOW_WIDTH   960
+#define PAL_DEFAULT_WINDOW_HEIGHT  600
+#else
 #define PAL_DEFAULT_WINDOW_WIDTH   640
 #define PAL_DEFAULT_WINDOW_HEIGHT  400
+#endif // PD_Read_Path30
 #define PAL_DEFAULT_FULLSCREEN_HEIGHT 480
 
 #if SDL_VERSION_ATLEAST(2,0,0)
