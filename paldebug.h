@@ -30,18 +30,18 @@
 #if PALMOD_CLASSIC
 
    // PALMOD: 目录
-   #define PALMOD_PATH                             "PALMOD/"
+   #define PALMOD_PATH                             "PALMOD" PAL_NATIVE_PATH_SEPARATOR
 
    // PALMOD: AVI过场动画目录
-   #define PALMOD_Movies_PATH                      PALMOD_PATH "Movies/"
+   #define PALMOD_Movies_PATH                      PALMOD_PATH "Movies" PAL_NATIVE_PATH_SEPARATOR
 
    // PALMOD: 直接读取 MapEditor 解包的 map 序列
    #define PALMOD_BULK_MAP                         1
       #if PALMOD_BULK_MAP
          // PALMOD: MAP目录
-         #define PALMOD_MAP_PATH                   PALMOD_PATH "MAP/"
+         #define PALMOD_MAP_PATH                   PALMOD_PATH "MAP" PAL_NATIVE_PATH_SEPARATOR
          // PALMOD: GOP目录
-         #define PALMOD_GOP_PATH                   PALMOD_PATH "GOP/"
+         #define PALMOD_GOP_PATH                   PALMOD_PATH "GOP" PAL_NATIVE_PATH_SEPARATOR
       #endif // PALMOD_BULK_MAP
 
    // PALMOD: 取消版本判断，直接默认为 DOS 版
@@ -51,12 +51,16 @@
    #define PALMOD_BULK_DATA_SSS                    1
       #if PALMOD_BULK_DATA_SSS
          // PALMOD: 目录
-         #define PALMOD_CoreData_PATH              PALMOD_PATH "CoreData/"
-         #define PALMOD_MainData_PATH              PALMOD_PATH "MainData/"
+         #define PALMOD_CoreData_PATH              PALMOD_PATH "CoreData" PAL_NATIVE_PATH_SEPARATOR
+         #define PALMOD_MainData_PATH              PALMOD_PATH "MainData" PAL_NATIVE_PATH_SEPARATOR
+         #define PALMOD_MainData_SCENE_PATH        PALMOD_MainData_PATH PAL_NATIVE_PATH_SEPARATOR "Scenes" PAL_NATIVE_PATH_SEPARATOR
       #endif // PALMOD_BULK_DATA_SSS
 
    // PALMOD: 游戏提速
    #define PALMOD_SpeedUp                          1
+
+   // PALMOD: 仙术菜单展示仙术的系属、作用目标
+   #define PALMOD_MagicMenu_MoreMessages           1
 
 #endif // PALMOD_CLASSIC
 
@@ -90,6 +94,9 @@
 #define     PAL_FIXBUG                             1
 
 #if     PAL_FIXBUG
+
+   // 仙术菜单没有菜单时应自动清理
+   #define     PD_MagicMenu_Init                   1
 
    // 加快对话速度
    #define     PD_Talk_Speed                       1

@@ -352,6 +352,19 @@ typedef enum tagMAGIC_TYPE
    kMagicTypeSummon           = 9,  // summon
 } MAGIC_TYPE;
 
+#if PALMOD_MagicMenu_MoreMessages
+typedef enum tagMAGIC_ATTRIBUTE
+{
+   kMagicAttributeElemental   = 0,
+   kMagicAttributePoison      = 5,
+   kMagicAttributeSorcery     = 6,
+   kMagicAttributeSword       = 7,
+   kMagicAttributeHealing     = 8,
+   kMagicAttributeAuxiliary   = 9,
+   kMagicAttributeUltimate    = 10,
+} MAGIC_ATTRIBUTE;
+#endif // PALMOD_MagicMenu_MoreMessages
+
 typedef union tagMAGIC_SPECIAL
 {
    WORD               wSummonEffect;         // summon effect sprite (in F.MKF)
@@ -875,6 +888,28 @@ PAL_New_LoadErrorStatus(
    VOID
 );
 #endif // PD_Player_Status_Index_error
+
+#if PALMOD_BULK_DATA_SSS
+VOID
+PAL_New_LoadScene(
+   VOID
+);
+
+WORD
+PAL_New_GetSceneEventObjectIndex(
+   VOID
+);
+
+WORD
+PAL_New_GetSceneEventObject(
+   WORD     wEventObjectID
+);
+
+WORD
+PAL_New_GetSceneEventObjectWithScript(
+   WORD     wOperand
+);
+#endif
 
 PAL_C_LINKAGE_END
 

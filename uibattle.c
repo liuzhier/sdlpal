@@ -2358,7 +2358,7 @@ PAL_New_EnemyStatus(
    //
    g_Battle.UI.MenuState = kBattleMenuMain;
 }
-#endif
+#endif // PD_Battle_ShowEnemyStatus
 
 #if PD_Battle_ShowPlayerLevelmagic
 VOID

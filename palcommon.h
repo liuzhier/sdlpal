@@ -81,7 +81,12 @@ typedef DWORD           PAL_POS;
 
 // maximum number of event objects (should be somewhat more than the original,
 // as there are some modified versions which has more)
+#if PALMOD_BULK_DATA_SSS
+#define     MAX_SCENE_EVENT_OBJECTS      0x80
+#define     MAX_EVENT_OBJECTS            MAX_SCENES * MAX_SCENE_EVENT_OBJECTS
+#else
 #define     MAX_EVENT_OBJECTS            5500
+#endif // PALMOD_BULK_DATA_SSS
 
 // maximum number of effective poisons to players
 #define     MAX_POISONS                  16

@@ -276,7 +276,11 @@ PAL_MagicSelectionMenuUpdate(
    //
    // Draw the magic description.
    //
+#if PD_MagicMenu_Init
+   if (d != NULL && g_iNumMagic)
+#else
    if (d != NULL)
+#endif // PD_MagicMenu_Init
    {
       k = PAL_Y(gConfig.ScreenLayout.MagicDescMsgPos);
 		wcscpy(szDesc, d);
@@ -311,6 +315,75 @@ PAL_MagicSelectionMenuUpdate(
    PAL_DrawNumber(rgMagicItem[g_iCurrentItem].wMP, 4, gConfig.ScreenLayout.MagicMPNeededPos,
       kNumColorYellow, kNumAlignRight);
    PAL_DrawNumber(g_wPlayerMP, 4, gConfig.ScreenLayout.MagicMPCurrentPos, kNumColorCyan, kNumAlignRight);
+
+# if PALMOD_MagicMenu_MoreMessages
+   //
+   // Magic Extra Attributes
+   //
+   if (g_iNumMagic)
+   {
+      i = gpGlobals->g.lprgMagic[gpGlobals->g.rgObject[rgMagicItem[g_iCurrentItem].wMagic].magic.wMagicNumber].wElemental;
+      switch (i)
+      {
+      case kMagicAttributeElemental:
+      case kMagicAttributeElemental + 1:
+      case kMagicAttributeElemental + 2:
+      case kMagicAttributeElemental + 3:
+      case kMagicAttributeElemental + 4:
+         i += MAGICTYPE_LABEL_ELEMENTAL;
+         break;
+
+      case kMagicAttributePoison:
+         i = MAGICTYPE_LABEL_POISON;
+         break;
+
+      case kMagicAttributeSorcery:
+         i = MAGICTYPE_LABEL_SORCERY;
+         break;
+
+      case kMagicAttributeHealing:
+         i = MAGICTYPE_LABEL_HEALING;
+         break;
+
+      case kMagicAttributeAuxiliary:
+         i = MAGICTYPE_LABEL_AUXILIARY;
+         break;
+
+      case kMagicAttributeUltimate:
+         i = MAGICTYPE_LABEL_ULTIMATE;
+         break;
+
+      case kMagicAttributeSword:
+      default:
+         i = MAGICTYPE_LABEL_SWORD;
+         break;
+      }
+      PAL_DrawText(PAL_GetWord(i), PAL_XY(0, 42), 0xD6, TRUE, FALSE, FALSE);
+
+      i = gpGlobals->g.lprgMagic[gpGlobals->g.rgObject[rgMagicItem[g_iCurrentItem].wMagic].magic.wMagicNumber].wType;
+      switch (i)
+      {
+      case kMagicTypeAttackAll:
+      case kMagicTypeAttackWhole:
+      case kMagicTypeAttackField:
+      case kMagicTypeApplyToParty:
+      case kMagicTypeSummon:
+         i = MAGICTARGET_LABEL_ALL;
+         break;
+
+      case kMagicTypeTrance:
+         i = MAGICTARGET_LABEL_ONESELF;
+         break;
+
+      case kMagicTypeNormal:
+      case kMagicTypeApplyToPlayer:
+      default:
+         i = MAGICTARGET_LABEL_INDIVIDUAL;
+         break;
+      }
+      PAL_DrawText(PAL_GetWord(i), PAL_XY(38, 42), MENUITEM_COLOR_INACTIVE, TRUE, FALSE, FALSE);
+   }
+# endif // PALMOD_MagicMenu_MoreMessages
 #endif // PALMOD_Version_DOS
 
 

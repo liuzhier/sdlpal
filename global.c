@@ -464,7 +464,7 @@ PAL_InitGlobalGameData(
    }
 #undef PAL_DOALLOCATE
 }
-#else
+#else // !PALMOD_BULK_DATA_SSS
 {
    int        len;
    FILE      *fp;
@@ -474,8 +474,8 @@ PAL_InitGlobalGameData(
    //
    if (gpGlobals->g.lprgEventObject == NULL)
    {
-      LOAD_DATA_GL(PALMOD_MainData_PATH "EVENTOBJECT", EVENTOBJECT, LPEVENTOBJECT, gpGlobals->g.lprgEventObject, gpGlobals->g.nEventObject);
-      DO_BYTESWAP(gpGlobals->g.lprgEventObject, sizeof(gpGlobals->g.lprgEventObject));
+      //LOAD_DATA_GL(PALMOD_MainData_PATH "EVENTOBJECT", EVENTOBJECT, LPEVENTOBJECT, gpGlobals->g.lprgEventObject, gpGlobals->g.nEventObject);
+      //DO_BYTESWAP(gpGlobals->g.lprgEventObject, sizeof(gpGlobals->g.lprgEventObject));
 
       LOAD_DATA_GL(PALMOD_MainData_PATH "SCRIPTENTRY", SCRIPTENTRY, LPSCRIPTENTRY, gpGlobals->g.lprgScriptEntry, gpGlobals->g.nScriptEntry);
       DO_BYTESWAP(gpGlobals->g.lprgScriptEntry, sizeof(gpGlobals->g.lprgScriptEntry));
@@ -508,7 +508,50 @@ PAL_InitGlobalGameData(
       DO_BYTESWAP(gpGlobals->rgLevelUpExp, sizeof(gpGlobals->rgLevelUpExp));
    }
 }
-#endif
+
+PAL_FORCE_INLINE char*
+PAL_ReadOneLine(
+   char* temp,
+   int      limit,
+   FILE* fp
+)
+{
+   if (fgets(temp, limit, fp))
+   {
+      size_t n = strlen(temp);
+      if (n == limit - 1 && temp[n - 1] != '\n' && !feof(fp))
+      {
+         // Line too long, try to read it as a whole
+         int nn = 2;
+         char* tmp = strdup(temp);
+         while (!feof(fp))
+         {
+            if (!(tmp = (char*)realloc(tmp, nn * limit)))
+            {
+               TerminateOnError("PAL_ReadOneLine(): failed to allocate memory for long line!");
+            }
+            if (fgets(tmp + n, limit + 1, fp))
+            {
+               n += strlen(tmp + n);
+               if (n < limit - 1 || temp[n - 1] == '\n')
+                  break;
+               else
+                  nn++;
+            }
+         }
+         if (tmp[n - 1] == '\n') tmp[n - 1] = 0;
+         return tmp;
+      }
+      else
+      {
+         while (n > 0 && (temp[n - 1] == '\n' || temp[n - 1] == '\r')) temp[--n] = 0;
+         return temp;
+      }
+   }
+   else
+      return NULL;
+}
+#endif // !PALMOD_BULK_DATA_SSS
 
 static VOID
 PAL_LoadDefaultGame(
@@ -539,29 +582,17 @@ PAL_LoadDefaultGame(
    LOAD_DATA(p->lprgEventObject, p->nEventObject * sizeof(EVENTOBJECT),
       0, gpGlobals->f.fpSSS);
    PAL_MKFReadChunk((LPBYTE)(p->rgScene), sizeof(p->rgScene), 1, gpGlobals->f.fpSSS);
-#else
-   LOAD_DATA_GL(PALMOD_MainData_PATH "EVENTOBJECT", EVENTOBJECT, LPEVENTOBJECT, p->lprgEventObject, p->nEventObject);
-   DO_BYTESWAP(p->lprgEventObject, sizeof(p->lprgEventObject));
-
-   LOAD_DATA_GLR(PALMOD_MainData_PATH "SCENE", p->rgScene);
-#endif // !PALMOD_BULK_DATA_SSS
    DO_BYTESWAP(p->rgScene, sizeof(p->rgScene));
-#if !PALMOD_BULK_DATA_SSS
    if (gConfig.fIsWIN95)
    {
       PAL_MKFReadChunk((LPBYTE)(p->rgObject), sizeof(p->rgObject), 2, gpGlobals->f.fpSSS);
       DO_BYTESWAP(p->rgObject, sizeof(p->rgObject));
    }
    else
-#endif // !PALMOD_BULK_DATA_SSS
    {
       OBJECT_DOS objects[MAX_OBJECTS];
-#if !PALMOD_BULK_DATA_SSS
-	  PAL_MKFReadChunk((LPBYTE)(objects), sizeof(objects), 2, gpGlobals->f.fpSSS);
-#else
-      LOAD_DATA_GLR(PALMOD_MainData_PATH "OBJECT", &objects);
-#endif // !PALMOD_BULK_DATA_SSS
-	  DO_BYTESWAP(objects, sizeof(objects));
+      PAL_MKFReadChunk((LPBYTE)(objects), sizeof(objects), 2, gpGlobals->f.fpSSS);
+      DO_BYTESWAP(objects, sizeof(objects));
       //
       // Convert the DOS-style data structure to WIN-style data structure
       //
@@ -573,13 +604,21 @@ PAL_LoadDefaultGame(
       }
    }
 
-#if !PALMOD_BULK_DATA_SSS
    PAL_MKFReadChunk((LPBYTE)(&(p->PlayerRoles)), sizeof(PLAYERROLES),
       3, gpGlobals->f.fpDATA);
-#else
-   LOAD_DATA_GLR(PALMOD_CoreData_PATH "PlayerRoles", &p->PlayerRoles);
-#endif // !PALMOD_BULK_DATA_SSS
    DO_BYTESWAP(&(p->PlayerRoles), sizeof(PLAYERROLES));
+#else
+   //LOAD_DATA_GL(PALMOD_MainData_PATH "EVENTOBJECT", EVENTOBJECT, LPEVENTOBJECT, p->lprgEventObject, p->nEventObject);
+   //DO_BYTESWAP(p->lprgEventObject, sizeof(p->lprgEventObject));
+
+   //LOAD_DATA_GLR(PALMOD_MainData_PATH "SCENE", p->rgScene);
+   //LOAD_DATA_GLR(PALMOD_MainData_PATH "OBJECT", &objects);
+
+   PAL_New_LoadScene();
+
+   LOAD_DATA_GLR(PALMOD_CoreData_PATH "PlayerRoles", &p->PlayerRoles);
+   DO_BYTESWAP(&(p->PlayerRoles), sizeof(PLAYERROLES));
+#endif // !PALMOD_BULK_DATA_SSS
 
    //
    // Set some other default data.
@@ -2661,7 +2700,11 @@ PAL_FindEnemyBooty(
 
    if (wEventObjectID != 0)
    {
+#if PALMOD_BULK_DATA_SSS
+      pEvtObj = &(gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(wEventObjectID - 1)]);
+#else
       pEvtObj = &(gpGlobals->g.lprgEventObject[wEventObjectID - 1]);
+#endif // PALMOD_BULK_DATA_SSS
    }
 
    WORD wEnemyBooty = 0;
@@ -3127,3 +3170,163 @@ PAL_New_LoadErrorStatus(
    }
 }
 #endif // PD_Player_Status_Index_error
+
+#if PALMOD_BULK_DATA_SSS
+VOID
+PAL_New_LoadScene(
+   VOID
+)
+{
+   GAMEDATA   *p = &gpGlobals->g;
+   FILE       *fpThisScene;
+   LPSTR       lpszTextContent;
+   CHAR        temp[512], hexStr[5];
+   INT         i, iValue, j, k, l, len;
+   const WORD  nSceneParam = sizeof(SCENE) / sizeof(WORD) - 1, nObjectParam = sizeof(EVENTOBJECT) / sizeof(WORD);
+
+   p->nEventObject = MAX_EVENT_OBJECTS;
+   l = sizeof(EVENTOBJECT) * MAX_EVENT_OBJECTS;
+   p->lprgEventObject = UTIL_malloc(l);
+   memset(p->lprgEventObject, 0, l);
+
+   for (i = 1; i < MAX_SCENES; i++)
+   {
+      fpThisScene = UTIL_OpenRequiredFile(PAL_va(1, "%s%s%s%d.TXT", gConfig.pszGamePath,
+         PAL_NATIVE_PATH_SEPARATOR, PALMOD_MainData_SCENE_PATH, i));
+
+      if (fpThisScene == NULL)
+      {
+         //
+         // Assuming that the file numbers are continuous here
+         //
+         break;
+      }
+
+      len = 0;
+
+      while ((lpszTextContent = PAL_ReadOneLine(temp, 512, fpThisScene)) != NULL)
+      {
+         k = 1;
+         
+         switch (*lpszTextContent)
+         {
+         case '#':
+            {
+               for (j = 0; j < nSceneParam; j++)
+               {
+                  while (strncmp(lpszTextContent + k, "\t", 1) != 0 &&
+                     strncmp(lpszTextContent + k, "\0", 1) != 0)
+                     k++;
+
+                  if (strncmp(lpszTextContent + k, "\0", 1) == 0) break;
+
+                  k++;
+
+                  switch (j)
+                  {
+                  case 0:
+                     sscanf(lpszTextContent + k, "%d", &iValue);
+                     break;
+
+                  case 1:
+                  case 2:
+                  default:
+                  {
+                     strncpy(hexStr, lpszTextContent + k, 4);
+                     hexStr[4] = '\0';
+                     iValue = strtoul(hexStr, NULL, 16);
+                  }
+                  break;
+                  }
+
+                  ((WORD*)&(p->rgScene[i - 1]))[j] = iValue;
+               };
+            }
+            break;
+
+         case '@':
+            {
+               for (j = 0; j < nObjectParam; j++)
+               {
+                  while (strncmp(lpszTextContent + k, "\t", 1) != 0 &&
+                     strncmp(lpszTextContent + k, "\0", 1) != 0)
+                     k++;
+
+                  if (strncmp(lpszTextContent + k, "\0", 1) == 0) break;
+
+                  k++;
+
+                  switch (j)
+                  {
+                  case 0:
+                  case 1:
+                  case 2:
+                  case 3:
+                  case 6:
+                  case 7:
+                  case 8:
+                  case 9:
+                  case 10:
+                  case 11:
+                  case 12:
+                  case 13:
+                  case 14:
+                  case 15:
+                     sscanf(lpszTextContent + k, "%d", &iValue);
+                     break;
+
+                  case 4:
+                  case 5:
+                  default:
+                     {
+                        strncpy(hexStr, lpszTextContent + k, 4);
+                        hexStr[4] = '\0';
+                        iValue = strtoul(hexStr, NULL, 16);
+                     }
+                     break;
+                  }
+
+                  ((WORD*)&(p->lprgEventObject[(i - 1) * MAX_SCENE_EVENT_OBJECTS + len]))[j] = iValue;
+               };
+
+               len++;
+            }
+            break;
+
+         default:
+            break;
+         }
+      }
+
+      ((WORD*)&(p->rgScene[i - 1]))[nSceneParam] = len;
+      UTIL_CloseFile(fpThisScene);
+   }
+   
+   DO_BYTESWAP(p->rgScene, sizeof(p->rgScene));
+   DO_BYTESWAP(p->lprgEventObject, l);
+}
+
+WORD
+PAL_New_GetSceneEventObjectIndex(
+   VOID
+)
+{
+   return (gpGlobals->wNumScene - 1) * MAX_SCENE_EVENT_OBJECTS;
+}
+
+WORD
+PAL_New_GetSceneEventObject(
+   WORD     wEventObjectID
+)
+{
+   return PAL_New_GetSceneEventObjectIndex() + wEventObjectID;
+}
+
+WORD
+PAL_New_GetSceneEventObjectWithScript(
+   WORD     wOperand
+)
+{
+   return PAL_New_GetSceneEventObject(wOperand & (MAX_SCENE_EVENT_OBJECTS - 1));
+}
+#endif

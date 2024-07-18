@@ -90,7 +90,11 @@ PAL_GameUpdate(
       //
       for (wEventObjectID = 0; wEventObjectID < gpGlobals->g.nEventObject; wEventObjectID++)
       {
+#if PALMOD_BULK_DATA_SSS
+         p = &gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(wEventObjectID)];
+#else
          p = &gpGlobals->g.lprgEventObject[wEventObjectID];
+#endif // PALMOD_BULK_DATA_SSS
 
          if (p->sVanishTime != 0)
          {
@@ -105,7 +109,11 @@ PAL_GameUpdate(
          wEventObjectID <= gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex;
          wEventObjectID++)
       {
+#if PALMOD_BULK_DATA_SSS
+         p = &gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(wEventObjectID - 1)];
+#else
          p = &gpGlobals->g.lprgEventObject[wEventObjectID - 1];
+#endif // PALMOD_BULK_DATA_SSS
 
          if (p->sVanishTime != 0)
          {
@@ -212,7 +220,11 @@ PAL_GameUpdate(
       wEventObjectID <= gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex;
       wEventObjectID++)
    {
+#if PALMOD_BULK_DATA_SSS
+      p = &gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(wEventObjectID - 1)];
+#else
       p = &gpGlobals->g.lprgEventObject[wEventObjectID - 1];
+#endif // PALMOD_BULK_DATA_SSS
 
       if (p->sState > 0 && p->sVanishTime == 0)
       {
@@ -539,7 +551,11 @@ PAL_Search(
       for (k = gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex;
          k < gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex; k++)
       {
+#if PALMOD_BULK_DATA_SSS
+         p = &(gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(k)]);
+#else
          p = &(gpGlobals->g.lprgEventObject[k]);
+#endif // PALMOD_BULK_DATA_SSS
          ex = p->x / 32;
          ey = p->y / 16;
          eh = ((p->x % 32) ? 1 : 0);

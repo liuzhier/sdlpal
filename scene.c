@@ -261,13 +261,22 @@ PAL_SceneDrawSprites(
    //
    // Event Objects (Monsters/NPCs/others)
    //
+#if PALMOD_BULK_DATA_SSS
+   int j = PAL_New_GetSceneEventObjectIndex();
+   for (i = j; i < j + gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex; i++)
+#else
    for (i = gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex;
       i < gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex; i++)
+#endif // PALMOD_BULK_DATA_SSS
    {
       LPCBITMAPRLE     lpFrame;
       LPCSPRITE        lpSprite;
 
+#if PALMOD_BULK_DATA_SSS
+      LPEVENTOBJECT    lpEvtObj = &(gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(i)]);
+#else
       LPEVENTOBJECT    lpEvtObj = &(gpGlobals->g.lprgEventObject[i]);
+#endif // PALMOD_BULK_DATA_SSS
 
       int              iFrame;
 
@@ -624,7 +633,11 @@ PAL_New_ShowMoreMapMessages(
          }
          else if (p->bSpriteType == 2)
          {
+#if PALMOD_BULK_DATA_SSS
+            lpEvtObj = (gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(p->wSpriteNum)]);
+#else
             lpEvtObj = (gpGlobals->g.lprgEventObject[p->wSpriteNum]);
+#endif // PALMOD_BULK_DATA_SSS
 
             PAL_swprintf(s, sizeof(s) / sizeof(WCHAR), L"%1d", p->wSpriteNum + 1);
 
@@ -651,7 +664,11 @@ PAL_New_ShowMoreMapMessages(
          //if (p->bSpriteType != 2)
          //	continue;
 
+#if PALMOD_BULK_DATA_SSS
+         lpEvtObj = (gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(p->wSpriteNum)]);
+#else
          lpEvtObj = (gpGlobals->g.lprgEventObject[p->wSpriteNum]);
+#endif // PALMOD_BULK_DATA_SSS
 
          if (PAL_New_GetTreasureBoxItemID(lpEvtObj.wTriggerScript, FALSE))
          {
@@ -937,7 +954,11 @@ PAL_CheckObstacleWithRange(
       for (i = gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex;
          i < gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex; i++)
       {
+#if PALMOD_BULK_DATA_SSS
+         LPEVENTOBJECT p = &(gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(i)]);
+#else
          LPEVENTOBJECT p = &(gpGlobals->g.lprgEventObject[i]);
+#endif // PALMOD_BULK_DATA_SSS
          if (i == wSelfObject - 1)
          {
             //
@@ -1212,7 +1233,11 @@ PAL_NPCWalkOneStep(
       return;
    }
 
+#if PALMOD_BULK_DATA_SSS
+   p = &(gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(wEventObjectID - 1)]);
+#else
    p = &(gpGlobals->g.lprgEventObject[wEventObjectID - 1]);
+#endif // PALMOD_BULK_DATA_SSS
 
    //
    // Move the event object by the specified direction

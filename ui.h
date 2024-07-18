@@ -133,6 +133,20 @@
 
 #define BATTLE_LABEL_ESCAPEFAIL            31
 
+#if PALMOD_MagicMenu_MoreMessages
+#define MAGICTYPE_LABEL_ELEMENTAL          589
+#define MAGICTYPE_LABEL_POISON             594
+#define MAGICTYPE_LABEL_SORCERY            595
+#define MAGICTYPE_LABEL_SWORD              596
+#define MAGICTYPE_LABEL_HEALING            597
+#define MAGICTYPE_LABEL_AUXILIARY          598
+#define MAGICTYPE_LABEL_ULTIMATE           599
+
+#define MAGICTARGET_LABEL_INDIVIDUAL       606
+#define MAGICTARGET_LABEL_ALL              607
+#define MAGICTARGET_LABEL_ONESELF          608
+#endif // PALMOD_MagicMenu_MoreMessages
+
 typedef struct tagBOX
 {
    PAL_POS        pos;

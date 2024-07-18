@@ -272,9 +272,14 @@ PAL_LoadResources(
       //
       // Load sprites
       //
+#if PALMOD_BULK_DATA_SSS
+      index = i * MAX_SCENE_EVENT_OBJECTS;
+      gpResources->nEventObject = gpGlobals->g.rgScene[i].wEventObjectIndex;
+#else
       index = gpGlobals->g.rgScene[i].wEventObjectIndex;
       gpResources->nEventObject = gpGlobals->g.rgScene[i + 1].wEventObjectIndex;
       gpResources->nEventObject -= index;
+#endif // PALMOD_BULK_DATA_SSS
 
       if (gpResources->nEventObject > 0)
       {
@@ -284,7 +289,11 @@ PAL_LoadResources(
 
       for (i = 0; i < gpResources->nEventObject; i++, index++)
       {
+#if PALMOD_BULK_DATA_SSS
+         n = gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(index)].wSpriteNum;
+#else
          n = gpGlobals->g.lprgEventObject[index].wSpriteNum;
+#endif // PALMOD_BULK_DATA_SSS
          if (n == 0)
          {
             //
@@ -301,8 +310,13 @@ PAL_LoadResources(
          if (PAL_MKFDecompressChunk(gpResources->lppEventObjectSprites[i], l,
             n, gpGlobals->f.fpMGO) > 0)
          {
+#if PALMOD_BULK_DATA_SSS
+            gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(index)].nSpriteFramesAuto =
+               PAL_SpriteGetNumFrames(gpResources->lppEventObjectSprites[i]);
+#else
             gpGlobals->g.lprgEventObject[index].nSpriteFramesAuto =
                PAL_SpriteGetNumFrames(gpResources->lppEventObjectSprites[i]);
+#endif // PALMOD_BULK_DATA_SSS
          }
       }
 
@@ -437,7 +451,11 @@ PAL_GetEventObjectSprite(
 
 --*/
 {
+#if PALMOD_BULK_MAP
+   wEventObjectID -= PAL_New_GetSceneEventObjectIndex(wEventObjectID);
+#else
    wEventObjectID -= gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex;
+#endif // PALMOD_BULK_MAP
    wEventObjectID--;
 
    if (gpResources == NULL || wEventObjectID >= gpResources->nEventObject)

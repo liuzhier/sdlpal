@@ -64,7 +64,11 @@ PAL_NPCWalkTo(
    LPEVENTOBJECT    pEvtObj;
    int              xOffset, yOffset;
 
+#if PALMOD_BULK_DATA_SSS
+   pEvtObj = &(gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(wEventObjectID - 1)]);
+#else
    pEvtObj = &(gpGlobals->g.lprgEventObject[wEventObjectID - 1]);
+#endif // PALMOD_BULK_DATA_SSS
 
    xOffset = (x * 32 + h * 16) - pEvtObj->x;
    yOffset = (y * 16 + h * 8) - pEvtObj->y;
@@ -236,7 +240,11 @@ PAL_PartyRideEventObject(
    DWORD            t;
    LPEVENTOBJECT    p;
 
+#if PALMOD_BULK_DATA_SSS
+   p = &(gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(wEventObjectID - 1)]);
+#else
    p = &(gpGlobals->g.lprgEventObject[wEventObjectID - 1]);
+#endif // PALMOD_BULK_DATA_SSS
 
    xOffset = x * 32 + h * 16 - PAL_X(gpGlobals->viewport) - PAL_X(gpGlobals->partyoffset);
    yOffset = y * 16 + h * 8 - PAL_Y(gpGlobals->viewport) - PAL_Y(gpGlobals->partyoffset);
@@ -334,7 +342,11 @@ PAL_MonsterChasePlayer(
 
 --*/
 {
+#if PALMOD_BULK_DATA_SSS
+   LPEVENTOBJECT    pEvtObj = &gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(wEventObjectID - 1)];
+#else
    LPEVENTOBJECT    pEvtObj = &gpGlobals->g.lprgEventObject[wEventObjectID - 1];
+#endif // PALMOD_BULK_DATA_SSS
    WORD             wMonsterSpeed = 0, prevx, prevy;
    int              x, y, i, j, l;
 
@@ -614,7 +626,11 @@ PAL_InterpretInstruction(
 
    if (wEventObjectID != 0)
    {
+#if PALMOD_BULK_DATA_SSS
+      pEvtObj = &(gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(wEventObjectID - 1)]);
+#else
       pEvtObj = &(gpGlobals->g.lprgEventObject[wEventObjectID - 1]);
+#endif // PALMOD_BULK_DATA_SSS
    }
    else
    {
@@ -634,7 +650,11 @@ PAL_InterpretInstruction(
          // HACK for Dream 2.11 to avoid crash
          i -= 0x9000;
       }
+#if PALMOD_BULK_DATA_SSS
+      pCurrent = &(gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObjectWithScript(i)]);
+#else
       pCurrent = &(gpGlobals->g.lprgEventObject[i]);
+#endif // PALMOD_BULK_DATA_SSS
       wCurEventObjectID = pScript->rgwOperand[0];
    }
 
@@ -2453,7 +2473,11 @@ PAL_InterpretInstruction(
          x -= PAL_X(gpGlobals->viewport) + PAL_X(gpGlobals->partyoffset);
          y -= PAL_Y(gpGlobals->viewport) + PAL_Y(gpGlobals->partyoffset);
 
+#if PALMOD_BULK_DATA_SSS
+         if (abs(x) + abs(y * 2) < pScript->rgwOperand[1] * 32 + 16 && gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObjectWithScript(pScript->rgwOperand[0] - 1)].sState > 0)
+#else
          if (abs(x) + abs(y * 2) < pScript->rgwOperand[1] * 32 + 16 && gpGlobals->g.lprgEventObject[pScript->rgwOperand[0] - 1].sState > 0)
+#endif // PALMOD_BULK_DATA_SSS
          {
             if (pScript->rgwOperand[1] > 0)
             {
@@ -2798,7 +2822,11 @@ PAL_InterpretInstruction(
       //
       for (i = pScript->rgwOperand[0]; i <= pScript->rgwOperand[1]; i++)
       {
+#if PALMOD_BULK_DATA_SSS
+         gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObjectWithScript(i - 1)].sState = pScript->rgwOperand[2];
+#else
          gpGlobals->g.lprgEventObject[i - 1].sState = pScript->rgwOperand[2];
+#endif // PALMOD_BULK_DATA_SSS
       }
       break;
 
@@ -3133,7 +3161,11 @@ PAL_InterpretInstruction(
    {
       LPEVENTOBJECT          pEvtObjThis;
 
+#if PALMOD_BULK_DATA_SSS
+      pEvtObjThis = &gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObjectWithScript(pScript->rgwOperand[0] - 1)];
+#else
       pEvtObjThis = &gpGlobals->g.lprgEventObject[pScript->rgwOperand[0] - 1];
+#endif // PALMOD_BULK_DATA_SSS
 
       pEvtObjThis->sState = pScript->rgwOperand[1];
       pEvtObjThis->wTriggerScript = pScript->rgwOperand[2];
@@ -3249,7 +3281,11 @@ PAL_RunTriggerScript(
 
    if (wEventObjectID != 0)
    {
+#if PALMOD_BULK_DATA_SSS
+      pEvtObj = &(gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(wEventObjectID - 1)]);
+#else
       pEvtObj = &(gpGlobals->g.lprgEventObject[wEventObjectID - 1]);
+#endif // PALMOD_BULK_DATA_SSS
    }
 
    g_fScriptSuccess = TRUE;
@@ -3598,7 +3634,11 @@ PAL_RunAutoScript(
 
 begin:
    pScript = &(gpGlobals->g.lprgScriptEntry[wScriptEntry]);
+#if PALMOD_BULK_DATA_SSS
+   pEvtObj = &(gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(wEventObjectID - 1)]);
+#else
    pEvtObj = &(gpGlobals->g.lprgEventObject[wEventObjectID - 1]);
+#endif // PALMOD_BULK_DATA_SSS
 
    UTIL_LogOutput(LOGLEVEL_DEBUG, "[AUTOSCRIPT] %04x %.4x: %.4x %.4x %.4x %.4x\n", wEventObjectID, wScriptEntry,
        pScript->wOperation, pScript->rgwOperand[0],

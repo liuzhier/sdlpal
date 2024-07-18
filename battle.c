@@ -1616,7 +1616,12 @@ PAL_StartBattle(
       memset(&(g_Battle.rgEnemy[j]), 0, sizeof(BATTLEENEMY));
       w = gpGlobals->g.lprgEnemyTeam[wEnemyTeam].rgwEnemy[j];
 
-      if (w != 0xFFFF)
+      if (w == 0xFFFF)
+      {
+         continue;
+      }
+
+      if (w != 0)
       {
          g_Battle.rgEnemy[i].e = gpGlobals->g.lprgEnemy[gpGlobals->g.rgObject[w].enemy.wEnemyID];
          g_Battle.rgEnemy[i].state = kFighterWait;
