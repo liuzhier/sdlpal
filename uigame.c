@@ -691,6 +691,14 @@ PAL_InGameMagicMenu(
    static WORD      w;
    WORD             wMagic;
 
+#if PD_Scene_DeadPlayerRoleCanUseMagic
+   if (gpGlobals->wMaxPartyMemberIndex == 0)
+   {
+      w = PAL_New_GetPlayerID(0);
+      goto StartMagicMenu;
+   }
+#endif // PD_Scene_DeadPlayerRoleCanUseMagic
+
    //
    // Draw the player info boxes
    //
@@ -727,16 +735,16 @@ PAL_InGameMagicMenu(
    //
    PAL_CreateBox(PAL_XY(35, 62), gpGlobals->wMaxPartyMemberIndex, PAL_MenuTextMaxWidth(rgMenuItem, sizeof(rgMenuItem)/sizeof(MENUITEM)) - 1, 0, FALSE);
 
-#if PD_Scene_DeadPlayerRoleCanUseMagic
-   
-#endif
-
    w = PAL_ReadMenu(NULL, rgMenuItem, gpGlobals->wMaxPartyMemberIndex + 1, w, MENUITEM_COLOR);
 
    if (w == MENUITEM_VALUE_CANCELLED)
    {
       return;
    }
+
+#if PD_Scene_DeadPlayerRoleCanUseMagic
+StartMagicMenu:
+#endif
 
    wMagic = 0;
 

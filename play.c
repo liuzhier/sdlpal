@@ -655,7 +655,7 @@ PAL_StartFrame(
       PAL_UpdateParty();
       break;
 
-   default:
+   default:    // 火麒麟洞二段未知原因下方向只转向不前置
       PAL_UpdateParty();
       if (gpGlobals->fEnteringScene) return;
       break;
