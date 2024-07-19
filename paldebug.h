@@ -62,6 +62,8 @@
          #define     PD_GameLog_Save               0
          // 自定义级别的 DEBUG
          #define     PD_DEBUG_Level                0
+         // 自动计时器
+         #define     PD_Timer                      1
       #endif // PD_Read_Path30
 
    // 加快对话速度

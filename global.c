@@ -3534,3 +3534,73 @@ PAL_New_GameProgressCheckBananaTree(
    }
 }
 #endif // PD_GameLog_Save
+
+#if PD_Timer
+static VOID
+PAL_New_Clock(
+   clock_t     begin,
+   clock_t     end,
+   WORD        wOffsetY
+)
+{
+   WORD     x, y, w, h;
+
+   x = 308;
+   y = 143 + wOffsetY;
+   w = x + 2 * 6;
+   h = 8;
+
+   if (end == -1) end = clock();
+
+   clock_t time = end - begin;
+   PAL_DrawNumberWithShadow(time / 10, 2, PAL_XY(x, y), kNumColorYellow, kNumAlignRight, TRUE);
+
+   time /= CLOCKS_PER_SEC;
+   x -= 20;
+   PAL_DrawNumberWithShadow(time % 60, 2, PAL_XY(x, y), kNumColorCyan, kNumAlignRight, TRUE);
+
+   time /= 60;
+   x -= 20;
+   PAL_DrawNumberWithShadow(time % 60, 2, PAL_XY(x, y), kNumColorBlue, kNumAlignRight, TRUE);
+
+   time /= 60;
+   x -= 20;
+   PAL_DrawNumberWithShadow(time % 60, 2, PAL_XY(x, y), kNumColorYellow, kNumAlignRight, TRUE);
+
+   w -= x;
+
+   if (gpGlobals->fInBattle) return;
+
+   SDL_Rect rect = { x, y, w, h };
+
+   VIDEO_UpdateScreen(&rect);
+}
+
+static VOID
+PAL_New_Clock_Scene(
+   VOID
+)
+{
+   PAL_New_Clock(gpGlobals->ctGameBeginTime, (gpGlobals->ctGameEndTime == -1) ? -1 : gpGlobals->ctGameEndTime, 0);
+}
+
+static VOID
+PAL_New_Clock_Battle(
+   VOID
+)
+{
+   PAL_New_Clock(g_Battle.ctBattleBeginTime, (g_Battle.ctBattleEndTime == -1) ? -1 : g_Battle.ctBattleEndTime, 10);
+}
+
+VOID
+PAL_New_Clock_GL(
+   VOID
+)
+{
+   if (gpGlobals->wNumScene != 0)
+   {
+      PAL_New_Clock_Scene();
+      PAL_New_Clock_Battle();
+   }
+}
+#endif // PD_Timer

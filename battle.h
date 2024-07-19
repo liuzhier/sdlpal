@@ -264,6 +264,13 @@ typedef struct tagBATTLE
    WORD             coopContributors[MAX_PLAYERS_IN_PARTY];
    BOOL             fThisTurnCoop;
 #endif
+
+#if PD_Timer
+   clock_t          ctBattleBeginTime;
+   clock_t          ctBattleBeginTime_Bak;
+   clock_t          ctBattleEndTime;
+   clock_t          ctBattleEndTime_Bak;
+#endif // PD_Timer
 } BATTLE;
 
 PAL_C_LINKAGE_BEGIN

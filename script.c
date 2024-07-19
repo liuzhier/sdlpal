@@ -3385,6 +3385,13 @@ PAL_RunTriggerScript(
          PAL_New_GameLog_Save();
 #endif // PD_GameLog_Save
 
+#if PD_Timer
+         g_Battle.ctBattleBeginTime_Bak = g_Battle.ctBattleBeginTime;
+         g_Battle.ctBattleBeginTime = clock();
+         g_Battle.ctBattleEndTime_Bak = g_Battle.ctBattleEndTime;
+         g_Battle.ctBattleEndTime = -1;
+#endif // PD_Timer
+
          i = PAL_StartBattle(pScript->rgwOperand[0], !pScript->rgwOperand[2]);
 
          if (i == kBattleResultLost && pScript->rgwOperand[1] != 0)

@@ -132,6 +132,11 @@ PAL_GameMain(
    //
    PAL_ReloadInNextTick(gpGlobals->bCurrentSaveSlot);
 
+#if PD_Timer
+   gpGlobals->ctGameBeginTime = clock();
+   gpGlobals->ctGameEndTime = -1;
+#endif // PD_Timer
+
    //
    // Run the main game loop.
    //

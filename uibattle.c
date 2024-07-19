@@ -827,14 +827,6 @@ PAL_BattleUIUpdate(
 
    s_iFrame++;
 
-#ifdef PD_Battle_ShowMoreData
-   if (g_Battle.fShowDataInBattle
-      && g_Battle.UI.MenuState == kBattleMenuMain)
-   {
-      PAL_New_BattleUIShowData();
-   }
-#endif // PD_Battle_ShowMoreData
-
    if (g_Battle.UI.fAutoAttack && !gpGlobals->fAutoBattle)
    {
       //
@@ -1836,6 +1828,18 @@ end:
    }
 
    PAL_ClearKeyState();
+
+#ifdef PD_Battle_ShowMoreData
+   if (g_Battle.fShowDataInBattle
+      && g_Battle.UI.MenuState == kBattleMenuMain)
+   {
+      PAL_New_BattleUIShowData();
+   }
+#endif // PD_Battle_ShowMoreData
+
+#if PD_Timer
+   PAL_New_Clock_GL();
+#endif // PD_Timer
 }
 
 VOID
@@ -2139,7 +2143,7 @@ PAL_New_EnemyStatus(
       iValue = be.e.wAttackEquivItem;
       if (iValue != 0)
       {
-         PAL_DrawNumber((iValue >= 100) ? 100 : be.e.wAttackEquivItemRate, 3, PAL_XY(x + 74, y + (i - 1) * h + 5),
+         PAL_DrawNumber((iValue >= 100) ? 100 : be.e.wAttackEquivItemRate * 10, 3, PAL_XY(x + 74, y + (i - 1) * h + 5),
             kNumColorCyan, kNumAlignRight);
          PAL_DrawText(PAL_GetWord(iValue), PAL_XY(x + 98, y + (i - 1) * h), MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
       }

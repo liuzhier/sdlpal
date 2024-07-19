@@ -773,6 +773,13 @@ PAL_BattlePostActionCheck(
          PAL_New_GameProgressCheckWithEnemy(g_Battle.rgEnemy[i].wObjectID, TRUE);
 #endif // PD_GameLog_Save
 
+#if PD_Timer
+         if (g_Battle.rgEnemy[i].wObjectID == 546)
+         {
+            gpGlobals->ctGameEndTime = 0;
+         }
+#endif // PD_Timer
+
 #if PD_Battle_ShowMoreData || PD_Battle_ShowEnemyStatus
          g_Battle.rgEnemy[i].sMaxHealth = 0;
 #endif
@@ -797,6 +804,18 @@ PAL_BattlePostActionCheck(
       g_Battle.fEnemyCleared = TRUE;
       g_Battle.UI.state = kBattleUIWait;
    }
+
+#if PD_Timer
+   if (g_Battle.fEnemyCleared)
+   {
+      g_Battle.ctBattleEndTime = clock();
+
+      if (gpGlobals->ctGameEndTime == 0)
+      {
+         gpGlobals->ctGameEndTime = g_Battle.ctBattleEndTime;
+      }
+   }
+#endif // PD_Timer
 
    if (fCheckPlayers && !gpGlobals->fAutoBattle)
    {
@@ -1177,6 +1196,10 @@ PAL_BattleStartFrame(
 
       if (fEnded)
       {
+#if PD_Timer
+         g_Battle.ctBattleBeginTime = g_Battle.ctBattleBeginTime_Bak;
+         g_Battle.ctBattleEndTime = g_Battle.ctBattleEndTime_Bak;
+#endif // PD_Timer
          //
          // All players are dead. Lost the battle.
          //
@@ -4260,6 +4283,9 @@ PAL_BattlePlayerPerformAction(
 
       if (str >= RandomLong(0, def) && !g_Battle.fIsBoss)
       {
+#if PD_Timer
+         g_Battle.ctBattleEndTime = clock();
+#endif // PD_Timer
          //
          // Successful escape
          //

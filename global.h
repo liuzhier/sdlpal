@@ -632,6 +632,11 @@ typedef struct tagGLOBALVARS
    INVENTORY        rgInventory[MAX_INVENTORY];  // inventory status
    LPOBJECTDESC     lpObjectDesc;
    DWORD            dwFrameNum;
+
+#if PD_Timer
+   clock_t          ctGameBeginTime;
+   clock_t          ctGameEndTime;
+#endif // PD_Timer
 } GLOBALVARS, *LPGLOBALVARS;
 
 PAL_C_LINKAGE_BEGIN
@@ -967,6 +972,13 @@ PAL_New_GameProgressCheckBananaTree(
    VOID
 );
 #endif // PD_GameLog_Save
+
+#if PD_Timer
+VOID
+PAL_New_Clock_GL(
+   VOID
+);
+#endif // PD_Timer
 
 PAL_C_LINKAGE_END
 

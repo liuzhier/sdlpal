@@ -1267,6 +1267,10 @@ PAL_ProcessEvent(
 #if PAL_HAS_TOUCH
    PAL_TouchRepeatCheck();
 #endif
+
+#if PD_Timer
+   if (!gpGlobals->fInBattle) PAL_New_Clock_GL();
+#endif // PD_Timer
 }
 
 VOID

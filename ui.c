@@ -679,6 +679,21 @@ PAL_DrawNumber(
    NUMCOLOR        color,
    NUMALIGN        align
 )
+#if PD_Timer
+{
+   PAL_DrawNumberWithShadow(iNum, nLength, pos, color, align, FALSE);
+}
+
+VOID
+PAL_DrawNumberWithShadow(
+   UINT            iNum,
+   UINT            nLength,
+   PAL_POS         pos,
+   NUMCOLOR        color,
+   NUMALIGN        align,
+   BOOL            fShadow
+)
+#endif // PD_Timer
 /*++
   Purpose:
 
@@ -705,6 +720,17 @@ PAL_DrawNumber(
    UINT          nActualLength, i;
    int           x, y;
    LPCBITMAPRLE  rglpBitmap[10];
+
+#if PD_Timer
+   const         BYTE dataRed[] = {
+      0x06, 0x00, 0x08, 0x00, 0x06, 0x16, 0x16, 0x16, 0x16, 0x16,
+      0x16, 0x06, 0x16, 0x16, 0x16, 0x16, 0x16, 0x16, 0x06, 0x16,
+      0x16, 0x16, 0x16, 0x16, 0x16, 0x06, 0x16, 0x16, 0x16, 0x16,
+      0x16, 0x16, 0x06, 0x16, 0x16, 0x16, 0x16, 0x16, 0x16, 0x06,
+      0x16, 0x16, 0x16, 0x16, 0x16, 0x16, 0x06, 0x16, 0x16, 0x16,
+      0x16, 0x16, 0x16, 0x06, 0x16, 0x16, 0x16, 0x16, 0x16, 0x16,
+   };
+#endif // PD_Timer
 
    //
    // Get the bitmaps. Blue starts from 29, Cyan from 56, Yellow from 19.
@@ -760,6 +786,9 @@ PAL_DrawNumber(
    //
    while (nActualLength-- > 0)
    {
+#if PD_Timer
+      if (fShadow) PAL_RLEBlitToSurface(dataRed, gpScreen, PAL_XY(x, y));
+#endif // PD_Timer
       PAL_RLEBlitToSurface(rglpBitmap[iNum % 10], gpScreen, PAL_XY(x, y));
       x -= 6;
       iNum /= 10;

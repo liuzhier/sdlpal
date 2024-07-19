@@ -250,6 +250,18 @@ PAL_DrawNumber(
    NUMCOLOR        color,
    NUMALIGN        align
 );
+
+#if PD_Timer
+VOID
+PAL_DrawNumberWithShadow(
+   UINT            iNum,
+   UINT            nLength,
+   PAL_POS         pos,
+   NUMCOLOR        color,
+   NUMALIGN        align,
+   BOOL            fShadow
+);
+#endif // PD_Timer
     
 INT
 PAL_TextWidth(
