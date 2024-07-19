@@ -297,6 +297,7 @@ YJ2_Decompress(
 
 PAL_C_LINKAGE_END
 
+#if !PD_Timer
 #define PAL_DelayUntil(t) \
    PAL_ProcessEvent(); \
    while (!SDL_TICKS_PASSED(SDL_GetTicks(), (t))) \
@@ -304,8 +305,18 @@ PAL_C_LINKAGE_END
       PAL_ProcessEvent(); \
       SDL_Delay(1); \
    }
+#else // PD_Timer
+#define PAL_DelayUntil(t) \
+   PAL_ProcessEvent(); \
+   while (!SDL_TICKS_PASSED(SDL_GetTicks(), (t))) \
+   { \
+      PAL_ProcessEventWithTimer(FALSE); \
+      SDL_Delay(1); \
+   }
+#endif // PD_Timer
 
 #if SDL_VERSION_ATLEAST(2,0,0)
+#if !PD_Timer
 #define PAL_DelayUntilPC(t) \
    PAL_ProcessEvent(); \
    while (SDL_GetPerformanceCounter() < (t)) \
@@ -313,6 +324,15 @@ PAL_C_LINKAGE_END
       PAL_ProcessEvent(); \
       SDL_Delay(1); \
    }
+#else // PD_Timer
+#define PAL_DelayUntilPC(t) \
+   PAL_ProcessEvent(); \
+   while (SDL_GetPerformanceCounter() < (t)) \
+   { \
+      PAL_ProcessEventWithTimer(FALSE); \
+      SDL_Delay(1); \
+   }
+#endif // PD_Timer
 #else
 #define SDL_GetPerformanceFrequency() (1000)
 #define SDL_GetPerformanceCounter SDL_GetTicks

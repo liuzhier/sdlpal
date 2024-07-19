@@ -1919,7 +1919,7 @@ PAL_New_BattleUIShowData(
 
       sHealth = be.e.wHealth;
 
-      // 显示敌人血量, 三分之一血时可化尸
+      // 显示敌人血量, 五分之一血时可化尸
       if (sHealth <= 0)
          PAL_DrawNumber(0, wNum, PAL_XY(45 * i, 0), kNumColorCyan, kNumAlignRight);
       else
@@ -2101,7 +2101,7 @@ PAL_New_EnemyStatus(
       // 敌方体力
       PAL_DrawText(PAL_GetWord(STATUS_LABEL_HP), PAL_XY(x, y + (i++) * h), MENUITEM_COLOR, TRUE, FALSE, FALSE);
       // 剩余体力
-      if ((SHORT)be.e.wHealth <= be.sMaxHealth / 20)
+      if ((SHORT)be.e.wHealth <= be.sMaxHealth / 5)
       {
          // 若体力达到化尸条件则将当前血量以红色显示
          if ((SHORT)be.e.wHealth <= 0)

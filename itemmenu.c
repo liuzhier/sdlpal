@@ -139,8 +139,8 @@ PAL_ItemSelectMenuUpdate(
          item_delta = iItemsPerLine * (iPageLineOffset + 1);
 
       if ((((*iCurMenuItem + item_delta) > (g_iNumInventory - 1)) &&
-         ((*iCurMenuItem % iItemsPerLine) == ((g_iNumInventory - 1) % iItemsPerLine))))
-         item_delta = g_iNumInventory - 1 - *iCurMenuItem;
+         ((*iCurMenuItem % iItemsPerLine) <= ((g_iNumInventory - 1) % iItemsPerLine))))
+         item_delta = g_iNumInventory - 3 + (*iCurMenuItem % iItemsPerLine) - *iCurMenuItem;
 #else
       item_delta = iItemsPerLine * iLinesPerPage;
 #endif // PD_Menu_KeyLeftOrRight_NextLine

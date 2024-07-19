@@ -91,6 +91,14 @@ UTIL_Delay(
    unsigned int ms
 );
 
+#if PD_Timer
+void
+UTIL_DelayWithTimer(
+   unsigned int ms,
+   BOOL         fUpdateTimer
+);
+#endif // PD_Timer
+
 void
 TerminateOnError(
    const char *fmt,

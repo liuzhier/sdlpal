@@ -284,15 +284,41 @@ void
 UTIL_Delay(
    unsigned int ms
 )
+#if PD_Timer
+{
+   UTIL_DelayWithTimer(ms, TRUE);
+}
+
+void
+UTIL_DelayWithTimer(
+   unsigned int ms,
+   BOOL         fUpdateTimer
+)
+#endif // PD_Timer
 {
    unsigned int t = SDL_GetTicks() + ms;
 
+#if !PD_Timer
    PAL_ProcessEvent();
+#else
+   if (fUpdateTimer)
+   {
+      PAL_ProcessEvent();
+   }
+   else
+   {
+      PAL_ProcessEventWithTimer(FALSE);
+   }
+#endif // PD_Timer
 
    while (!SDL_TICKS_PASSED(SDL_GetTicks(), t))
    {
       SDL_Delay(1);
+#if !PD_Timer
       PAL_ProcessEvent();
+#else
+      PAL_ProcessEventWithTimer(FALSE);
+#endif // PD_Timer
    }
 }
 

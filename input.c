@@ -1239,6 +1239,16 @@ VOID
 PAL_ProcessEvent(
    VOID
 )
+#if PD_Timer
+{
+   PAL_ProcessEventWithTimer(TRUE);
+}
+
+VOID
+PAL_ProcessEventWithTimer(
+   BOOL        fUpdateTimer
+)
+#endif // PD_Timer
 /*++
   Purpose:
 
@@ -1269,7 +1279,7 @@ PAL_ProcessEvent(
 #endif
 
 #if PD_Timer
-   if (!gpGlobals->fInBattle) PAL_New_Clock_GL();
+   if (!gpGlobals->fInBattle && fUpdateTimer) PAL_New_Clock_GL();
 #endif // PD_Timer
 }
 
