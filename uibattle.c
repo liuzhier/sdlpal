@@ -844,6 +844,18 @@ PAL_BattleUIUpdate(
       }
    }
 
+#ifdef PD_Battle_ShowMoreData
+   if (g_Battle.fShowDataInBattle
+      && g_Battle.UI.MenuState == kBattleMenuMain)
+   {
+      PAL_New_BattleUIShowData();
+   }
+#endif // PD_Battle_ShowMoreData
+
+#if PD_Timer
+   PAL_New_Clock_GL();
+#endif // PD_Timer
+
 #if PD_Enemy_UseMagicShowWordName
    if (g_Battle.wCurrentEnemyMagicID != 0xFFFF)
    {
@@ -854,7 +866,7 @@ PAL_BattleUIUpdate(
       PAL_DrawText(itemText, PAL_XY((320 - PAL_TextWidth(itemText)) / 2, 10),
          MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
    }
-#endif
+#endif // PD_Enemy_UseMagicShowWordName
 
    if (gpGlobals->fAutoBattle)
    {
@@ -1828,18 +1840,6 @@ end:
    }
 
    PAL_ClearKeyState();
-
-#ifdef PD_Battle_ShowMoreData
-   if (g_Battle.fShowDataInBattle
-      && g_Battle.UI.MenuState == kBattleMenuMain)
-   {
-      PAL_New_BattleUIShowData();
-   }
-#endif // PD_Battle_ShowMoreData
-
-#if PD_Timer
-   PAL_New_Clock_GL();
-#endif // PD_Timer
 }
 
 VOID

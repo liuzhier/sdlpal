@@ -98,7 +98,7 @@ PAL_ProcessEvent(
    VOID
 );
 
-#if PD_Timer
+#if !PD_Timer
 VOID
 PAL_ProcessEventWithTimer(
    BOOL        fUpdateTimer

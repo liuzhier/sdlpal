@@ -42,11 +42,6 @@ PAL_GameEquipItem(
 );
 
 VOID
-PAL_StartFrame(
-   VOID
-);
-
-VOID
 PAL_WaitForKey(
    WORD      wTimeOut
 );

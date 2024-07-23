@@ -520,10 +520,10 @@ main(
    if (PAL_HAS_CONFIG_PAGE && gConfig.fLaunchSetting)
 	   return 0;
 
-#if PD_GameLog_Save && _DEBUG
+#if PD_DEBUG_Level && _DEBUG
    gConfig.iLogLevel = 99;
    gConfig.pszLogFile = "log.txt";
-#endif // PD_GameLog_Save && _DEBUG
+#endif // PD_DEBUG_Level && _DEBUG
 
    //
    // If user requests a file-based log, then add it after the system-specific one.
@@ -539,15 +539,15 @@ main(
 
 #if !defined(UNIT_TEST)
 
-#if PD_GameLog_Save
-   PAL_New_GameLog_Save();
-#endif // PD_GameLog_Save
-
    //
    // Show the trademark screen and splash screen
    //
    PAL_TrademarkScreen();
    PAL_SplashScreen();
+
+#if PD_Timer
+   PAL_New_GameLog_Save();
+#endif // PD_Timer
 
    //
    // Run the main game routine

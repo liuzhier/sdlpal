@@ -166,6 +166,7 @@ PAL_GameMain(
       //
       // Run the main frame routine.
       //
-      PAL_StartFrame();
+      //PAL_StartFrame();
+      PAL_GameUpdate(TRUE);
    }
 }

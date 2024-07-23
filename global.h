@@ -503,8 +503,8 @@ typedef struct tagPOISONSTATUS
    WORD              wPoisonScript;   // script entry
 } POISONSTATUS, *LPPOISONSTATUS;
 
-#if PD_GameLog_Save
-typedef enum tagGAMEPROGRESS
+#if PD_Timer
+typedef enum tagGAMEPROGRESSKEY
 {
    kGAMEPROGRESS_NULL                           = 0,
    kGAMEPROGRESS_GAME_START                     = (1 << 0),
@@ -529,7 +529,7 @@ typedef enum tagGAMEPROGRESS
    kGAMEPROGRESS_WATER_JEWEL                    = (1 << 19),
    kGAMEPROGRESS_PRAY_FOR_RAIN                  = (1 << 20),
    kGAMEPROGRESS_GAME_END                       = (1 << 21),
-} GAMEPROGRESS;
+} GAMEPROGRESSKEY, *LPGAMEPROGRESSKEY;
 
 typedef enum tagGAMEPROGRESSCHECK
 {
@@ -539,10 +539,10 @@ typedef enum tagGAMEPROGRESSCHECK
    kGAMEPROGRESSCHECK_THE_BANANA_TREE           = (1 << 2),
 } GAMEPROGRESSCHECK;
 
-typedef struct tagGAMEPROGRESSKEY
+typedef struct tagGAMEPROGRESS
 {
-   USHORT                  wGameProgressSavedTimes;   // 存储次数
-   GAMEPROGRESS            dwGameProgress;            // 通关进度
+   LPCSTR                  lpszFlag;                  // 防伪标识：老勾害我
+   GAMEPROGRESSKEY         dwGameProgressKey;         // 通关进度
    WORD                    wGameProgressCheck;        // 通关进度特殊检查
    WORD                    wBossID;                   // Boss 编号
    USHORT                  nBeeHive;                  // 蜂巢计数
@@ -552,8 +552,8 @@ typedef struct tagGAMEPROGRESSKEY
    USHORT                  nNightTight;               // 夜行衣计数
    USHORT                  nLQSword;                  // 龙泉剑计数
    USHORT                  nBanana;                   // 香蕉计数
-} GAMEPROGRESSKEY, *LPGAMEPROGRESSKEY;
-#endif // PD_GameLog_Save
+} GAMEPROGRESS, *LPGAMEPROGRESS;
+#endif // PD_Timer
 
 typedef struct tagGLOBALVARS
 {
@@ -601,10 +601,6 @@ typedef struct tagGLOBALVARS
    WORD             rgPlayerStatusError[MAX_PLAYER_ROLES][kStatusAll]; // player status error
 #endif // PD_Player_Status_Index_error
 
-#if PD_GameLog_Save
-   GAMEPROGRESSKEY  rgGameProgressKey;   // game progress key (the game timer will read)
-#endif // PD_GameLog_Save
-
    PAL_POS          viewport;            // viewport coordination
    PAL_POS          partyoffset;
    WORD             wLayer;
@@ -613,6 +609,7 @@ typedef struct tagGLOBALVARS
    TRAIL            rgTrail[MAX_PLAYABLE_PLAYER_ROLES]; // player trail
    WORD             wPartyDirection;     // direction of the party
    WORD             wNumScene;           // current scene number
+   WORD             wNumSceneBak;        // last scene number
    WORD             wNumPalette;         // current palette number
    BOOL             fNightPalette;       // TRUE if use the darker night palette
    WORD             wNumMusic;           // current music number
@@ -636,7 +633,13 @@ typedef struct tagGLOBALVARS
 #if PD_Timer
    clock_t          ctGameBeginTime;
    clock_t          ctGameEndTime;
+   GAMEPROGRESS     rgGameProgress;   // game progress key (the game timer will read)
 #endif // PD_Timer
+
+   BOOL             fIsLoadSave;
+   BOOL             fIsTriggerScript;
+   WORD             wThisEventID;
+   WORD             wThisEventIDBak;
 } GLOBALVARS, *LPGLOBALVARS;
 
 PAL_C_LINKAGE_BEGIN
@@ -945,7 +948,7 @@ PAL_New_Path30RemoveFile(
 );
 #endif // PD_Read_Path30
 
-#if PD_GameLog_Save
+#if PD_Timer
 VOID
 PAL_New_GameLog_Save(
    VOID
@@ -971,12 +974,17 @@ VOID
 PAL_New_GameProgressCheckBananaTree(
    VOID
 );
-#endif // PD_GameLog_Save
 
-#if PD_Timer
 VOID
 PAL_New_Clock_GL(
    VOID
+);
+
+VOID
+SetTimingNode(
+   int type,
+   int istep,
+   int ivalue
 );
 #endif // PD_Timer
 

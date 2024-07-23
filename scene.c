@@ -534,6 +534,7 @@ PAL_MakeScene(
 #endif
 
 #if PD_Scene_ShowDirValue
+   PAL_DrawNumber(gpGlobals->wPartyDirection, 5, PAL_XY(320 - 30 * 5, 100), kNumColorCyan, kNumAlignRight);
    PAL_DrawNumber(g_InputState.dwKeyOrder[0], 5, PAL_XY(320 - 30 * 4, 100), kNumColorCyan, kNumAlignRight);
    PAL_DrawNumber(g_InputState.dwKeyOrder[1], 5, PAL_XY(320 - 30 * 3, 100), kNumColorCyan, kNumAlignRight);
    PAL_DrawNumber(g_InputState.dwKeyOrder[2], 5, PAL_XY(320 - 30 * 2, 100), kNumColorCyan, kNumAlignRight);
@@ -545,12 +546,12 @@ PAL_MakeScene(
    PAL_DrawNumber(gpGlobals->wNumScene, 5, PAL_XY(320 - 30, 10), kNumColorBlue, kNumAlignRight);
 #endif
 
-#if PD_GameLog_Save
+#if PD_Timer
    //
    // Check if the player is by the banana tree
    //
    PAL_New_GameProgressCheckBananaTree();
-#endif // PD_GameLog_Save
+#endif // PD_Timer
 
 #if PD_Scene_ShowQuMoXiangTime
    // show QuMoXiang time
@@ -588,6 +589,10 @@ PAL_MakeScene(
    //
    PAL_New_ShowMoreMapMessages();
 #endif
+
+#if PD_Timer
+   PAL_New_Clock_GL();
+#endif // PD_Timer
 
    //
    // Check if we need to fade in.
@@ -1136,7 +1141,13 @@ PAL_UpdateParty(
 
 --*/
 {
-   int              xSource, ySource, xTarget, yTarget, xOffset, yOffset, i;
+   int              xSource, ySource, xTarget, yTarget, xOffset, yOffset, i, j;
+
+   for (i = 0, j = 0; i < sizeof(g_InputState.dwKeyOrder) / sizeof(g_InputState.dwKeyOrder[0]); i++)
+      if (g_InputState.dwKeyOrder[i] != 0) j++;
+
+   if ((gpGlobals->wPartyDirection == g_InputState.dir) && j > 1)
+      g_InputState.dir = kDirUnknown;
 
    //
    // Has user pressed one of the arrow keys?

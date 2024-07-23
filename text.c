@@ -1420,9 +1420,13 @@ PAL_DialogWaitForKeyWithMaximumSeconds(
 #else
       PAL_ProcessEvent();
 
-      for (int i = 0; i < 10; i++)
+      for (int i = 0; i < 100; i++)
       {
-         UTIL_DelayWithTimer(10, FALSE);
+#if PD_Timer
+         UTIL_Delay(1, FALSE);
+#else
+         UTIL_DelayWithTimer(1, FALSE);
+#endif // PD_Timer
 
          if (g_InputState.dwKeyPress != 0)
          {

@@ -21,6 +21,243 @@
 
 #include "main.h"
 
+static VOID
+PAL_Search(
+   VOID
+)
+/*++
+  Purpose:
+
+    Process searching trigger events.
+
+  Parameters:
+
+    None.
+
+  Return value:
+
+    None.
+
+--*/
+{
+   int                x, y, xOffset, yOffset, dx, dy, dh, ex, ey, eh, i, k, l;
+   LPEVENTOBJECT      p;
+   PAL_POS            rgPos[13];
+
+   //
+   // Get the party location
+   //
+   x = PAL_X(gpGlobals->viewport) + PAL_X(gpGlobals->partyoffset);
+   y = PAL_Y(gpGlobals->viewport) + PAL_Y(gpGlobals->partyoffset);
+
+   if (gpGlobals->wPartyDirection == kDirNorth || gpGlobals->wPartyDirection == kDirEast)
+   {
+      xOffset = 16;
+   }
+   else
+   {
+      xOffset = -16;
+   }
+
+   if (gpGlobals->wPartyDirection == kDirEast || gpGlobals->wPartyDirection == kDirSouth)
+   {
+      yOffset = 8;
+   }
+   else
+   {
+      yOffset = -8;
+   }
+
+   rgPos[0] = PAL_XY(x, y);
+
+   for (i = 0; i < 4; i++)
+   {
+      rgPos[i * 3 + 1] = PAL_XY(x + xOffset, y + yOffset);
+      rgPos[i * 3 + 2] = PAL_XY(x, y + yOffset * 2);
+      rgPos[i * 3 + 3] = PAL_XY(x + xOffset, y);
+      x += xOffset;
+      y += yOffset;
+
+#if PD_Scene_ShowEventCheckBlock
+      if (gpGlobals->fShowEventMessages)
+         PAL_DrawText(L"♻", PAL_XY(x - PAL_X(gpGlobals->viewport) - 8,
+               y - PAL_Y(gpGlobals->viewport) - 8), 0x0F, TRUE, FALSE, FALSE);
+#endif // PD_Scene_ShowEventCheckBlock
+   }
+
+   for (i = 0; i < 13; i++)
+   {
+      //
+      // Convert to map location
+      //
+      dh = ((PAL_X(rgPos[i]) % 32) ? 1 : 0);
+      dx = PAL_X(rgPos[i]) / 32;
+      dy = PAL_Y(rgPos[i]) / 16;
+
+      //
+      // Loop through all event objects
+      //
+      for (k = gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex;
+         k < gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex; k++)
+      {
+         p = &(gpGlobals->g.lprgEventObject[k]);
+         ex = p->x / 32;
+         ey = p->y / 16;
+         eh = ((p->x % 32) ? 1 : 0);
+
+#if PD_Scene_ShowEventCheckBlock
+         if (gpGlobals->fShowEventMessages)
+            PAL_DrawText(L"♻", PAL_XY(p->x - PAL_X(gpGlobals->viewport) - 8,
+                  p->y - PAL_Y(gpGlobals->viewport) - 8), 0x1A, TRUE, FALSE, FALSE);
+#endif // PD_Scene_ShowEventCheckBlock
+
+         if (p->sState <= 0 || p->wTriggerMode >= kTriggerTouchNear ||
+            p->wTriggerMode * 6 - 4 < i || dx != ex || dy != ey || dh != eh)
+         {
+            continue;
+         }
+
+         //
+         // Adjust direction/gesture for party members and the event object
+         //
+         if (p->nSpriteFrames * 4 > p->wCurrentFrameNum)
+         {
+            p->wCurrentFrameNum = 0; // use standing gesture
+            p->wDirection = (gpGlobals->wPartyDirection + 2) % 4; // face the party
+
+            for (l = 0; l <= gpGlobals->wMaxPartyMemberIndex; l++)
+            {
+               //
+               // All party members should face the event object
+               //
+               gpGlobals->rgParty[l].wFrame = gpGlobals->wPartyDirection * 3;
+            }
+
+#if PD_Scene_ShowEventMessages
+            //
+            // __DEBUG__显示附加地图元素
+            //
+            if (gpGlobals->fIsTriggerScriptRun)
+            {
+               gpGlobals->fIsTriggerScriptRun = TRUE;
+            }
+#endif // PD_Scene_ShowEventMessages
+
+            //
+            // Redraw everything
+            //
+            PAL_MakeScene();
+            VIDEO_UpdateScreen(NULL);
+         }
+
+         //
+         // Execute the script
+         //
+         p->wTriggerScript = PAL_RunTriggerScript(p->wTriggerScript, k + 1);
+
+#if PD_Scene_ShowEventMessages
+         //
+         // __DEBUG__显示附加地图元素
+         //
+         if (gpGlobals->fIsTriggerScriptRun)
+         {
+            gpGlobals->fIsTriggerScriptRun = FALSE;
+         }
+#endif // PD_Scene_ShowEventMessages
+
+         //
+         // Clear inputs and delay for a short time
+         //
+         UTIL_Delay(50);
+         PAL_ClearKeyState();
+
+         return; // don't go further
+      }
+   }
+
+#if PD_Scene_ShowEventCheckBlock
+   if (gpGlobals->fShowEventMessages) VIDEO_UpdateScreen(NULL);
+#endif // PD_Scene_ShowEventCheckBlock
+}
+
+static inline VOID
+PAL_StartFrame(
+   VOID
+)
+{
+   PAL_UpdateParty();
+
+   PAL_MakeScene();
+   VIDEO_UpdateScreen(NULL);
+
+   if (g_InputState.dwKeyPress & kKeyMenu)
+   {
+      //
+      // Show the in-game menu
+      //
+      PAL_InGameMenu();
+   }
+   else if (g_InputState.dwKeyPress & kKeyUseItem)
+   {
+      //
+      // Show the use item menu
+      //
+      PAL_GameUseItem();
+   }
+   else if (g_InputState.dwKeyPress & kKeyThrowItem)
+   {
+      //
+      // Show the equipment menu
+      //
+      PAL_GameEquipItem();
+   }
+   else if (g_InputState.dwKeyPress & kKeyForce)
+   {
+      //
+      // Show the magic menu
+      //
+      PAL_InGameMagicMenu();
+   }
+   else if (g_InputState.dwKeyPress & kKeyStatus)
+   {
+      //
+      // Show the player status
+      //
+      PAL_PlayerStatus();
+   }
+   else if (g_InputState.dwKeyPress & kKeySearch)
+   {
+      //
+      // Process search events
+      //
+      PAL_Search();
+   }
+   else if (g_InputState.dwKeyPress & kKeyFlee)
+   {
+      //
+      // Quit Game
+      //
+      PAL_QuitGame();
+   }
+#if PD_Scene_ShowEventMessages
+   else if (g_InputState.dwKeyPress & kKeyEventMessage)
+   {
+      gpGlobals->fShowEventMessages = !gpGlobals->fShowEventMessages;
+   }
+#endif // PD_Scene_ShowEventMessages
+#if PD_Can_Penetrate_Walls
+   else if (g_InputState.dwKeyPress & kKeyPenetrateWalls)
+   {
+      gpGlobals->fCanPenetrateWalls = !gpGlobals->fCanPenetrateWalls;
+   }
+#endif // PD_Can_Penetrate_Walls
+#if PD_Scene_ShowEventCheckBlock
+   if (gpGlobals->fShowEventMessages) PAL_Search();
+#endif // PD_Scene_ShowEventCheckBlock
+
+   PAL_ClearKeyState();
+}
+
 VOID
 PAL_GameUpdate(
    BOOL       fTrigger
@@ -61,6 +298,21 @@ PAL_GameUpdate(
          gpGlobals->fEnteringScene = FALSE;
 
          i = gpGlobals->wNumScene - 1;
+
+         WORD w;
+         for (w = gpGlobals->g.rgScene[i].wScriptOnEnter; ; w++)
+         {
+            if (gpGlobals->g.lprgScriptEntry[w].wOperation == 0x0000)
+            {
+               break;
+            }
+            else if (gpGlobals->g.lprgScriptEntry[w].wOperation == 0xFFFF)
+            {
+               w = 0xFFFF;
+               break;
+            }
+         }
+
          gpGlobals->g.rgScene[i].wScriptOnEnter = PAL_RunTriggerScript(gpGlobals->g.rgScene[i].wScriptOnEnter, 0xFFFF);
 
 #if PD_Scene_ShowEventMessages
@@ -73,22 +325,62 @@ PAL_GameUpdate(
          }
 #endif // PD_Scene_ShowEventMessages
 
-         if (gpGlobals->fEnteringScene)
+         if (!gpGlobals->fIsTriggerScript) PAL_UpdatePartyGestures(FALSE);
+
+         if (w != 0xFFFF)
          {
-            //
-            // Don't go further as we're switching to another scene
-            //
-            return;
+            PAL_UpdateParty();
+            PAL_MakeScene();
+         }
+         else if(!gpGlobals->fIsTriggerScript)
+         {
+            PAL_MakeScene();
          }
 
          PAL_ClearKeyState();
-         PAL_MakeScene();
+      }
+      else
+      {
+         if (gpGlobals->fIsTriggerScript)
+         {
+            gpGlobals->fIsTriggerScript = FALSE;
+
+            if (gpGlobals->wThisEventID != gpGlobals->wThisEventIDBak)
+            {
+               return;
+            }
+
+            PAL_MakeScene();
+            VIDEO_UpdateScreen(NULL);
+         }
+         else if (!gpGlobals->fNeedToFadeIn)
+         {
+            PAL_StartFrame();
+         }
+         else if (gpGlobals->wNumScene != gpGlobals->wNumSceneBak)
+         {
+            PAL_StartFrame();
+         }
+         else
+         {
+            PAL_MakeScene();
+            VIDEO_UpdateScreen(NULL);
+         }
+
+         if (gpGlobals->fIsLoadSave)
+         {
+            gpGlobals->fIsLoadSave = FALSE;
+            return;
+         }
       }
 
       //
       // Update the vanish time for all event objects
       //
-      for (wEventObjectID = 0; wEventObjectID < gpGlobals->g.nEventObject; wEventObjectID++)
+      //for (wEventObjectID = 0; wEventObjectID < gpGlobals->g.nEventObject; wEventObjectID++)
+      for (wEventObjectID = gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex + 1;
+         wEventObjectID <= gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex;
+         wEventObjectID++)
       {
          p = &gpGlobals->g.lprgEventObject[wEventObjectID];
 
@@ -100,6 +392,7 @@ PAL_GameUpdate(
 
       //
       // Loop through all event objects in the current scene
+      //
       //
       for (wEventObjectID = gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex + 1;
          wEventObjectID <= gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex;
@@ -160,7 +453,7 @@ PAL_GameUpdate(
                   //
                   // Redraw the scene
                   //
-                  PAL_UpdatePartyGestures(FALSE);
+                  //PAL_UpdatePartyGestures(FALSE);
 
                   PAL_MakeScene();
                   VIDEO_UpdateScreen(NULL);
@@ -180,6 +473,13 @@ PAL_GameUpdate(
                // Execute the script.
                //
                p->wTriggerScript = PAL_RunTriggerScript(p->wTriggerScript, wEventObjectID);
+
+               if (gpGlobals->g.lprgScriptEntry[p->wTriggerScript].wOperation != 0x0000)
+               {
+                  gpGlobals->fIsTriggerScript = TRUE;
+                  gpGlobals->wThisEventIDBak = gpGlobals->wThisEventID;
+                  gpGlobals->wThisEventID = wEventObjectID;
+               }
 
 #if PD_Scene_ShowEventMessages
                //
@@ -458,291 +758,6 @@ PAL_GameEquipItem(
 
       PAL_EquipItemMenu(wObject);
    }
-}
-
-VOID
-PAL_Search(
-   VOID
-)
-/*++
-  Purpose:
-
-    Process searching trigger events.
-
-  Parameters:
-
-    None.
-
-  Return value:
-
-    None.
-
---*/
-{
-   int                x, y, xOffset, yOffset, dx, dy, dh, ex, ey, eh, i, k, l;
-   LPEVENTOBJECT      p;
-   PAL_POS            rgPos[13];
-
-   //
-   // Get the party location
-   //
-   x = PAL_X(gpGlobals->viewport) + PAL_X(gpGlobals->partyoffset);
-   y = PAL_Y(gpGlobals->viewport) + PAL_Y(gpGlobals->partyoffset);
-
-   if (gpGlobals->wPartyDirection == kDirNorth || gpGlobals->wPartyDirection == kDirEast)
-   {
-      xOffset = 16;
-   }
-   else
-   {
-      xOffset = -16;
-   }
-
-   if (gpGlobals->wPartyDirection == kDirEast || gpGlobals->wPartyDirection == kDirSouth)
-   {
-      yOffset = 8;
-   }
-   else
-   {
-      yOffset = -8;
-   }
-
-   rgPos[0] = PAL_XY(x, y);
-
-   for (i = 0; i < 4; i++)
-   {
-      rgPos[i * 3 + 1] = PAL_XY(x + xOffset, y + yOffset);
-      rgPos[i * 3 + 2] = PAL_XY(x, y + yOffset * 2);
-      rgPos[i * 3 + 3] = PAL_XY(x + xOffset, y);
-      x += xOffset;
-      y += yOffset;
-
-#if PD_Scene_ShowEventCheckBlock
-      if (gpGlobals->fShowEventMessages)
-         PAL_DrawText(L"♻", PAL_XY(x - PAL_X(gpGlobals->viewport) - 8,
-               y - PAL_Y(gpGlobals->viewport) - 8), 0x0F, TRUE, FALSE, FALSE);
-#endif // PD_Scene_ShowEventCheckBlock
-   }
-
-   for (i = 0; i < 13; i++)
-   {
-      //
-      // Convert to map location
-      //
-      dh = ((PAL_X(rgPos[i]) % 32) ? 1 : 0);
-      dx = PAL_X(rgPos[i]) / 32;
-      dy = PAL_Y(rgPos[i]) / 16;
-
-      //
-      // Loop through all event objects
-      //
-      for (k = gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex;
-         k < gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex; k++)
-      {
-         p = &(gpGlobals->g.lprgEventObject[k]);
-         ex = p->x / 32;
-         ey = p->y / 16;
-         eh = ((p->x % 32) ? 1 : 0);
-
-#if PD_Scene_ShowEventCheckBlock
-         if (gpGlobals->fShowEventMessages)
-            PAL_DrawText(L"♻", PAL_XY(p->x - PAL_X(gpGlobals->viewport) - 8,
-                  p->y - PAL_Y(gpGlobals->viewport) - 8), 0x1A, TRUE, FALSE, FALSE);
-#endif // PD_Scene_ShowEventCheckBlock
-
-         if (p->sState <= 0 || p->wTriggerMode >= kTriggerTouchNear ||
-            p->wTriggerMode * 6 - 4 < i || dx != ex || dy != ey || dh != eh)
-         {
-            continue;
-         }
-
-         //
-         // Adjust direction/gesture for party members and the event object
-         //
-         if (p->nSpriteFrames * 4 > p->wCurrentFrameNum)
-         {
-            p->wCurrentFrameNum = 0; // use standing gesture
-            p->wDirection = (gpGlobals->wPartyDirection + 2) % 4; // face the party
-
-            for (l = 0; l <= gpGlobals->wMaxPartyMemberIndex; l++)
-            {
-               //
-               // All party members should face the event object
-               //
-               gpGlobals->rgParty[l].wFrame = gpGlobals->wPartyDirection * 3;
-            }
-
-#if PD_Scene_ShowEventMessages
-            //
-            // __DEBUG__显示附加地图元素
-            //
-            if (gpGlobals->fIsTriggerScriptRun)
-            {
-               gpGlobals->fIsTriggerScriptRun = TRUE;
-            }
-#endif // PD_Scene_ShowEventMessages
-
-            //
-            // Redraw everything
-            //
-            PAL_MakeScene();
-            VIDEO_UpdateScreen(NULL);
-         }
-
-         //
-         // Execute the script
-         //
-         p->wTriggerScript = PAL_RunTriggerScript(p->wTriggerScript, k + 1);
-
-#if PD_Scene_ShowEventMessages
-         //
-         // __DEBUG__显示附加地图元素
-         //
-         if (gpGlobals->fIsTriggerScriptRun)
-         {
-            gpGlobals->fIsTriggerScriptRun = FALSE;
-         }
-#endif // PD_Scene_ShowEventMessages
-
-         //
-         // Clear inputs and delay for a short time
-         //
-         UTIL_Delay(50);
-         PAL_ClearKeyState();
-
-         return; // don't go further
-      }
-   }
-
-#if PD_Scene_ShowEventCheckBlock
-   if (gpGlobals->fShowEventMessages) VIDEO_UpdateScreen(NULL);
-#endif // PD_Scene_ShowEventCheckBlock
-}
-
-VOID
-PAL_StartFrame(
-   VOID
-)
-/*++
-  Purpose:
-
-    Starts a video frame. Called once per video frame.
-
-  Parameters:
-
-    None.
-
-  Return value:
-
-    None.
-
---*/
-{
-   //
-   // Run the game logic of one frame
-   //
-   PAL_GameUpdate(TRUE);
-
-#if PD_Scene_BlackScreenOneStep
-   //
-   // Update the positions and gestures of party members
-   //
-   switch (gpGlobals->wNumScene)
-   {
-   case 93:    // 扬州井下洞天
-   case 187:   // 神木林脚下
-      if (gpGlobals->fEnteringScene) return;
-      PAL_UpdateParty();
-      break;
-
-   default:    // 火麒麟洞二段未知原因下方向只转向不前置
-      PAL_UpdateParty();
-      if (gpGlobals->fEnteringScene) return;
-      break;
-   }
-#else
-   if (gpGlobals->fEnteringScene)
-   {
-      return;
-   }
-
-   //
-   // Update the positions and gestures of party members
-   //
-   PAL_UpdateParty();
-#endif // PD_Scene_BlackScreenOneStep
-
-   //
-   // Update the scene
-   //
-   PAL_MakeScene();
-   VIDEO_UpdateScreen(NULL);
-
-   if (g_InputState.dwKeyPress & kKeyMenu)
-   {
-      //
-      // Show the in-game menu
-      //
-      PAL_InGameMenu();
-   }
-   else if (g_InputState.dwKeyPress & kKeyUseItem)
-   {
-      //
-      // Show the use item menu
-      //
-      PAL_GameUseItem();
-   }
-   else if (g_InputState.dwKeyPress & kKeyThrowItem)
-   {
-      //
-      // Show the equipment menu
-      //
-      PAL_GameEquipItem();
-   }
-   else if (g_InputState.dwKeyPress & kKeyForce)
-   {
-      //
-      // Show the magic menu
-      //
-      PAL_InGameMagicMenu();
-   }
-   else if (g_InputState.dwKeyPress & kKeyStatus)
-   {
-      //
-      // Show the player status
-      //
-      PAL_PlayerStatus();
-   }
-   else if (g_InputState.dwKeyPress & kKeySearch)
-   {
-      //
-      // Process search events
-      //
-      PAL_Search();
-   }
-   else if (g_InputState.dwKeyPress & kKeyFlee)
-   {
-      //
-      // Quit Game
-      //
-      PAL_QuitGame();
-   }
-#if PD_Scene_ShowEventMessages
-   else if (g_InputState.dwKeyPress & kKeyEventMessage)
-   {
-      gpGlobals->fShowEventMessages = !gpGlobals->fShowEventMessages;
-   }
-#endif // PD_Scene_ShowEventMessages
-#if PD_Can_Penetrate_Walls
-   else if (g_InputState.dwKeyPress & kKeyPenetrateWalls)
-   {
-      gpGlobals->fCanPenetrateWalls = !gpGlobals->fCanPenetrateWalls;
-   }
-#endif // PD_Can_Penetrate_Walls
-
-#if PD_Scene_ShowEventCheckBlock
-   if (gpGlobals->fShowEventMessages) PAL_Search();
-#endif // PD_Can_Penetrate_Walls
 }
 
 static inline VOID

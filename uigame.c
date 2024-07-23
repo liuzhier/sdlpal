@@ -852,9 +852,11 @@ StartMagicMenu:
                            //
                            // Don't go further if run out of MP
                            //
-                           wPlayer = MENUITEM_VALUE_CANCELLED;
+                           //wPlayer = MENUITEM_VALUE_CANCELLED;
                         }
                      }
+
+                     wPlayer = MENUITEM_VALUE_CANCELLED;
                   }
 
                   break;

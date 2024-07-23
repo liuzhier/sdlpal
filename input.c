@@ -66,7 +66,7 @@ static const int g_KeyMap[][2] = {
    { SDLK_ESCAPE,    kKeyMenu },
    { SDLK_INSERT,    kKeyMenu },
    { SDLK_LALT,      kKeyMenu },
-   { SDLK_RALT,      kKeyMenu },
+   //{ SDLK_RALT,      kKeyMenu },
    { SDLK_KP_0,      kKeyMenu },
    { SDLK_RETURN,    kKeySearch },
    { SDLK_SPACE,     kKeySearch },
@@ -1239,7 +1239,7 @@ VOID
 PAL_ProcessEvent(
    VOID
 )
-#if PD_Timer
+#if !PD_Timer
 {
    PAL_ProcessEventWithTimer(TRUE);
 }
@@ -1278,7 +1278,7 @@ PAL_ProcessEventWithTimer(
    PAL_TouchRepeatCheck();
 #endif
 
-#if PD_Timer
+#if !PD_Timer
    if (!gpGlobals->fInBattle && fUpdateTimer) PAL_New_Clock_GL();
 #endif // PD_Timer
 }

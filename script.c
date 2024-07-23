@@ -577,10 +577,41 @@ PAL_AdditionalCredits(
       PAL_DrawText(buffer, PAL_XY(0, 2 + i * 16), DESCTEXT_COLOR, TRUE, FALSE, FALSE);
    }
 
+
+   //
+   // Create the box.
+   //
+   PAL_POS   pos = PAL_XY(230, 107);
+
+   LPBOX     lpBox1 = PAL_CreateSingleLineBox(pos + PAL_XY(0, 29), 5, TRUE);
+   if (lpBox1 == NULL)
+   {
+      return;
+   }
+
+   LPBOX     lpBox = PAL_CreateSingleLineBoxWithShadow(pos, 5, TRUE, 0);
+   if (lpBox == NULL)
+   {
+      return;
+   }
+
+   //
+   // Draw the text label.
+   //
+   PAL_DrawText(L"您的成绩为", pos + PAL_XY(10, 10), 0, FALSE, FALSE, FALSE);
+
+   //
+   // Draw the cash amount.
+   //
+   PAL_New_Clock_GL();
+
    PAL_SetPalette(0, FALSE);
    VIDEO_UpdateScreen(NULL);
 
-   PAL_WaitForKey(0);
+   for (INT i = 0; i < 6; i++) PAL_WaitForKey(0);
+
+   PAL_DeleteBox(lpBox);
+   PAL_DeleteBox(lpBox1);
 }
 
 static WORD
@@ -647,9 +678,9 @@ PAL_InterpretInstruction(
       iPlayerRole = gpGlobals->rgParty[0].wPlayerRole;
    }
 
-#if PD_GameLog_Save
+#if PD_Timer
    PAL_New_GameProgressCheckWithScript(wScriptEntry);
-#endif // PD_GameLog_Save
+#endif // PD_Timer
 
    switch (pScript->wOperation)
    {
@@ -988,24 +1019,6 @@ PAL_InterpretInstruction(
       // Add item to inventory
       //
       PAL_AddItemToInventory(pScript->rgwOperand[0], (SHORT)(pScript->rgwOperand[1]));
-
-#if PD_GameLog_Save
-      switch (pScript->rgwOperand[0])
-      {
-      case 115: // 蜂巢
-      case 131: // 蜂王蜜
-      case 143: // 火蚕蛊
-      case 162: // 血玲珑
-      case 212: // 夜行衣
-      case 184: // 龙泉剑
-      case 291: // 香蕉
-         PAL_New_GameLog_ItemCount();
-         break;
-
-      default:
-         break;
-      }
-#endif // PD_GameLog_Save
       break;
 
    case 0x0020:
@@ -1904,6 +1917,7 @@ PAL_InterpretInstruction(
       //
       // Change to the specified scene
       //
+      gpGlobals->wNumSceneBak = gpGlobals->wNumScene;
       if (pScript->rgwOperand[0] > 0 && pScript->rgwOperand[0] <= MAX_SCENES &&
          gpGlobals->wNumScene != pScript->rgwOperand[0])
       {
@@ -1912,14 +1926,9 @@ PAL_InterpretInstruction(
          //
          gpGlobals->wNumScene = pScript->rgwOperand[0];
          PAL_SetLoadFlags(kLoadScene);
-#if !PD_Scene_BlackScreenOneStep
          gpGlobals->fEnteringScene = TRUE;
-#endif // !PD_Scene_BlackScreenOneStep
          gpGlobals->wLayer = 0;
       }
-#if PD_Scene_BlackScreenOneStep
-      gpGlobals->fEnteringScene = TRUE;
-#endif // PD_Scene_BlackScreenOneStep
       break;
 
    case 0x005A:
@@ -2047,7 +2056,7 @@ PAL_InterpretInstruction(
       // Throw weapon to enemy
       //
       w = pScript->rgwOperand[1] * 5;
-      w += gpGlobals->g.PlayerRoles.rgwAttackStrength[gpGlobals->rgParty[g_Battle.wMovingPlayerIndex].wPlayerRole] * RandomFloat(0, 4);
+      w += gpGlobals->g.PlayerRoles.rgwAttackStrength[gpGlobals->rgParty[g_Battle.wMovingPlayerIndex].wPlayerRole] * RandomFloat(0, 3.9);
       PAL_BattleSimulateMagic((SHORT)wEventObjectID, pScript->rgwOperand[0], w);
       break;
 
@@ -3221,9 +3230,9 @@ PAL_RunTriggerScript(
 
    extern BOOL       g_fUpdatedInBattle; // HACKHACK
 
-#if PD_GameLog_Save
+#if PD_Timer
    PAL_New_GameProgressCheckWithScript(wScriptEntry);
-#endif // PD_GameLog_Save
+#endif // PD_Timer
 
    wNextScriptEntry = wScriptEntry;
    fEnded = FALSE;
@@ -3380,10 +3389,9 @@ PAL_RunTriggerScript(
          }
 #endif
 
-#if PD_GameLog_Save
-         gpGlobals->rgGameProgressKey.wBossID = 0xFFFF;
-         PAL_New_GameLog_Save();
-#endif // PD_GameLog_Save
+#if PD_Timer
+         gpGlobals->rgGameProgress.wBossID = 0xFFFF;
+#endif // PD_Timer
 
 #if PD_Timer
          g_Battle.ctBattleBeginTime_Bak = g_Battle.ctBattleBeginTime;
@@ -3426,10 +3434,9 @@ PAL_RunTriggerScript(
          }
 #endif // PD_Battle_ShortcutKey_R_AutoTarget
 
-#if PD_GameLog_Save
-         gpGlobals->rgGameProgressKey.wBossID = 0x0000;
-         PAL_New_GameLog_Save();
-#endif // PD_GameLog_Save
+#if PD_Timer
+         gpGlobals->rgGameProgress.wBossID = 0x0000;
+#endif // PD_Timer
          break;
 
       case 0x0008:

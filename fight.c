@@ -216,7 +216,7 @@ PAL_CalcMagicDamage(
    //
    // Formula courtesy of palxex and shenyanduxing
    //
-   wMagicStrength *= RandomFloat(10, 11);
+   wMagicStrength *= (int)RandomFloat(10, 11);
    wMagicStrength /= 10;
 
    sDamage = PAL_CalcBaseDamage(wMagicStrength, wDefense);
@@ -769,9 +769,9 @@ PAL_BattlePostActionCheck(
          //
          // This enemy is KO'ed
          //
-#if PD_GameLog_Save
+#if PD_Timer
          PAL_New_GameProgressCheckWithEnemy(g_Battle.rgEnemy[i].wObjectID, TRUE);
-#endif // PD_GameLog_Save
+#endif // PD_Timer
 
 #if PD_Timer
          if (g_Battle.rgEnemy[i].wObjectID == 546)
@@ -789,7 +789,7 @@ PAL_BattlePostActionCheck(
          AUDIO_PlaySound(g_Battle.rgEnemy[i].e.wDeathSound);
          g_Battle.rgEnemy[i].wObjectID = 0;
          if (g_Battle.rgEnemy[i].lpSprite)
-             free(g_Battle.rgEnemy[i].lpSprite);
+            free(g_Battle.rgEnemy[i].lpSprite);
          g_Battle.rgEnemy[i].lpSprite = NULL;
          fFade = TRUE;
 

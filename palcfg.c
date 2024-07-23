@@ -280,9 +280,9 @@ PAL_FreeConfig(
     free(gConfig.pszSavePath);
     free(gConfig.pszShaderPath);
     free(gConfig.pszScaleQuality);
-#if !PD_GameLog_Save
+#if !PD_DEBUG_Level
 	free(gConfig.pszLogFile);
-#endif // PD_GameLog_Save
+#endif // !PD_DEBUG_Level
 
 	memset(&gConfig, 0, sizeof(CONFIGURATION));
 }

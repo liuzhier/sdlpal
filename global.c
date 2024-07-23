@@ -495,22 +495,13 @@ typedef struct tagSAVEDGAME_COMMON
 	WORD             wNumBattleMusic;         // battle music number
 	WORD             wNumBattleField;         // battle field number
 	WORD             wScreenWave;             // level of screen waving
-#if PD_GameLog_Save
-   WORD             wGameProgressCheckout;   // game progress
-#else
 	WORD             wBattleSpeed;            // battle speed
-#endif // PD_GameLog_Save
 	WORD             wCollectValue;           // value of "collected" items
 	WORD             wLayer;
 	WORD             wChaseRange;
 	WORD             wChasespeedChangeCycles;
 	WORD             nFollower;
-#if PD_GameLog_Save
-   USHORT           wGameProgressSavedTimes; // game progress saved times
-   DWORD            dwGameProgress;          // game progress
-#else
 	WORD             rgwReserved2[3];         // unused
-#endif // PD_GameLog_Save
 	DWORD            dwCash;                  // amount of cash
 	PARTY            rgParty[MAX_PLAYABLE_PLAYER_ROLES];       // player party
 	TRAIL            rgTrail[MAX_PLAYABLE_PLAYER_ROLES];       // player trail
@@ -626,7 +617,8 @@ PAL_LoadGame_Common(
 	//
 	gpGlobals->viewport = PAL_XY(s->wViewportX, s->wViewportY);
 	gpGlobals->wMaxPartyMemberIndex = s->nPartyMember;
-	gpGlobals->wNumScene = s->wNumScene;
+   gpGlobals->wNumScene = s->wNumScene;
+   gpGlobals->wNumSceneBak = 1;
 	gpGlobals->fNightPalette = (s->wPaletteOffset != 0);
 	gpGlobals->wPartyDirection = s->wPartyDirection;
 	gpGlobals->wNumMusic = s->wNumMusic;
@@ -660,17 +652,9 @@ PAL_LoadGame_Common(
 
 	PAL_CompressInventory();
 
-#if PD_GameLog_Save
-   memset(&gpGlobals->rgGameProgressKey, 0, sizeof(GAMEPROGRESSKEY));
-
-   gpGlobals->rgGameProgressKey.wGameProgressSavedTimes = s->wGameProgressSavedTimes;
-   gpGlobals->rgGameProgressKey.dwGameProgress = s->dwGameProgress;
-   gpGlobals->rgGameProgressKey.wGameProgressCheck = s->wGameProgressCheckout;
-
+#if PD_Timer
    PAL_New_GameLog_ItemCount();
-   PAL_New_GameLog_Save();
-#endif // PD_GameLog_Save
-
+#endif // PD_Timer
 
 	return TRUE;
 }
@@ -797,17 +781,11 @@ PAL_SaveGame_Common(
 	s->nFollower = gpGlobals->nFollower;
 	s->dwCash = gpGlobals->dwCash;
 
-#if PD_GameLog_Save
-   s->wGameProgressSavedTimes = gpGlobals->rgGameProgressKey.wGameProgressSavedTimes;
-   s->dwGameProgress = gpGlobals->rgGameProgressKey.dwGameProgress;
-   s->wGameProgressCheckout = gpGlobals->rgGameProgressKey.wGameProgressCheck;
-#else
 #ifndef PAL_CLASSIC
 	s->wBattleSpeed = gpGlobals->bBattleSpeed;
 #else
 	s->wBattleSpeed = 2;
 #endif
-#endif // PD_GameLog_Save
 
 	memcpy(s->rgParty, gpGlobals->rgParty, sizeof(gpGlobals->rgParty));
 	memcpy(s->rgTrail, gpGlobals->rgTrail, sizeof(gpGlobals->rgTrail));
@@ -953,6 +931,8 @@ PAL_ReloadInNextTick(
     gpGlobals->fEnteringScene = TRUE;
     gpGlobals->fNeedToFadeIn = TRUE;
     gpGlobals->dwFrameNum = 0;
+
+    gpGlobals->fIsLoadSave = TRUE;
 }
 
 VOID
@@ -1203,6 +1183,24 @@ PAL_AddItemToInventory(
          gpGlobals->rgInventory[index].nAmount = iNum;
       }
 
+#if PD_Timer
+      switch (wObjectID)
+      {
+      case 115: // 蜂巢
+      case 131: // 蜂王蜜
+      case 143: // 火蚕蛊
+      case 162: // 血玲珑
+      case 212: // 夜行衣
+      case 184: // 龙泉剑
+      case 291: // 香蕉
+         PAL_New_GameLog_ItemCount();
+         break;
+
+      default:
+         break;
+      }
+#endif // PD_Timer
+
       return TRUE;
    }
    else
@@ -1230,6 +1228,25 @@ PAL_AddItemToInventory(
          if (gpGlobals->rgInventory[index].nAmount == 0 && index == gpGlobals->iCurInvMenuItem && index + 1 < MAX_INVENTORY && gpGlobals->rgInventory[index + 1].nAmount <= 0)
             gpGlobals->iCurInvMenuItem--;
 #endif
+
+#if PD_Timer
+         switch (wObjectID)
+         {
+         case 115: // 蜂巢
+         case 131: // 蜂王蜜
+         case 143: // 火蚕蛊
+         case 162: // 血玲珑
+         case 212: // 夜行衣
+         case 184: // 龙泉剑
+         case 291: // 香蕉
+            PAL_New_GameLog_ItemCount();
+            break;
+
+         default:
+            break;
+         }
+#endif // PD_Timer
+
          return TRUE;
       }
 
@@ -2457,12 +2474,12 @@ PAL_PlayerLevelUp(
       //
       // Increase player's stats
       //
-      gpGlobals->g.PlayerRoles.rgwMaxHP[wPlayerRole] += 10 + RandomLong(0, 8);
-      gpGlobals->g.PlayerRoles.rgwMaxMP[wPlayerRole] += 8 + RandomLong(0, 6);
-      gpGlobals->g.PlayerRoles.rgwAttackStrength[wPlayerRole] += 4 + RandomLong(0, 1);
-      gpGlobals->g.PlayerRoles.rgwMagicStrength[wPlayerRole] += 4 + RandomLong(0, 1);
-      gpGlobals->g.PlayerRoles.rgwDefense[wPlayerRole] += 2 + RandomLong(0, 1);
-      gpGlobals->g.PlayerRoles.rgwDexterity[wPlayerRole] += 2 + RandomLong(0, 1);
+      gpGlobals->g.PlayerRoles.rgwMaxHP[wPlayerRole] += 10 + RandomFloat(0, 7.9);
+      gpGlobals->g.PlayerRoles.rgwMaxMP[wPlayerRole] += 8 + RandomFloat(0, 5.9);
+      gpGlobals->g.PlayerRoles.rgwAttackStrength[wPlayerRole] += 4 + RandomFloat(0, 1);
+      gpGlobals->g.PlayerRoles.rgwMagicStrength[wPlayerRole] += 4 + RandomFloat(0, 1);
+      gpGlobals->g.PlayerRoles.rgwDefense[wPlayerRole] += 2 + RandomFloat(0, 1);
+      gpGlobals->g.PlayerRoles.rgwDexterity[wPlayerRole] += 2 + RandomFloat(0, 1);
       gpGlobals->g.PlayerRoles.rgwFleeRate[wPlayerRole] += 2;
    }
 
@@ -3058,25 +3075,24 @@ PAL_New_Path30RemoveFile(
    remove(PAL_va(1, "%s%s", gConfig.pszGamePath, PD_Read_Path30_MUS));
    remove(PAL_va(1, "%s%s", gConfig.pszGamePath, PD_Read_Path30_MSG));
 
-#if PD_GameLog_Save && _DEBUG
-   memset(&gpGlobals->rgGameProgressKey, 0, sizeof(GAMEPROGRESSKEY));
-   PAL_New_GameLog_Save();
+#if PD_Timer
    remove(PAL_va(1, "%s%s", gConfig.pszGamePath, PD_Read_Path30_KEY));
-
-   remove(PAL_va(1, "%s/%s", gConfig.pszGamePath, gConfig.pszLogFile));
-#endif // PD_GameLog_Save && _DEBUG
+#endif // PD_Timer
 }
 #endif // PD_Read_Path30
 
-#if PD_GameLog_Save
+#if PD_Timer
 VOID
 PAL_New_GameLog_Save(
    VOID
 )
 {
    FILE                *fp;
+   LPGAMEPROGRESS       lpGP = &gpGlobals->rgGameProgress;
+
+#if !PD_Timer
    INT                  i;
-   LPGAMEPROGRESSKEY    lpGPK = &gpGlobals->rgGameProgressKey;
+
    LPCSTR               lpcszProgressName[] = {
       "空",
       "游戏开始",
@@ -3110,15 +3126,6 @@ PAL_New_GameLog_Save(
       "进入香蕉树周围",
    };
 
-   //
-   // Try writing to file
-   //
-   if ((fp = UTIL_OpenFileAtPathForMode(gConfig.pszGamePath, PD_Read_Path30_KEY, "wb")) == NULL)
-   {
-      return;
-   }
-
-#if _DEBUG && PD_DEBUG_Level
    remove(PAL_va(1, "%s/%s", gConfig.pszGamePath, gConfig.pszLogFile));
 
    for (i = 0; i < sizeof(lpcszProgressName) / sizeof(lpcszProgressName[0]) - 1; i++)
@@ -3142,15 +3149,57 @@ PAL_New_GameLog_Save(
    }
 
    UTIL_LogOutput(LOGLEVEL_NEW, "香蕉: %d\n", lpGPK->nBanana);
-#endif // _DEBUG
+
+   gpGlobals->rgGameProgress.lpszFlag = "老勾害我！";
 
    //
-   // Increase the number of progress storage times
+   // Try writing to file
    //
-   if (lpGPK->dwGameProgress) lpGPK->wGameProgressSavedTimes++;
+   if ((fp = UTIL_OpenFileAtPathForMode(gConfig.pszGamePath, PD_Read_Path30_KEY, "wb")) == NULL)
+   {
+      return;
+   }
 
-   fwrite(&gpGlobals->rgGameProgressKey, sizeof(GAMEPROGRESSKEY), 1, fp);
+   uint64_t    dwGame;
+
+   dwGame = &(gpGlobals->rgGameProgress);
+   fwrite((uint64_t*)&dwGame, 8, 1, fp);
+
+   dwGame = gpGlobals;
+   fwrite((uint64_t*)&dwGame, 8, 1, fp);
+
+   dwGame = &(gpGlobals->dwCash) - (void*)gpGlobals;
+   fwrite((uint64_t*)&dwGame, 8, 1, fp);
+
+   dwGame = &(gpGlobals->rgTrail[0].x) - (void*)gpGlobals;
+   fwrite((uint64_t*)&dwGame, 8, 1, fp);
+
+   dwGame = &(gpGlobals->rgTrail[0].y) - (void*)gpGlobals;
+   fwrite((uint64_t*)&dwGame, 8, 1, fp);
+
+   dwGame = &(gpGlobals->wNumScene) - (void*)gpGlobals;
+   fwrite((uint64_t*)&dwGame, 8, 1, fp);
+
+   dwGame = &(gpGlobals->wNumBattleMusic) - (void*)gpGlobals;
+   fwrite((uint64_t*)&dwGame, 8, 1, fp);
+
+   dwGame = &(gpGlobals->wNumMusic) - (void*)gpGlobals;
+   fwrite((uint64_t*)&dwGame, 8, 1, fp);
+
+   dwGame = &(g_Battle.rgEnemy);
+   fwrite((uint64_t*)&dwGame, 8, 1, fp);
+
+   dwGame = &(gpGlobals->rgInventory) - (void*)gpGlobals;
+   fwrite((uint64_t*)&dwGame, 8, 1, fp);
+
+   dwGame = &(gpGlobals->fInBattle) - (void*)gpGlobals;
+   fwrite((uint64_t*)&dwGame, 8, 1, fp);
+
+   dwGame = &(gpGlobals->ctGameBeginTime) - (void*)gpGlobals;
+   fwrite((uint64_t*)&dwGame, 8, 1, fp);
+
    fclose(fp);
+#endif // !PD_Timer
 }
 
 VOID
@@ -3170,31 +3219,31 @@ PAL_New_GameLog_ItemCount(
       switch (thisInventory->wItem)
       {
       case 115:
-         n = &gpGlobals->rgGameProgressKey.nBeeHive;
+         n = &gpGlobals->rgGameProgress.nBeeHive;
          break;
 
       case 131:
-         n = &gpGlobals->rgGameProgressKey.nHoney;
+         n = &gpGlobals->rgGameProgress.nHoney;
          break;
 
       case 143:
-         n = &gpGlobals->rgGameProgressKey.nFireBug;
+         n = &gpGlobals->rgGameProgress.nFireBug;
          break;
 
       case 162:
-         n = &gpGlobals->rgGameProgressKey.nBloodBall;
+         n = &gpGlobals->rgGameProgress.nBloodBall;
          break;
 
       case 212:
-         n = &gpGlobals->rgGameProgressKey.nNightTight;
+         n = &gpGlobals->rgGameProgress.nNightTight;
          break;
 
       case 184:
-         n = &gpGlobals->rgGameProgressKey.nLQSword;
+         n = &gpGlobals->rgGameProgress.nLQSword;
          break;
 
       case 291:
-         n = &gpGlobals->rgGameProgressKey.nBanana;
+         n = &gpGlobals->rgGameProgress.nBanana;
          break;
 
       default:
@@ -3203,8 +3252,6 @@ PAL_New_GameLog_ItemCount(
 
       if (n != NULL) *n = thisInventory->nAmount;
    }
-
-   PAL_New_GameLog_Save();
 }
 
 VOID
@@ -3212,7 +3259,7 @@ PAL_New_GameProgressCheckWithScript(
    WORD           wScriptEntry
 )
 {
-   GAMEPROGRESS      emGameProgress = kGAMEPROGRESS_NULL;
+   GAMEPROGRESSKEY   emGameProgress = kGAMEPROGRESS_NULL;
 
    switch (wScriptEntry)
    {
@@ -3397,10 +3444,9 @@ PAL_New_GameProgressCheckWithScript(
    }
 
    if (emGameProgress != kGAMEPROGRESS_NULL &&
-      !(gpGlobals->rgGameProgressKey.dwGameProgress & emGameProgress))
+      !(gpGlobals->rgGameProgress.dwGameProgressKey & emGameProgress))
    {
-      gpGlobals->rgGameProgressKey.dwGameProgress |= emGameProgress;
-      PAL_New_GameLog_Save();
+      gpGlobals->rgGameProgress.dwGameProgressKey |= emGameProgress;
    }
 }
 
@@ -3410,33 +3456,33 @@ PAL_New_GameProgressCheckWithEnemy(
    BOOL           fIsCheckDead
 )
 {
-   GAMEPROGRESS            emGameProgress       = kGAMEPROGRESS_NULL;
+   GAMEPROGRESSKEY         emGameProgressKey    = kGAMEPROGRESS_NULL;
    GAMEPROGRESSCHECK       emGameProgressCheck  = kGAMEPROGRESSCHECK_NULL;
 
    switch (wEnemyObjectID)
    {
    case 472:
-      emGameProgress = kGAMEPROGRESS_DEFEAT_THE_GUI_GENERAL;
+      emGameProgressKey = kGAMEPROGRESS_DEFEAT_THE_GUI_GENERAL;
       break;
 
    case 473:
-      emGameProgress = kGAMEPROGRESS_DEFEAT_THE_RED_GHOST_KING;
+      emGameProgressKey = kGAMEPROGRESS_DEFEAT_THE_RED_GHOST_KING;
       break;
 
    case 468:
-      emGameProgress = kGAMEPROGRESS_DEFEAT_THE_CAIYI;
+      emGameProgressKey = kGAMEPROGRESS_DEFEAT_THE_CAIYI;
       break;
 
    case 542:
-      emGameProgress = kGAMEPROGRESS_DESTROY_THE_TOWER;
+      emGameProgressKey = kGAMEPROGRESS_DESTROY_THE_TOWER;
       break;
 
    case 464:
-      emGameProgress = kGAMEPROGRESS_DEFEAT_THE_PHOENIX;
+      emGameProgressKey = kGAMEPROGRESS_DEFEAT_THE_PHOENIX;
       break;
 
    case 546:
-      emGameProgress = kGAMEPROGRESS_GAME_END;
+      emGameProgressKey = kGAMEPROGRESS_GAME_END;
       break;
 
    default:
@@ -3456,48 +3502,22 @@ PAL_New_GameProgressCheckWithEnemy(
       break;
    }
 
-   if (emGameProgress != kGAMEPROGRESS_NULL)
+   if (fIsCheckDead)
    {
-      if (fIsCheckDead)
+      if (emGameProgressCheck != kGAMEPROGRESSCHECK_NULL)
       {
-         if (!(gpGlobals->rgGameProgressKey.dwGameProgress & emGameProgress))
-         {
-            gpGlobals->rgGameProgressKey.dwGameProgress |= emGameProgress;
-         }
-
-         if (gpGlobals->rgGameProgressKey.wBossID == wEnemyObjectID)
-         {
-            gpGlobals->rgGameProgressKey.wBossID = 0xFFFF;
-         }
+         gpGlobals->rgGameProgress.wGameProgressCheck |= emGameProgressCheck;
       }
-      else
+      else if(emGameProgressKey != kGAMEPROGRESS_NULL)
       {
-         gpGlobals->rgGameProgressKey.wBossID = wEnemyObjectID;
+         gpGlobals->rgGameProgress.dwGameProgressKey |= emGameProgressKey;
       }
 
-      PAL_New_GameLog_Save();
+      gpGlobals->rgGameProgress.wBossID = 0xFFFF;
    }
-
-   if (emGameProgressCheck != kGAMEPROGRESSCHECK_NULL)
+   else
    {
-      if (fIsCheckDead)
-      {
-         if (!(gpGlobals->rgGameProgressKey.wGameProgressCheck & emGameProgressCheck))
-         {
-            gpGlobals->rgGameProgressKey.wGameProgressCheck |= emGameProgressCheck;
-         }
-
-         if (gpGlobals->rgGameProgressKey.wBossID == wEnemyObjectID)
-         {
-            gpGlobals->rgGameProgressKey.wBossID = 0xFFFF;
-         }
-      }
-      else
-      {
-         gpGlobals->rgGameProgressKey.wBossID = wEnemyObjectID;
-      }
-
-      PAL_New_GameLog_Save();
+      gpGlobals->rgGameProgress.wBossID = wEnemyObjectID;
    }
 }
 
@@ -3506,7 +3526,7 @@ PAL_New_GameProgressCheckBananaTree(
    VOID
 )
 {
-   const PAL_POS wCheckBananaTree[9] = {
+   const static PAL_POS wCheckBananaTree[9] = {
                          PAL_XY(1264, 696),
                PAL_XY(1248, 704), PAL_XY(1280, 704),
       PAL_XY(1232, 712), PAL_XY(1264, 712), PAL_XY(1296, 712),
@@ -3525,17 +3545,11 @@ PAL_New_GameProgressCheckBananaTree(
          PAL_DrawText(itemText, PAL_XY((320 - PAL_TextWidth(itemText)) / 2, 10),
             MENUITEM_COLOR_CONFIRMED, TRUE, FALSE, FALSE);
 
-         if (!(gpGlobals->rgGameProgressKey.wGameProgressCheck & kGAMEPROGRESSCHECK_THE_BANANA_TREE))
-         {
-            gpGlobals->rgGameProgressKey.wGameProgressCheck |= kGAMEPROGRESSCHECK_THE_BANANA_TREE;
-            PAL_New_GameLog_Save();
-         }
+         gpGlobals->rgGameProgress.wGameProgressCheck |= kGAMEPROGRESSCHECK_THE_BANANA_TREE;
       }
    }
 }
-#endif // PD_GameLog_Save
 
-#if PD_Timer
 static VOID
 PAL_New_Clock(
    clock_t     begin,
@@ -3553,21 +3567,23 @@ PAL_New_Clock(
    if (end == -1) end = clock();
 
    clock_t time = end - begin;
-   PAL_DrawNumberWithShadow(time / 10, 2, PAL_XY(x, y), kNumColorYellow, kNumAlignRight, TRUE);
+   PAL_DrawNumberWithShadow(time / 10, 2, PAL_XY(x, y), kNumColorYellow, kNumAlignRight, (gpGlobals->ctGameEndTime == -1));
 
    time /= CLOCKS_PER_SEC;
    x -= 20;
-   PAL_DrawNumberWithShadow(time % 60, 2, PAL_XY(x, y), kNumColorCyan, kNumAlignRight, TRUE);
+   PAL_DrawNumberWithShadow(time % 60, 2, PAL_XY(x, y), kNumColorCyan, kNumAlignRight, (gpGlobals->ctGameEndTime == -1));
 
    time /= 60;
    x -= 20;
-   PAL_DrawNumberWithShadow(time % 60, 2, PAL_XY(x, y), kNumColorBlue, kNumAlignRight, TRUE);
+   PAL_DrawNumberWithShadow(time % 60, 2, PAL_XY(x, y), kNumColorBlue, kNumAlignRight, (gpGlobals->ctGameEndTime == -1));
 
    time /= 60;
    x -= 20;
-   PAL_DrawNumberWithShadow(time % 60, 2, PAL_XY(x, y), kNumColorYellow, kNumAlignRight, TRUE);
+   PAL_DrawNumberWithShadow(time % 60, 2, PAL_XY(x, y), kNumColorYellow, kNumAlignRight, (gpGlobals->ctGameEndTime == -1));
 
    w -= x;
+
+   return;
 
    if (gpGlobals->fInBattle) return;
 
@@ -3602,5 +3618,13 @@ PAL_New_Clock_GL(
       PAL_New_Clock_Scene();
       PAL_New_Clock_Battle();
    }
+}
+
+VOID
+SetTimingNode(
+   GAMEPROGRESSKEY      GameProgressKey
+)
+{
+   gpGlobals->rgGameProgress.dwGameProgressKey |= GameProgressKey;
 }
 #endif // PD_Timer

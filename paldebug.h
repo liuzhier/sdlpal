@@ -50,20 +50,18 @@
 #define     PAL_FIXBUG                             1
 
 #if     PAL_FIXBUG
+   // 自动计时器
+   #define     PD_Timer                            1
 
    // 直接读取 3.0 补丁
-   #define     PD_Read_Path30                      1
+   #define     PD_Read_Path30                      0
       #if PD_Read_Path30
          #define     PD_Read_Path30_SSS            "SSS.MKF.FIXED"
          #define     PD_Read_Path30_MUS            "MUS.MKF.FIXED"
          #define     PD_Read_Path30_MSG            "M.MSG.FIXED"
          #define     PD_Read_Path30_KEY            "GAMEPROGRESS.KEY"
-         // log 输出游戏进度
-         #define     PD_GameLog_Save               0
          // 自定义级别的 DEBUG
          #define     PD_DEBUG_Level                0
-         // 自动计时器
-         #define     PD_Timer                      1
       #endif // PD_Read_Path30
 
    // 加快对话速度

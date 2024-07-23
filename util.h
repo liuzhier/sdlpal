@@ -91,7 +91,7 @@ UTIL_Delay(
    unsigned int ms
 );
 
-#if PD_Timer
+#if !PD_Timer
 void
 UTIL_DelayWithTimer(
    unsigned int ms,
