@@ -105,9 +105,15 @@ PAL_GameUpdate(
       //
       // Loop through all event objects in the current scene
       //
+#ifndef PALMOD_MainData_SCENE_PATH
       for (wEventObjectID = gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex + 1;
          wEventObjectID <= gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex;
          wEventObjectID++)
+#else
+      for (wEventObjectID = gpGlobals->g.rgScene[gpGlobals->wNumScene - 1].wEventObjectIndex + 1;
+         wEventObjectID <= gpGlobals->g.rgScene[gpGlobals->wNumScene].wEventObjectIndex;
+         wEventObjectID++)
+#endif // ndef PALMOD_MainData_SCENE_PATH
       {
 #if PALMOD_BULK_DATA_SSS
          p = &gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObject(wEventObjectID - 1)];

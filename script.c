@@ -3158,19 +3158,12 @@ PAL_InterpretInstruction(
       //
       // Set event object state and trigger script
       //
-   {
-      LPEVENTOBJECT          pEvtObjThis;
-
-#if PALMOD_BULK_DATA_SSS
-      pEvtObjThis = &gpGlobals->g.lprgEventObject[PAL_New_GetSceneEventObjectWithScript(pScript->rgwOperand[0] - 1)];
-#else
-      pEvtObjThis = &gpGlobals->g.lprgEventObject[pScript->rgwOperand[0] - 1];
-#endif // PALMOD_BULK_DATA_SSS
-
-      pEvtObjThis->sState = pScript->rgwOperand[1];
-      pEvtObjThis->wTriggerScript = pScript->rgwOperand[2];
-   }
-   break;
+      if (pScript->rgwOperand[0] != 0)
+      {
+         pCurrent->sState = pScript->rgwOperand[1];
+         pCurrent->wTriggerScript = pScript->rgwOperand[2];
+      }
+      break;
 #endif
 
    default:

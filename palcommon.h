@@ -42,6 +42,10 @@ typedef DWORD           PAL_POS;
    #define PAL_MIN(a,b) (((a) < (b)) ? (a) : (b))
 #endif // PD_Battle_ShowPlayerLevelmagic
 
+#ifdef PALMOD_MainData_SCENE_PATH
+   #define PAL_GetSceneEvent       (gpGlobals->wNumScene - 1) * 150
+#endif // ndef PALMOD_MainData_SCENE_PATH
+
 // maximum number of players in party
 #define     MAX_PLAYERS_IN_PARTY         3
 
@@ -82,7 +86,7 @@ typedef DWORD           PAL_POS;
 // maximum number of event objects (should be somewhat more than the original,
 // as there are some modified versions which has more)
 #if PALMOD_BULK_DATA_SSS
-#define     MAX_SCENE_EVENT_OBJECTS      0x80
+#define     MAX_SCENE_EVENT_OBJECTS      0x96
 #define     MAX_EVENT_OBJECTS            MAX_SCENES * MAX_SCENE_EVENT_OBJECTS
 #else
 #define     MAX_EVENT_OBJECTS            5500

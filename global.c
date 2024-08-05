@@ -3210,7 +3210,7 @@ PAL_New_LoadScene(
          
          switch (*lpszTextContent)
          {
-         case '#':
+         case '$':
             {
                for (j = 0; j < nSceneParam; j++)
                {
@@ -3244,7 +3244,7 @@ PAL_New_LoadScene(
             }
             break;
 
-         case '@':
+         case '#':
             {
                for (j = 0; j < nObjectParam; j++)
                {
