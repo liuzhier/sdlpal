@@ -347,12 +347,30 @@ typedef enum tagMAGIC_TYPE
    kMagicTypeSummon           = 9,  // summon
 } MAGIC_TYPE;
 
+typedef struct tagMAGIC_EFFECT
+{
+   SHORT              sLayerOffset;    // limited to non-summon magic.
+                                       // actual layer: PAL_Y(pos) + wYOffset + wMagicLayerOffset
+   SHORT              wSpeed;          // speed of the effect
+   WORD               wKeepEffect;     // FIXME: ???
+   WORD               wFireDelay;      // start frame of the magic fire stage
+   WORD               wEffectTimes;    // total times of effect
+} MAGIC_EFFECT, *LPMAGIC_EFFECT;
+
+typedef struct tagSUMMON_EFFECT
+{
+   WORD               wSpriteNum;         // summon effect sprite (in F.MKF)
+   WORD               wIdleFrames;        // total number of frames when idle
+   WORD               wMagicFrames;       // total number of frames when using magics
+   WORD               wAttackFrames;      // total number of frames when doing normal attack
+   SHORT              sColorShift;        // total times of effect
+} SUMMON_EFFECT, *LPSUMMON_EFFECT;
+
 typedef union tagMAGIC_SPECIAL
 {
-   WORD               wSummonEffect;         // summon effect sprite (in F.MKF)
-   SHORT              sLayerOffset;          // limited to non-summon magic.
-                                             // actual layer: PAL_Y(pos) + wYOffset + wMagicLayerOffset
-} MAGIC_SPECIAL, * LPMAGIC_SPECIAL;
+   MAGIC_EFFECT       rgMagic;     // non-summon magic plays an animation
+   SUMMON_EFFECT      rgSummon;    // summoning magic animation plays.
+} MAGIC_SPECIAL, *LPMAGIC_SPECIAL;
 
 typedef struct tagMAGIC
 {
@@ -360,11 +378,7 @@ typedef struct tagMAGIC
    WORD               wType;                 // type of this magic
    WORD               wXOffset;
    WORD               wYOffset;
-   MAGIC_SPECIAL      rgSpecific;            // have multiple meanings
-   SHORT              wSpeed;                // speed of the effect
-   WORD               wKeepEffect;           // FIXME: ???
-   WORD               wFireDelay;            // start frame of the magic fire stage
-   WORD               wEffectTimes;          // total times of effect
+   MAGIC_SPECIAL      rgEffect;              // magic animation plays
    WORD               wShake;                // shake screen
    WORD               wWave;                 // wave screen
    WORD               wUnknown;              // FIXME: ???
